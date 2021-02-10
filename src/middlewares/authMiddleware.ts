@@ -28,6 +28,7 @@ export const authenticateMiddleware = (
   next: NextFunction
 ) => {
   const { authorization } = req.headers;
+
   const token = authorization && authorization.split(" ")[1];
   if (token == null) return res.sendStatus(401);
   try {
@@ -38,7 +39,11 @@ export const authenticateMiddleware = (
       )
     );
 
-    if (req.params.herotag !== jwtPayload.herotag)
+    if (
+      ![req.params.herotag, `${req.params.herotag}.elrond`].includes(
+        jwtPayload.herotag
+      )
+    )
       throw new Error("cant_access_herotag");
 
     req.herotag = jwtPayload.herotag;
@@ -46,6 +51,7 @@ export const authenticateMiddleware = (
     next();
   } catch (error) {
     //If token is not valid, respond with 401 (unauthorized)
+    console.log(error);
     res.status(401).send(error);
     return;
   }

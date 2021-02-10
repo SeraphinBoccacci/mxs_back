@@ -13,7 +13,6 @@ export interface IftttIntegrationData {
 
 export interface UserType {
   _id?: Schema.Types.ObjectId;
-  name?: string;
   password?: string;
   herotag?: string;
   erdAddress?: string;
@@ -29,16 +28,16 @@ export interface UserType {
 
 const UserSchema = new Schema(
   {
-    name: { type: String, required: false },
-    password: { type: String, required: false },
+    password: { type: String, required: true },
     herotag: {
       type: String,
-      required: false,
+      required: true,
       validate: (herotag: string) => herotag.endsWith(".elrond"),
     },
     erdAddress: { type: String, required: false },
-    status: { type: UserAccountStatus, required: false },
-    verificationReference: { type: String, required: false },
+    status: { type: UserAccountStatus, required: true },
+    verificationReference: { type: String, required: true },
+    verificationStartDate: { type: String, required: true },
     integrations: {
       ifttt: {
         eventName: { type: String, required: false },

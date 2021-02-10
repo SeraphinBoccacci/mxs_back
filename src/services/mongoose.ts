@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-export const connectToDatabase = () => {
+export const connectToDatabase = async () => {
   mongoose
     .connect("mongodb://localhost:27017/mxs", {
       useNewUrlParser: true,

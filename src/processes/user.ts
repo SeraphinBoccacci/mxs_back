@@ -31,7 +31,9 @@ export const updateIftttIntegrationData = async (
 };
 
 export const getUserData = async (herotag: string) => {
-  const user = await User.findOne({ herotag }).lean();
+  const user = await User.findOne({
+    herotag: { $in: [herotag, `${herotag}.elrond`] },
+  }).lean();
 
   return user;
 };

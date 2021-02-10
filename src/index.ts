@@ -2,24 +2,21 @@ import { connectToDatabase } from "./services/mongoose";
 
 connectToDatabase();
 
+import https from "https";
 import http from "http";
-import { pollBalance } from "./utils/poll";
+import fs from "fs";
 import app from "./app";
 import { listen } from "./services/sockets";
 import { pollTransactionsToVerifyAccountStatuses } from "./processes/auth";
+
+const PORT = 4000;
 
 const server = http.createServer(app);
 
 listen(server);
 
-var stop = false;
-
-setTimeout(() => {
-  stop = true;
-}, 5000);
-
-server.listen(4000, async () => {
-  console.log("start listenning");
+server.listen(PORT, async () => {
+  console.log(`Start listenning on port : ${PORT}`);
 
   try {
     await pollTransactionsToVerifyAccountStatuses();

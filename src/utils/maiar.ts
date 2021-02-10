@@ -2,7 +2,6 @@ import { proxy, dns } from "../services/elrond";
 
 export const getErdAddressFromHerotag = async (herotag: string) => {
   const address = await dns.resolve(herotag);
-
   return address;
 };
 

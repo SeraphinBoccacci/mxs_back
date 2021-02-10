@@ -1,13 +1,12 @@
-import { ElrondTransaction, EventData } from "../interfaces";
-import User, { UserAccountStatus, UserMongooseDocument } from "../models/User";
+import { ElrondTransaction } from "../interfaces";
+import User, { UserAccountStatus, UserType } from "../models/User";
 
-import { dns } from "../services/elrond";
 import { generateJwt, getHashedPassword, verifyPassword } from "../utils/auth";
-import { v4 as uuidv4 } from "uuid";
 import poll from "../utils/poll";
 import { getErdAddressFromHerotag } from "../utils/maiar";
 import { getLastTransactions } from "../elrond";
 import { decodeDataFromTx } from "../utils/transactions";
+import { generateNewVerificationReference } from "../utils/nanoid";
 
 const VERIFY_TRANSACTION_TARGET = "";
 
@@ -29,17 +28,18 @@ const validateAccountCreationData = async (data: UserAccountCreationData) => {
   if (data.password !== data.confirm)
     throw new Error("PASSWORD_AND_CONFIRM_NOT_MATCHING");
 
-  const hasAlreadyHerotagRegistered = await User.findOne({
-    herotag: data.herotag,
-  }).lean();
-
-  if (!!hasAlreadyHerotagRegistered) throw new Error("ALREADY_REGISTERED_USER");
+  if (
+    await User.exists({
+      herotag: { $in: [data.herotag, `${data.herotag}.elrond`] },
+    })
+  )
+    throw new Error("ALREADY_REGISTERED_USER");
 };
 
 export const createUserAccount = async (data: UserAccountCreationData) => {
   await validateAccountCreationData(data);
 
-  const verificationReference = uuidv4();
+  const verificationReference = await generateNewVerificationReference();
 
   const hashedPassword = await getHashedPassword(data.password as string);
 
@@ -65,7 +65,7 @@ export const authenticateUser = async (data: UserAuthenticationData) => {
   await validateAuthenticationData(data);
 
   const user = await User.findOne({
-    herotag: data.herotag,
+    herotag: { $in: [data.herotag, `${data.herotag}.elrond`] },
   }).lean();
 
   if (!user) throw new Error("INVALID_FORM_NO_REGISTERED_HEROTAG");
@@ -98,7 +98,7 @@ export const getVerificationReference = async (herotag: string) => {
   return user?.verificationReference;
 };
 
-const verifyIfTransactionHappened = async (user: UserMongooseDocument) => {
+const verifyIfTransactionHappened = async (user: UserType) => {
   try {
     if (!user.herotag) return;
 
@@ -127,7 +127,7 @@ const verifyIfTransactionHappened = async (user: UserMongooseDocument) => {
 
 export const pollTransactionsToVerifyAccountStatuses = async () => {
   const verifyStatuses = async () => {
-    const users: UserMongooseDocument[] = await User.find({
+    const users: UserType[] = await User.find({
       status: UserAccountStatus.PENDING_VERIFICATION,
     }).lean();
 
