@@ -2,12 +2,11 @@ import { connectToDatabase } from "./services/mongoose";
 
 connectToDatabase();
 
-import https from "https";
 import http from "http";
-import fs from "fs";
 import app from "./app";
 import { listen } from "./services/sockets";
 import { pollTransactionsToVerifyAccountStatuses } from "./processes/auth";
+import { recoverPollingProcesses } from "./processes/maiar";
 
 const PORT = 4000;
 
@@ -19,8 +18,9 @@ server.listen(PORT, async () => {
   console.log(`Start listenning on port : ${PORT}`);
 
   try {
-    await pollTransactionsToVerifyAccountStatuses();
-    console.log("start to poll transactions to verify account statuses");
+    pollTransactionsToVerifyAccountStatuses();
+    console.log("start polling transactions to verify account statuses");
+    recoverPollingProcesses();
   } catch (err) {
     console.log(err);
 

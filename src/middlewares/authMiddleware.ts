@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { normalizeHerotag } from "../utils/maiar";
 
 const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
   var bearerHeader = req.headers["authorization"];
@@ -39,11 +40,7 @@ export const authenticateMiddleware = (
       )
     );
 
-    if (
-      ![req.params.herotag, `${req.params.herotag}.elrond`].includes(
-        jwtPayload.herotag
-      )
-    )
+    if (normalizeHerotag(req.params.herotag as string) !== jwtPayload.herotag)
       throw new Error("cant_access_herotag");
 
     req.herotag = jwtPayload.herotag;

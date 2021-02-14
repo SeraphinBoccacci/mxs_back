@@ -10,3 +10,13 @@ export const getHerotagFromErdAddress = async (erdAddress: string) => {
 
   return username || "NO_HEROTAG";
 };
+
+export const normalizeHerotag = (herotag: string): string => {
+  return herotag.endsWith(".elrond")
+    ? herotag.replace("@", "")
+    : `${herotag}.elrond`.replace("@", "");
+};
+
+export const computeSentAmount = (amount: string): string => {
+  return String(Number(amount) * Math.pow(10, -18));
+};

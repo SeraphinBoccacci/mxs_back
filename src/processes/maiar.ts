@@ -1,18 +1,18 @@
-import mongoose from "mongoose";
 import { getLastTransactions } from "../elrond";
 import {
   ElrondTransaction,
   EventData,
   LastSnapshotBalance,
 } from "../interfaces";
-import User, {
-  IftttIntegrationData,
-  UserMongooseDocument,
-  UserType,
-} from "../models/User";
+import User, { UserType } from "../models/User";
 import { getLastBalanceSnapShot, setNewBalance } from "../redis";
+import { publisher } from "../services/redis";
 import { triggerIftttEvent } from "../utils/ifttt";
-import { getHerotagFromErdAddress } from "../utils/maiar";
+import {
+  computeSentAmount,
+  getHerotagFromErdAddress,
+  normalizeHerotag,
+} from "../utils/maiar";
 import { pollBalance } from "../utils/poll";
 import { decodeDataFromTx } from "../utils/transactions";
 
@@ -23,7 +23,7 @@ const reactToNewTransaction = async (
   const herotag = await getHerotagFromErdAddress(transaction.sender);
 
   const eventData: EventData = {
-    amount: "0.001",
+    amount: computeSentAmount(transaction.value),
     sender: transaction.sender,
     herotag,
     data: decodeDataFromTx(transaction),
@@ -31,6 +31,16 @@ const reactToNewTransaction = async (
 
   if (user?.integrations?.ifttt && user?.integrations?.ifttt.isActive)
     await triggerIftttEvent(eventData, user?.integrations?.ifttt);
+
+  await publisher.publish(
+    "NEW_DONATION",
+    JSON.stringify({
+      room: user.herotag,
+      herotag,
+      amount: eventData.amount,
+      message: eventData.data,
+    })
+  );
 };
 
 export const toggleTransactionsDetection = async (
@@ -38,7 +48,7 @@ export const toggleTransactionsDetection = async (
   isStreaming: boolean
 ) => {
   const user = await User.findOneAndUpdate(
-    { herotag },
+    { herotag: normalizeHerotag(herotag) },
     {
       $set: {
         isStreaming,
@@ -53,7 +63,10 @@ export const toggleTransactionsDetection = async (
   if (!user) return;
 
   if (isStreaming && user.integrations)
-    await activateTransactionsDetection(herotag, user as UserType);
+    await activateTransactionsDetection(
+      user.herotag as string,
+      user as UserType
+    );
 
   return user;
 };
@@ -72,10 +85,15 @@ export const activateTransactionsDetection = async (
         erdAddress
       );
 
+      console.log("balance updated");
+
       const newReceivedTransactions = transactions.filter(
         ({ receiver, timestamp, status }: ElrondTransaction) =>
           receiver === erdAddress &&
           (!lastSnapshotBalance || timestamp > lastSnapshotBalance.timestamp) &&
+          user?.streamingStartDate &&
+          timestamp >
+            Math.ceil(new Date(user?.streamingStartDate).getTime() * 0.001) &&
           status === "success"
       );
 
@@ -95,12 +113,26 @@ export const activateTransactionsDetection = async (
   };
 
   const shouldStopPolling = async () => {
-    const currentUser = await User.findById(user._id).select({
-      isStreaming: true,
-    });
+    const currentUser = await User.findById(user._id)
+      .select({
+        isStreaming: true,
+      })
+      .lean();
 
     return !currentUser?.isStreaming;
   };
 
+  console.log(user);
+
   pollBalance(herotag, balanceHandler, shouldStopPolling);
+};
+
+export const recoverPollingProcesses = async () => {
+  const usersToPoll = await User.find({ isStreaming: true }).lean();
+
+  await Promise.all(
+    usersToPoll.map((usersToPoll) =>
+      activateTransactionsDetection(usersToPoll.herotag as string, usersToPoll)
+    )
+  );
 };

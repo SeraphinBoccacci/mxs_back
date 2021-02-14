@@ -1,4 +1,3 @@
-import { RedisClient } from "redis";
 import { IftttConfig, LastSnapshotBalance } from "./interfaces";
 import { redisClient } from "./services/redis";
 

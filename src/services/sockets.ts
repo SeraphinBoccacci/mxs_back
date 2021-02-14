@@ -3,6 +3,8 @@
 import { Server as HttpServer } from "http";
 import { Socket, Server } from "socket.io";
 import { isProfileVerified } from "../processes/auth";
+import { normalizeHerotag } from "../utils/maiar";
+import { subscriber } from "./redis";
 
 export const listen = (server: HttpServer) => {
   const io = new Server(server, {
@@ -12,13 +14,32 @@ export const listen = (server: HttpServer) => {
   });
 
   io.sockets.on("connection", (socket: Socket) => {
-    // console.log("A new socket has joined: " + socket.id);
-    // socket.on("hello", function(data: any) {
-    //   console.log(data);
-    // });
-    // socket.on("pendingVerification", async (data: { herotag: string }) => {
-    //   const isVerified = await isProfileVerified(data.herotag);
-    //   if (isVerified) socket.emit("profilVerified", { herotag: data.herotag });
-    // });
+    const room = socket?.handshake?.query?.streamerHerotag;
+    if (room) {
+      console.log(
+        "socket joined room ",
+        `-${normalizeHerotag(room as string)}-`
+      );
+      socket.join(normalizeHerotag(room as string));
+    }
+  });
+
+  subscriber.on("psubscribe", function(channel, count) {
+    console.log(channel, count, "subcribed");
+  });
+
+  subscriber.psubscribe("NEW_DONATION");
+
+  subscriber.on("pmessage", function(_, channel, stringifiedData) {
+    try {
+      const { room, ...parsedData } = JSON.parse(stringifiedData);
+
+      console.log(parsedData);
+
+      io.to(room).emit("newDonation", parsedData);
+    } catch (e) {
+      console.log(e);
+      console.log("Unable to parse data", { channel, stringifiedData });
+    }
   });
 };
