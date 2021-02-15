@@ -1,15 +1,11 @@
 import axios, { AxiosRequestConfig } from "axios";
-import { RedisClient } from "redis";
 import { EventData, IftttConfig } from "../interfaces";
 import { IftttIntegrationData } from "../models/User";
-import { getStreamerIFTTTConfig } from "../redis";
 
 export const triggerIftttEvent = async (
   eventData: EventData,
   iftttIntegrationData: IftttIntegrationData
 ) => {
-  //   const iftttConfig = await getStreamerIFTTTConfig(erdAddress);
-
   const iftttConfig: IftttConfig = {
     triggerKey: iftttIntegrationData.triggerKey,
     eventName: iftttIntegrationData.eventName,

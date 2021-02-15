@@ -9,7 +9,6 @@ export const pollBalance = async (
   shouldStopPolling: ShouldStopPollingFn
 ) => {
   const fetchBalanceAndHandle = async () => {
-    console.log("polling for ", herotag);
     const erdAddress = await getErdAddressFromHerotag(herotag);
 
     const newBalance: string = await getUpdatedBalance(erdAddress);

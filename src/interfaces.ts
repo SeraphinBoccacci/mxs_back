@@ -30,7 +30,6 @@ export interface IftttConfig {
 }
 
 export interface EventData {
-  sender: string;
   herotag: string;
   amount: string;
   data: string;

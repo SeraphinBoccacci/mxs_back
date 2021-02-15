@@ -7,7 +7,7 @@ import {
 import User, { UserType } from "../models/User";
 import { getLastBalanceSnapShot, setNewBalance } from "../redis";
 import { publisher } from "../services/redis";
-import { triggerIftttEvent } from "../utils/ifttt";
+import { triggerIftttEvent } from "../services/ifttt";
 import {
   computeSentAmount,
   getHerotagFromErdAddress,
@@ -15,6 +15,7 @@ import {
 } from "../utils/maiar";
 import { pollBalance } from "../utils/poll";
 import { decodeDataFromTx } from "../utils/transactions";
+import { triggerStreamElementsEvent } from "../services/streamElements";
 
 const reactToNewTransaction = async (
   transaction: ElrondTransaction,
@@ -24,7 +25,6 @@ const reactToNewTransaction = async (
 
   const eventData: EventData = {
     amount: computeSentAmount(transaction.value),
-    sender: transaction.sender,
     herotag,
     data: decodeDataFromTx(transaction),
   };
@@ -32,15 +32,7 @@ const reactToNewTransaction = async (
   if (user?.integrations?.ifttt && user?.integrations?.ifttt.isActive)
     await triggerIftttEvent(eventData, user?.integrations?.ifttt);
 
-  await publisher.publish(
-    "NEW_DONATION",
-    JSON.stringify({
-      room: user.herotag,
-      herotag,
-      amount: eventData.amount,
-      message: eventData.data,
-    })
-  );
+  await triggerStreamElementsEvent(eventData, user);
 };
 
 export const toggleTransactionsDetection = async (
@@ -57,7 +49,7 @@ export const toggleTransactionsDetection = async (
     },
     { new: true }
   )
-    .select({ _id: true, integrations: true })
+    .select({ _id: true, herotag: true, integrations: true })
     .lean();
 
   if (!user) return;
@@ -84,8 +76,6 @@ export const activateTransactionsDetection = async (
       const transactions: ElrondTransaction[] = await getLastTransactions(
         erdAddress
       );
-
-      console.log("balance updated");
 
       const newReceivedTransactions = transactions.filter(
         ({ receiver, timestamp, status }: ElrondTransaction) =>
@@ -121,8 +111,6 @@ export const activateTransactionsDetection = async (
 
     return !currentUser?.isStreaming;
   };
-
-  console.log(user);
 
   pollBalance(herotag, balanceHandler, shouldStopPolling);
 };

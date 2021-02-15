@@ -19,7 +19,7 @@ export const verifyPassword = (
     bcrypt.compare(password, hash, function(err, result) {
       if (err) reject(err);
 
-      if (!result) throw new Error("INVALID_PASSWORD");
+      if (!result) reject(new Error("INVALID_PASSWORD"));
 
       resolve();
     })

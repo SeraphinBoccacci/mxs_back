@@ -19,10 +19,6 @@ export const listen = (server: HttpServer) => {
   io.sockets.on("connection", (socket: Socket) => {
     const room = socket?.handshake?.query?.streamerHerotag;
     if (room) {
-      console.log(
-        "socket joined room ",
-        `-${normalizeHerotag(room as string)}-`
-      );
       socket.join(normalizeHerotag(room as string));
     }
   });
@@ -36,8 +32,6 @@ export const listen = (server: HttpServer) => {
   subscriber.on("pmessage", function(_, channel, stringifiedData) {
     try {
       const { room, ...parsedData } = JSON.parse(stringifiedData);
-
-      console.log(parsedData);
 
       io.to(room).emit("newDonation", parsedData);
     } catch (e) {
