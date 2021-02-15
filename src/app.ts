@@ -62,7 +62,10 @@ app.use("/api", routes);
 // handle error
 // app.use(errorHandler);
 
-if (process.env.NODE_ENV === "production") {
+if (
+  process.env.NODE_ENV === "production" ||
+  process.env.NODE_ENV === "staging"
+) {
   app.use(express.static(path.join(__dirname, "../../mxs_front/build")));
 
   app.get("*", function(req, res) {

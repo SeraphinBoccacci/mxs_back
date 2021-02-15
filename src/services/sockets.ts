@@ -9,7 +9,10 @@ import { subscriber } from "./redis";
 export const listen = (server: HttpServer) => {
   const io = new Server(server, {
     cors: {
-      methods: ["GET", "POST"],
+      origin: "*",
+      methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+      preflightContinue: false,
+      optionsSuccessStatus: 204,
     },
   });
 
