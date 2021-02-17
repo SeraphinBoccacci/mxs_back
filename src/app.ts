@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 //@ts-ignore
 require("express-async-errors");
 
@@ -16,6 +17,7 @@ import cors from "cors";
 // const { authLimiter } = require("./middlewares/rateLimiter");
 import routes from "./api";
 import errorMiddleware from "./middlewares/errorHandler";
+
 // const { errorConverter, errorHandler } = require("./middlewares/error");
 
 const app = express();
@@ -28,6 +30,9 @@ app.use(express.json());
 
 // parse urlencoded request body
 app.use(express.urlencoded({ extended: true }));
+
+app.use("/images", express.static(path.join("../medias/images")));
+app.use("/audios", express.static(path.join("../medias/audios")));
 
 // sanitize request data
 app.use(xss());
