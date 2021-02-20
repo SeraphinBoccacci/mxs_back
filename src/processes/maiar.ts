@@ -29,6 +29,8 @@ const reactToNewTransaction = async (
     data: decodeDataFromTx(transaction),
   };
 
+  console.log(user);
+
   if (user?.integrations?.ifttt && user?.integrations?.ifttt.isActive)
     await triggerIftttEvent(eventData, user?.integrations?.ifttt);
 
@@ -73,6 +75,7 @@ export const activateTransactionsDetection = async (
     );
 
     if (lastSnapshotBalance?.amount !== newBalance) {
+      console.log("balance updated !");
       const transactions: ElrondTransaction[] = await getLastTransactions(
         erdAddress
       );
@@ -119,8 +122,8 @@ export const recoverPollingProcesses = async () => {
   const usersToPoll = await User.find({ isStreaming: true }).lean();
 
   await Promise.all(
-    usersToPoll.map((usersToPoll) =>
-      activateTransactionsDetection(usersToPoll.herotag as string, usersToPoll)
+    usersToPoll.map((user) =>
+      activateTransactionsDetection(user.herotag as string, user)
     )
   );
 };

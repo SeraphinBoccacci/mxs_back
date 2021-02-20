@@ -25,6 +25,8 @@ export const triggerIftttEvent = async (
     value3: eventData.data,
   };
 
+  console.log(data, config);
+
   await axios.post(
     `https://maker.ifttt.com/trigger/${iftttConfig.eventName}/with/key/${iftttConfig.triggerKey}`,
     data,
