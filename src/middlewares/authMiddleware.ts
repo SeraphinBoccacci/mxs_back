@@ -1,23 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { normalizeHerotag } from "../utils/maiar";
 
-const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  var bearerHeader = req.headers["authorization"];
-  if (typeof bearerHeader !== "undefined") {
-    const bearer = bearerHeader.split(" ");
-    const bearerToken = bearer[1];
-    jwt.verify(bearerToken, "secretkey", (err, result) => {
-      if (err) {
-        res.sendStatus(403);
-      } else {
-        next();
-      }
-    });
-  } else {
-    res.sendStatus(403);
-  }
-};
+import logger from "../services/logger";
+import { normalizeHerotag } from "../utils/maiar";
 
 interface JwtDecoded {
   herotag: string;
@@ -27,11 +12,16 @@ export const authenticateMiddleware = (
   req: Request & { herotag?: string },
   res: Response,
   next: NextFunction
-) => {
+): void => {
   const { authorization } = req.headers;
 
   const token = authorization && authorization.split(" ")[1];
-  if (token == null) return res.sendStatus(401);
+
+  if (token == null) {
+    res.sendStatus(401);
+    return;
+  }
+
   try {
     const jwtPayload = <JwtDecoded>(
       jwt.verify(
@@ -48,7 +38,8 @@ export const authenticateMiddleware = (
     next();
   } catch (error) {
     //If token is not valid, respond with 401 (unauthorized)
-    console.log(error);
+    logger.error("Auth failed", { error });
+
     res.status(401).send(error);
     return;
   }

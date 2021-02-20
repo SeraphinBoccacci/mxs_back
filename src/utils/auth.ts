@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-export const getHashedPassword = (password: string) => {
+export const getHashedPassword = (password: string): Promise<string> => {
   return new Promise((resolve, reject) =>
     bcrypt.hash(password, 10, function(err, hash) {
       if (err) reject(err);
@@ -26,7 +26,7 @@ export const verifyPassword = (
   );
 };
 
-export const generateJwt = (herotag: string) => {
+export const generateJwt = (herotag: string): string => {
   return jwt.sign(
     {
       herotag: herotag,

@@ -1,14 +1,26 @@
-import { ElrondTransaction } from "../interfaces";
-import User, { UserAccountStatus, UserType } from "../models/User";
+import { getLastTransactions } from "../../elrond";
+import { ElrondTransaction } from "../../interfaces";
+import User, {
+  UserAccountStatus,
+  UserMongooseDocument,
+  UserType,
+} from "../../models/User";
+import logger from "../../services/logger";
+import {
+  generateJwt,
+  getHashedPassword,
+  verifyPassword,
+} from "../../utils/auth";
+import { generateNewVerificationReference } from "../../utils/nanoid";
+import poll from "../../utils/poll";
+import {
+  getErdAddressFromHerotag,
+  normalizeHerotag,
+} from "../../utils/transactions";
+import { decodeDataFromTx } from "../../utils/transactions";
 
-import { generateJwt, getHashedPassword, verifyPassword } from "../utils/auth";
-import poll from "../utils/poll";
-import { getErdAddressFromHerotag, normalizeHerotag } from "../utils/maiar";
-import { getLastTransactions } from "../elrond";
-import { decodeDataFromTx } from "../utils/transactions";
-import { generateNewVerificationReference } from "../utils/nanoid";
-
-const VERIFY_TRANSACTION_TARGET = "";
+// eslint-disable-next-line no-unused-vars
+// const VERIFY_TRANSACTION_TARGET = "";
 
 interface UserAccountCreationData {
   herotag?: string;
@@ -21,22 +33,20 @@ interface UserAuthenticationData {
   password?: string;
 }
 
-const validateAccountCreationData = async (data: UserAccountCreationData) => {
+export const validateAccountCreationData = async (
+  data?: UserAccountCreationData
+): Promise<void> => {
   if (!data || !data.herotag || !data.password || !data.confirm)
     throw new Error("MISSING_DATA_FOR_ACCOUNT_CREATION");
 
   if (data.password !== data.confirm)
     throw new Error("PASSWORD_AND_CONFIRM_NOT_MATCHING");
 
-  try {
-    const address = await getErdAddressFromHerotag(
-      normalizeHerotag(data.herotag as string)
-    );
+  const address = await getErdAddressFromHerotag(
+    normalizeHerotag(data.herotag as string)
+  );
 
-    if (!address) {
-      throw new Error("COULD_NOT_FIND_HETOTAG_ON_DNS");
-    }
-  } catch (error) {
+  if (!address) {
     throw new Error("COULD_NOT_FIND_HETOTAG_ON_DNS");
   }
 
@@ -48,7 +58,12 @@ const validateAccountCreationData = async (data: UserAccountCreationData) => {
     throw new Error("ALREADY_REGISTERED_USER");
 };
 
-export const createUserAccount = async (data: UserAccountCreationData) => {
+export const createUserAccount = async (
+  data: UserAccountCreationData
+): Promise<{
+  hasBeenSuccessfullyCreated: boolean;
+  herotag: string | undefined;
+}> => {
   await validateAccountCreationData(data);
 
   const verificationReference = await generateNewVerificationReference();
@@ -59,22 +74,30 @@ export const createUserAccount = async (data: UserAccountCreationData) => {
     herotag: normalizeHerotag(data.herotag as string),
     password: hashedPassword,
     verificationReference,
-    verificationStartDate: new Date(),
+    verificationStartDate: new Date().toISOString(),
     status: UserAccountStatus.PENDING_VERIFICATION,
   });
 
   return { hasBeenSuccessfullyCreated: true, herotag: user.herotag };
 };
 
-const validateAuthenticationData = async (data: UserAccountCreationData) => {
+export const validateAuthenticationData = (
+  data?: UserAccountCreationData
+): void => {
   if (!data || !data.herotag || !data.password)
     throw new Error("FORM_MISSING_DATA_FOR_AUTHENTICATION");
 };
 
-export const authenticateUser = async (data: UserAuthenticationData) => {
+export const authenticateUser = async (
+  data: UserAuthenticationData
+): Promise<{
+  user: UserMongooseDocument;
+  token: string;
+  expiresIn: number;
+}> => {
   await validateAuthenticationData(data);
 
-  const user = await User.findOne({
+  const user: UserMongooseDocument = await User.findOne({
     herotag: normalizeHerotag(data?.herotag || ""),
   }).lean();
 
@@ -90,7 +113,7 @@ export const authenticateUser = async (data: UserAuthenticationData) => {
   return { user, token: token, expiresIn: 60 * 60 * 4 };
 };
 
-export const isProfileVerified = async (herotag: string) => {
+export const isProfileVerified = async (herotag: string): Promise<boolean> => {
   const user = await User.findOne({ herotag: normalizeHerotag(herotag) })
     .select({ status: true })
     .lean();
@@ -100,15 +123,19 @@ export const isProfileVerified = async (herotag: string) => {
   return isStatusVerified;
 };
 
-export const getVerificationReference = async (herotag: string) => {
+export const getVerificationReference = async (
+  herotag: string
+): Promise<string | null> => {
   const user = await User.findOne({ herotag: normalizeHerotag(herotag) })
     .select({ verificationReference: true })
     .lean();
 
-  return user?.verificationReference;
+  return user?.verificationReference || null;
 };
 
-const verifyIfTransactionHappened = async (user: UserType) => {
+export const verifyIfTransactionHappened = async (
+  user: UserType
+): Promise<void> => {
   try {
     if (!user.herotag) return;
 
@@ -130,12 +157,15 @@ const verifyIfTransactionHappened = async (user: UserType) => {
         { $set: { status: UserAccountStatus.VERIFIED } }
       );
     }
-  } catch (err) {
-    console.log(err, user);
+  } catch (error) {
+    logger.error("An error occured while verifyIfTransactionHappened", {
+      error,
+      user,
+    });
   }
 };
 
-export const pollTransactionsToVerifyAccountStatuses = async () => {
+export const pollTransactionsToVerifyAccountStatuses = async (): Promise<void> => {
   const verifyStatuses = async () => {
     const users: UserType[] = await User.find({
       status: UserAccountStatus.PENDING_VERIFICATION,
@@ -144,5 +174,5 @@ export const pollTransactionsToVerifyAccountStatuses = async () => {
     await Promise.all(users.map(verifyIfTransactionHappened));
   };
 
-  await poll(verifyStatuses, 5000, () => false);
+  await poll(verifyStatuses, 10000, () => false);
 };

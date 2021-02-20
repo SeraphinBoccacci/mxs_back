@@ -1,12 +1,13 @@
 // https://soyuka.me/mieux-organiser-ses-sockets-avec-express-js/
 
 import { Server as HttpServer } from "http";
-import { Socket, Server } from "socket.io";
-import { isProfileVerified } from "../processes/auth";
-import { normalizeHerotag } from "../utils/maiar";
+import { Server, Socket } from "socket.io";
+
+import { normalizeHerotag } from "../utils/transactions";
+import logger from "./logger";
 import { subscriber } from "./redis";
 
-export const listen = (server: HttpServer) => {
+export const listen = (server: HttpServer): void => {
   const io = new Server(server, {
     cors: {
       origin: "*",
@@ -23,10 +24,6 @@ export const listen = (server: HttpServer) => {
     }
   });
 
-  subscriber.on("psubscribe", function(channel, count) {
-    console.log(channel, count, "subcribed");
-  });
-
   subscriber.psubscribe("NEW_DONATION");
 
   subscriber.on("pmessage", function(_, channel, stringifiedData) {
@@ -34,9 +31,12 @@ export const listen = (server: HttpServer) => {
       const { room, ...parsedData } = JSON.parse(stringifiedData);
 
       io.to(room).emit("newDonation", parsedData);
-    } catch (e) {
-      console.log(e);
-      console.log("Unable to parse data", { channel, stringifiedData });
+    } catch (error) {
+      logger.error("Unparsable redis publish data", {
+        error,
+        channel,
+        stringifiedData,
+      });
     }
   });
 };

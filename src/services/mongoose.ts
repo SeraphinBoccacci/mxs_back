@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 
-export const connectToDatabase = async () => {
+import logger from "./logger";
+
+export const connectToDatabase = async (): Promise<void> => {
   mongoose
     .connect("mongodb://localhost:27017/mxs", {
       useNewUrlParser: true,
@@ -8,9 +10,9 @@ export const connectToDatabase = async () => {
       useFindAndModify: false,
     })
     .then(async () => {
-      console.log(`CONNECTED TO DATABASE`);
+      logger.info("Connected to database");
     })
-    .catch((err: any) => {
-      console.log("Connection failed", err);
+    .catch((error) => {
+      logger.error("Connection to database failed", { error });
     });
 };

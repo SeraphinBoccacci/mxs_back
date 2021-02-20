@@ -1,11 +1,11 @@
 import { IftttConfig } from "../interfaces";
-import User from "../models/User";
-import { normalizeHerotag } from "../utils/maiar";
+import User, { UserMongooseDocument } from "../models/User";
+import { normalizeHerotag } from "../utils/transactions";
 
 export const toggleIftttIntegration = async (
   herotag: string,
   activate: boolean
-) => {
+): Promise<void> => {
   await User.updateOne(
     { herotag: normalizeHerotag(herotag) },
     { $set: { "integrations.ifttt.isActive": activate } }
@@ -15,7 +15,7 @@ export const toggleIftttIntegration = async (
 export const updateIftttIntegrationData = async (
   herotag: string,
   data: IftttConfig
-) => {
+): Promise<void> => {
   await User.updateOne(
     { herotag: normalizeHerotag(herotag) },
     {
@@ -31,8 +31,10 @@ export const updateIftttIntegrationData = async (
   );
 };
 
-export const getUserData = async (herotag: string) => {
-  const user = await User.findOne({
+export const getUserData = async (
+  herotag: string
+): Promise<UserMongooseDocument | undefined> => {
+  const user: UserMongooseDocument = await User.findOne({
     herotag: normalizeHerotag(herotag),
   }).lean();
 

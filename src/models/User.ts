@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 
 export enum UserAccountStatus {
-  PENDING_VERIFICATION,
+  PENDING_VERIFICATION = 0,
   VERIFIED,
 }
 
@@ -12,7 +12,7 @@ export interface IftttIntegrationData {
 }
 
 export interface UserType {
-  _id?: Schema.Types.ObjectId;
+  _id?: mongoose.Types.ObjectId;
   password?: string;
   herotag?: string;
   erdAddress?: string;

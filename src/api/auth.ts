@@ -3,8 +3,8 @@ import express from "express";
 import {
   authenticateUser,
   createUserAccount,
-  isProfileVerified,
   getVerificationReference,
+  isProfileVerified,
 } from "../processes/auth";
 
 const Router = express.Router();
