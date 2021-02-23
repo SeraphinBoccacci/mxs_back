@@ -1,5 +1,6 @@
-import { ElrondTransaction } from "./interfaces";
 import axios from "axios";
+
+import { ElrondTransaction } from "./interfaces";
 
 export const getUpdatedBalance = async (
   erdAddress: string
@@ -30,3 +31,5 @@ export const getLastTransactions = async (
 
   return data?.data?.transactions || [];
 };
+
+export default { getLastTransactions };

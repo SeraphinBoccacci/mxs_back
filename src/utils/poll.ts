@@ -1,17 +1,24 @@
 import { getUpdatedBalance } from "../elrond";
-import { getErdAddressFromHerotag } from "./maiar";
+import { getErdAddressFromHerotag } from "./transactions";
 
 type ShouldStopPollingFn = (() => boolean) | (() => Promise<boolean>);
 
-export const pollBalance = async (
-  herotag: string,
-  balanceHandler: (erdAddress: string, newBalance: string) => Promise<void>,
-  shouldStopPolling: ShouldStopPollingFn
+interface pollBalanceFn {
+  (
+    herotag: string,
+    balanceHandler: (erdAddress: string, newBalance: string) => Promise<void>,
+    shouldStopPolling: ShouldStopPollingFn
+  ): Promise<void>;
+}
+
+export const pollBalance: pollBalanceFn = async (
+  herotag,
+  balanceHandler,
+  shouldStopPolling
 ) => {
   const erdAddress = await getErdAddressFromHerotag(herotag);
-  const fetchBalanceAndHandle = async () => {
-    console.log("poll for herotag : ", herotag);
 
+  const fetchBalanceAndHandle = async () => {
     const newBalance: string = await getUpdatedBalance(erdAddress);
 
     await balanceHandler(erdAddress, newBalance);
@@ -21,11 +28,11 @@ export const pollBalance = async (
 };
 
 const poll = async (
-  fn: () => any,
+  fn: () => void,
   delay: number,
   shouldStopPolling: ShouldStopPollingFn
 ): Promise<void> => {
-  delay = Math.max(0, delay);
+  delay = Math.max(1000, delay);
   do {
     await fn();
     // if (await shouldStopPolling()) { double check may be usefull later

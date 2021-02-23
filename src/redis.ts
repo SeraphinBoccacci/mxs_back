@@ -1,4 +1,5 @@
-import { IftttConfig, LastSnapshotBalance } from "./interfaces";
+import { LastSnapshotBalance } from "./interfaces";
+import logger from "./services/logger";
 import { redisClient } from "./services/redis";
 
 export const getLastBalanceSnapShot = (
@@ -12,7 +13,9 @@ export const getLastBalanceSnapShot = (
 
           resolve(lastBalanceSnapShot);
         } catch (error) {
-          console.log("Balance on redis unparsable : clear REDIS !");
+          logger.error("Unparsable Redis data : clear redis", {
+            redisData: data,
+          });
         }
       }
 
@@ -23,35 +26,25 @@ export const getLastBalanceSnapShot = (
 
 export const setNewBalance = (
   erdAddress: string,
-  balance: LastSnapshotBalance
+  newBalance: string
 ): Promise<boolean> => {
-  return new Promise((resolve) => {
-    redisClient.set(
-      `BALANCE_${erdAddress}`,
-      JSON.stringify(balance),
-      (err, res) => {
-        if (!err) {
-          resolve(true);
-        }
+  const balance: LastSnapshotBalance = {
+    amount: newBalance,
+    timestamp: Math.ceil(Date.now() * 0.001),
+  };
 
-        resolve(false);
+  return new Promise((resolve) => {
+    redisClient.set(`BALANCE_${erdAddress}`, JSON.stringify(balance), (err) => {
+      if (!err) {
+        resolve(true);
       }
-    );
+
+      resolve(false);
+    });
   });
 };
 
-export const getStreamerIFTTTConfig = (
-  erdAddress: string
-): Promise<IftttConfig | null> => {
-  return new Promise((resolve) => {
-    redisClient.get(`BALANCE_${erdAddress}`, (err, res) => {
-      if (res) {
-        const config = JSON.parse(res);
-
-        return config;
-      }
-
-      resolve(null);
-    });
-  });
+export default {
+  getLastBalanceSnapShot,
+  setNewBalance,
 };

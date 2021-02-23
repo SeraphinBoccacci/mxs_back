@@ -1,14 +1,9 @@
-import { NextFunction, Request, Response } from "express";
-
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import cleanStack from "clean-stack";
+import { Request, Response } from "express";
 
 // Error handler middleware (DO NOT REMOVE NEXT)
-const errorMiddleware = (
-  err: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const errorMiddleware = (err: Error, req: Request, res: Response): void => {
   if (typeof err === "string") {
     err = new Error(err);
   }
@@ -17,16 +12,6 @@ const errorMiddleware = (
   const status = err.status || 500;
 
   err.stack = err.stack && cleanStack(err.stack);
-  console.error(
-    {
-      err,
-      req: {
-        method: req.method,
-        url: req.url,
-      },
-    },
-    err.message
-  );
 
   //@ts-ignore
   const { message, data = {}, ...remains } = err;

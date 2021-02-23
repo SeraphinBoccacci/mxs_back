@@ -1,8 +1,9 @@
-import User, { UserAccountStatus } from "../models/User";
 import sub from "date-fns/sub";
+
+import User, { UserAccountStatus } from "../models/User";
 import { connectToDatabase } from "../services/mongoose";
 
-export const cleanUnverifiedUserAccount = async () => {
+export const cleanUnverifiedUserAccount = async (): Promise<void> => {
   const result = await User.deleteMany({
     status: UserAccountStatus.PENDING_VERIFICATION,
     $or: [

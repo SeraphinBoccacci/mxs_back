@@ -1,14 +1,15 @@
 import express from "express";
+
 import { EventData } from "../interfaces";
 import { authenticateMiddleware } from "../middlewares/authMiddleware";
-import { toggleTransactionsDetection } from "../processes/maiar";
+import { triggerIftttEvent } from "../processes/blockchain-interaction/ifttt";
+import { triggerStreamElementsEvent } from "../processes/blockchain-interaction/streamElements";
+import { toggleBlockchainMonitoring } from "../processes/blockchain-monitoring";
 import {
   getUserData,
   toggleIftttIntegration,
   updateIftttIntegrationData,
 } from "../processes/user";
-import { triggerIftttEvent } from "../services/ifttt";
-import { triggerStreamElementsEvent } from "../services/streamElements";
 const Router = express.Router();
 
 Router.route("/user/:herotag").get(authenticateMiddleware, async (req, res) => {
@@ -30,7 +31,7 @@ Router.route("/user/ifttt/is-active/:herotag").post(async (req, res) => {
 });
 
 Router.route("/user/poll-maiar/:herotag").post(async (req, res) => {
-  await toggleTransactionsDetection(req.params.herotag, req.body.isStreaming);
+  await toggleBlockchainMonitoring(req.params.herotag, req.body.isStreaming);
 
   res.sendStatus(204);
 });

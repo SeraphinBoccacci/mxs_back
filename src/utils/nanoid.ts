@@ -11,7 +11,7 @@ export const generateNewVerificationReference = async (): Promise<string> => {
       status: UserAccountStatus.PENDING_VERIFICATION,
     })
   )
-    return await generateNewVerificationReference();
+    return generateNewVerificationReference();
 
   return reference;
 };

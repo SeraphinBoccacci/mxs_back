@@ -3,9 +3,9 @@ import express from "express";
 import {
   authenticateUser,
   createUserAccount,
-  isProfileVerified,
   getVerificationReference,
-} from "../processes/auth";
+  isProfileVerified,
+} from "../processes/authentication";
 
 const Router = express.Router();
 

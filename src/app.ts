@@ -1,19 +1,19 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import express from "express";
-import path from "path";
 import fs from "fs";
+import path from "path";
 //@ts-ignore
 require("express-async-errors");
 
+import compression from "compression";
+import cors from "cors";
+import mongoSanitize from "express-mongo-sanitize";
 import helmet from "helmet";
 //@ts-ignore
 import xss from "xss-clean";
-import mongoSanitize from "express-mongo-sanitize";
-import compression from "compression";
-import cors from "cors";
 
 // const httpStatus = require("http-status");
 // const config = require("./config/config");
-
 // const { authLimiter } = require("./middlewares/rateLimiter");
 import routes from "./api";
 import errorMiddleware from "./middlewares/errorHandler";
