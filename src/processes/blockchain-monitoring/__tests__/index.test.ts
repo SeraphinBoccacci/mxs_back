@@ -2,8 +2,8 @@
 import { getTime, sub } from "date-fns";
 import mongoose from "mongoose";
 
-import { ElrondTransaction } from "../../../interfaces";
 import { UserType } from "../../../models/User";
+import { ElrondTransaction } from "../../../types";
 import { findNewIncomingTransactions } from "../";
 
 const baseUser = {

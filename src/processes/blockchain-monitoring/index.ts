@@ -1,7 +1,7 @@
 import { getLastTransactions } from "../../elrond";
-import { ElrondTransaction, LastSnapshotBalance } from "../../interfaces";
 import User, { UserMongooseDocument, UserType } from "../../models/User";
 import { getLastBalanceSnapShot, setNewBalance } from "../../redis";
+import { ElrondTransaction, LastSnapshotBalance } from "../../types";
 import { pollBalance } from "../../utils/poll";
 import { normalizeHerotag } from "../../utils/transactions";
 import { reactToNewTransaction } from "../blockchain-interaction";

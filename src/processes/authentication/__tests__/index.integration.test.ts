@@ -5,8 +5,8 @@ import { connectToDatabase } from "../../../services/mongoose";
 
 jest.mock("../../../elrond");
 import * as elrond from "../../../elrond";
-import { ElrondTransaction } from "../../../interfaces";
 import User, { UserAccountStatus, UserType } from "../../../models/User";
+import { ElrondTransaction } from "../../../types";
 
 jest.mock("../../../utils/transactions", () => {
   const module = jest.requireActual("../../../utils/transactions");

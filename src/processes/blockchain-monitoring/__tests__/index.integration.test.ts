@@ -3,8 +3,8 @@ import mongoose from "mongoose";
 
 jest.mock("../../../elrond");
 import * as elrond from "../../../elrond";
-import { ElrondTransaction } from "../../../interfaces";
 import User, { UserType } from "../../../models/User";
+import { ElrondTransaction } from "../../../types";
 
 jest.mock("../../../redis");
 import * as redis from "../../../redis";
@@ -354,7 +354,7 @@ describe("Maiar integration testing", () => {
       let createdUser: UserType;
 
       beforeAll(async () => {
-        createdUser = await User.create(baseUser);
+        createdUser = (await User.create(baseUser)).toObject();
       });
 
       afterAll(async () => {
@@ -384,7 +384,7 @@ describe("Maiar integration testing", () => {
       let createdUser: UserType;
 
       beforeAll(async () => {
-        createdUser = await User.create(baseUser);
+        createdUser = (await User.create(baseUser)).toObject();
       });
 
       afterAll(async () => {

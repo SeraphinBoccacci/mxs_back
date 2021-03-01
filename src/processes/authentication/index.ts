@@ -1,11 +1,11 @@
 import { getLastTransactions } from "../../elrond";
-import { ElrondTransaction } from "../../interfaces";
 import User, {
   UserAccountStatus,
   UserMongooseDocument,
   UserType,
 } from "../../models/User";
 import logger from "../../services/logger";
+import { ElrondTransaction } from "../../types";
 import {
   generateJwt,
   getHashedPassword,

@@ -1,5 +1,5 @@
-import { ElrondTransaction, EventData } from "../../interfaces";
 import { UserType } from "../../models/User";
+import { ElrondTransaction, EventData } from "../../types";
 import {
   computeSentAmount,
   getHerotagFromErdAddress,

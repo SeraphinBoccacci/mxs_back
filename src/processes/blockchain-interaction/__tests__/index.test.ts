@@ -1,7 +1,7 @@
 import { sub } from "date-fns";
 import mongoose from "mongoose";
 
-import { ElrondTransaction } from "../../../interfaces";
+import { ElrondTransaction } from "../../../types";
 import { reactToNewTransaction } from "../";
 
 jest.mock("../../../utils/transactions", () => {

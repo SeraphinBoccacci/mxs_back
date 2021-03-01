@@ -1,5 +1,5 @@
-import { IftttConfig } from "../interfaces";
 import User, { UserMongooseDocument } from "../models/User";
+import { IftttConfig } from "../types";
 import { normalizeHerotag } from "../utils/transactions";
 
 export const toggleIftttIntegration = async (

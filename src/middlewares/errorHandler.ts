@@ -2,7 +2,6 @@
 import cleanStack from "clean-stack";
 import { Request, Response } from "express";
 
-// Error handler middleware (DO NOT REMOVE NEXT)
 const errorMiddleware = (err: Error, req: Request, res: Response): void => {
   if (typeof err === "string") {
     err = new Error(err);
