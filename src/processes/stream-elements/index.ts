@@ -1,8 +1,20 @@
+import fs from "fs";
 import mongoose from "mongoose";
+import { nanoid } from "nanoid";
 
 import User from "../../models/User";
+import logger from "../../services/logger";
 import { Variation } from "../../types/streamElements";
 import { normalizeHerotag } from "../../utils/transactions";
+import { generateCss } from "./code-generators/css";
+import {
+  generatePreviewHtml,
+  generateSnippetHtml,
+} from "./code-generators/html";
+import {
+  formatVariationName,
+  generateJavascript,
+} from "./code-generators/javascript";
 
 const payloadToVariation = (payload: Variation) => {
   return {
@@ -67,7 +79,10 @@ const payloadToVariation = (payload: Variation) => {
 export const createVariation = async (
   herotag: string,
   payload: Variation
-): Promise<Variation> => {
+): Promise<{
+  variations: Variation[];
+  files: { html: string; css: string; javascript: string };
+}> => {
   const variationData = payloadToVariation(payload);
   const variationId = mongoose.Types.ObjectId();
 
@@ -76,7 +91,7 @@ export const createVariation = async (
     ...variationData,
   };
 
-  await User.updateOne(
+  const updatedUser = await User.findOneAndUpdate(
     { herotag: normalizeHerotag(herotag) },
     {
       $push: {
@@ -86,7 +101,13 @@ export const createVariation = async (
     { new: true }
   );
 
-  return newVariation;
+  return {
+    variations: updatedUser?.integrations?.streamElements?.variations || [],
+    files: getCodeSnippets(
+      updatedUser?.herotag as string,
+      updatedUser?.integrations?.streamElements?.variations || []
+    ),
+  };
 };
 
 export const getVariation = async (
@@ -107,34 +128,163 @@ export const getVariation = async (
   return variation;
 };
 
+export const getUserVariations = async (
+  herotag: string
+): Promise<Variation[]> => {
+  const user = await User.findOne({
+    herotag: normalizeHerotag(herotag),
+  })
+    .select({ "integrations.streamElements.variations": true })
+    .lean();
+
+  return user?.integrations?.streamElements?.variations || [];
+};
+
+const findHerotagByVariationId = async (
+  variationId: mongoose.Types.ObjectId
+): Promise<string> => {
+  const user = await User.findOne({
+    "integrations.streamElements.variations._id": variationId,
+  })
+    .select({ herotag: true })
+    .lean();
+
+  if (!user) throw new Error("");
+
+  return user.herotag as string;
+};
+
+const createVariationFiles = (
+  filepath: string,
+  herotag: string,
+  payload: Variation
+) => {
+  const [html, css, javascript]: [string, string, string] = [
+    generatePreviewHtml(filepath),
+    generateCss([payload]),
+    generateJavascript(herotag, [payload], {
+      triggerMode: "manual",
+      targetVariation: payload.name,
+    }),
+  ];
+
+  fs.writeFileSync(`../medias/files/${filepath}.html`, html);
+  fs.writeFileSync(`../medias/files/${filepath}.css`, css);
+  fs.writeFileSync(`../medias/files/${filepath}.js`, javascript);
+};
+
+const deleteVariationFiles = (filepath?: string) => {
+  if (filepath) {
+    try {
+      fs.unlinkSync(`../medias/files/${filepath}.html`);
+      fs.unlinkSync(`../medias/files/${filepath}.css`);
+      fs.unlinkSync(`../medias/files/${filepath}.js`);
+    } catch (error) {
+      logger.error("failed to delete files", { error });
+    }
+  }
+};
+
+export const getCodeSnippets = (
+  herotag: string,
+  variations: Variation[]
+): {
+  html: string;
+  css: string;
+  javascript: string;
+} => {
+  const [html, css, javascript]: [string, string, string] = [
+    generateSnippetHtml(),
+    generateCss(variations),
+    generateJavascript(herotag, variations),
+  ];
+
+  return {
+    html,
+    css,
+    javascript,
+  };
+};
+
 export const updateVariation = async (
   variationId: mongoose.Types.ObjectId,
   payload: Variation
-): Promise<void> => {
+): Promise<{
+  variation: Variation;
+  files: { html: string; css: string; javascript: string };
+}> => {
+  const herotag = await findHerotagByVariationId(variationId);
+  const oldVariation = await getVariation(variationId);
+
+  if (!oldVariation) throw new Error("VARIATION_NOT_FOUND");
+
+  const variationFilesId = nanoid();
+
+  const baseFilename = `${herotag.replace(/\W/g, "_")}_${formatVariationName(
+    payload.name
+  )}_${variationFilesId}`;
+
   const updates: Variation = payloadToVariation(payload);
 
-  await User.updateOne(
+  createVariationFiles(baseFilename, herotag, updates);
+
+  const updatedUser = await User.findOneAndUpdate(
     { "integrations.streamElements.variations._id": variationId },
     {
       $set: {
         "integrations.streamElements.variations.$": {
           _id: variationId,
+          filepath: baseFilename,
           ...updates,
         },
       },
-    }
-  );
+    },
+    { new: true }
+  )
+    .select({ "integrations.streamElements.variations": true })
+    .lean();
+
+  deleteVariationFiles(oldVariation?.filepath);
+
+  const variations =
+    updatedUser?.integrations?.streamElements?.variations || [];
+  const updatedVariation = variations.find(
+    ({ _id }) => String(_id) === String(variationId)
+  ) as Variation;
+
+  return {
+    variation: updatedVariation,
+    files: getCodeSnippets(updatedUser?.herotag as string, variations),
+  };
 };
 
 export const deleteVariation = async (
   variationId: mongoose.Types.ObjectId
-): Promise<void> => {
-  await User.updateOne(
+): Promise<{
+  variations: Variation[];
+  files: { html: string; css: string; javascript: string };
+}> => {
+  const oldVariation = await getVariation(variationId);
+
+  const updatedUser = await User.findOneAndUpdate(
     { "integrations.streamElements.variations._id": variationId },
     {
       $pull: {
         "integrations.streamElements.variations": { _id: variationId },
       },
-    }
+    },
+    { new: true }
   );
+
+  deleteVariationFiles(oldVariation?.filepath);
+
+  const files = getCodeSnippets(
+    updatedUser?.herotag as string,
+    updatedUser?.integrations?.streamElements?.variations || []
+  );
+
+  return {
+    variations: updatedUser?.integrations?.streamElements?.variations || [],
+    files,
+  };
 };

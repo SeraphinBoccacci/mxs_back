@@ -42,15 +42,19 @@ const upload = multer({
   storage: storage,
 }).single("media");
 
-// const { errorConverter, errorHandler } = require("./middlewares/error");
-
 const app = express();
 
+// set security HTTP headers /\ CAUTION: Override header below if set after /\
+app.use(helmet());
+
 app.use(function(req, res, next) {
-  //allow cross origin requests
   res.setHeader(
     "Access-Control-Allow-Methods",
     "POST, PUT, OPTIONS, DELETE, GET"
+  );
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; script-src 'self' 'unsafe-inline' https://ajax.googleapis.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; frame-src * http://localhost:4000; media-src data: 'self' https: blob:; frame-ancestors * http://localhost:4000;"
   );
   res.header("Access-Control-Allow-Origin", "http://localhost:3000");
   res.header(
@@ -61,9 +65,6 @@ app.use(function(req, res, next) {
   next();
 });
 
-// set security HTTP headers
-app.use(helmet());
-
 // parse json request body
 app.use(express.json());
 
@@ -72,6 +73,14 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/images", express.static(path.join("../medias/images")));
 app.use("/audios", express.static(path.join("../medias/audios")));
+
+app.use("/files/:fileType/file-name/:fileName", (req, res) => {
+  const { fileType, fileName } = req.params;
+
+  res.sendFile(path.join(`/files/${fileName}.${fileType}`), {
+    root: path.join("../medias"),
+  });
+});
 
 app.post("/uploads/:mediaType", async (req, res) => {
   const filename = await new Promise((resolve, reject) => {

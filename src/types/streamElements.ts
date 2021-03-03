@@ -25,22 +25,23 @@ export interface Variation {
   sound?: Sound;
   image?: Image;
   text?: Text;
+  filepath?: string;
 }
 
-interface Sound {
+export interface Sound {
   soundPath?: string;
   soundDelay?: string;
   soundOffset?: string;
 }
 
-interface Image {
+export interface Image {
   imagePath?: string;
   width?: number;
   height?: number;
   animation?: Animation;
 }
 
-interface Text {
+export interface Text {
   position?: TextPositions;
   content?: string;
   width?: number;
@@ -157,6 +158,7 @@ export const VariationSchema = new mongoose.Schema({
   requiredAmount: { type: Number, required: false },
   width: { type: Number, required: false },
   heigth: { type: Number, required: false },
+  filepath: { type: String, required: false },
   sound: {
     type: {
       soundPath: { type: String, required: false },
