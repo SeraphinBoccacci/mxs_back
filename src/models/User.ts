@@ -1,6 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 
-import { Variation, VariationSchema } from "../types/streamElements";
+import { VariationSchema } from "../models/schemas/StreamElementsVariation";
+import { Variation } from "../types/streamElements";
 
 export enum UserAccountStatus {
   PENDING_VERIFICATION = 0,
@@ -25,6 +26,7 @@ export interface UserType {
     ifttt?: IftttIntegrationData;
     streamElements?: {
       variations: Variation[];
+      rowsStructure: string[][];
     };
   };
   isStreaming?: boolean;
@@ -51,6 +53,7 @@ const UserSchema = new Schema(
       },
       streamElements: {
         variations: { type: [VariationSchema], required: false },
+        rowsStructure: { type: [[String]], required: false },
       },
     },
     isStreaming: { type: Boolean, required: false },

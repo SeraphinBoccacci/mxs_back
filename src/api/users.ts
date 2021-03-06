@@ -9,8 +9,10 @@ import {
   createVariation,
   deleteVariation,
   getCodeSnippets,
+  getRowsStructure,
   getUserVariations,
   getVariation,
+  updateRowsStructure,
   updateVariation,
 } from "../processes/stream-elements";
 import {
@@ -94,6 +96,24 @@ Router.route("/user/stream-elements/variations/:herotag").get(
     const files = getCodeSnippets(req.params.herotag, variations);
 
     res.send({ variations, files });
+  }
+);
+
+Router.route("/user/stream-elements/rows-structure/:herotag").get(
+  authenticateMiddleware,
+  async (req, res) => {
+    const rowsStructure = await getRowsStructure(req.params.herotag);
+
+    res.send(rowsStructure);
+  }
+);
+
+Router.route("/user/stream-elements/rows-structure").post(
+  authenticateMiddleware,
+  async (req, res) => {
+    await updateRowsStructure(req.body.herotag, req.body.rowsStructure);
+
+    res.sendStatus(204);
   }
 );
 

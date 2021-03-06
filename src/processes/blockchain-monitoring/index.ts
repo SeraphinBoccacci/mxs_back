@@ -97,8 +97,7 @@ export const toggleBlockchainMonitoring = async (
       },
     },
     { new: true }
-  )
-    .lean();
+  ).lean();
 
   if (!user) return;
 

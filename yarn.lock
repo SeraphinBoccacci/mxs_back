@@ -992,6 +992,11 @@
   "resolved" "https://registry.npmjs.org/@types/lockfile/-/lockfile-1.0.1.tgz"
   "version" "1.0.1"
 
+"@types/lodash@^4.14.168":
+  "integrity" "sha512-oVfRvqHV/V6D1yifJbVRU3TMp8OT6o6BG+U9MkwuJ3U8/CsDHvalRpsxBqivn71ztOFZBTfJMvETbqHiaNSj7Q=="
+  "resolved" "https://registry.npmjs.org/@types/lodash/-/lodash-4.14.168.tgz"
+  "version" "4.14.168"
+
 "@types/md5-file@^4.0.2":
   "integrity" "sha512-8gacRfEqLrmZ6KofpFfxyjsm/LYepeWUWUJGaf5A9W9J5B2/dRZMdkDqFDL6YDa9IweH12IO76jO7mpsK2B3wg=="
   "resolved" "https://registry.npmjs.org/@types/md5-file/-/md5-file-4.0.2.tgz"

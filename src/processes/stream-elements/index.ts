@@ -4,7 +4,11 @@ import { nanoid } from "nanoid";
 
 import User from "../../models/User";
 import logger from "../../services/logger";
-import { Variation } from "../../types/streamElements";
+import {
+  TextAlignments,
+  TextPositions,
+  Variation,
+} from "../../types/streamElements";
 import { normalizeHerotag } from "../../utils/transactions";
 import { generateCss } from "./code-generators/css";
 import {
@@ -19,9 +23,9 @@ import {
 const payloadToVariation = (payload: Variation) => {
   return {
     name: payload.name,
-    duration: payload.duration,
-    chances: payload.chances,
-    requiredAmount: payload.requiredAmount,
+    duration: payload.duration || 10,
+    chances: payload.chances || 100,
+    requiredAmount: payload.requiredAmount || 0,
     backgroundColor: payload.backgroundColor,
     width: payload.width,
     heigth: payload.heigth,
@@ -49,16 +53,17 @@ const payloadToVariation = (payload: Variation) => {
       },
     },
     text: {
-      position: payload?.text?.position,
-      content: payload?.text?.content,
-      width: payload?.text?.width,
-      height: payload?.text?.height,
-      size: payload?.text?.size,
-      color: payload?.text?.color,
-      lineHeight: payload?.text?.lineHeight,
+      position: payload?.text?.position || TextPositions.top,
+      content:
+        payload?.text?.content || "You can display whatever you want here",
+      width: payload?.text?.width || 300,
+      height: payload?.text?.height || 100,
+      size: payload?.text?.size || "16",
+      color: payload?.text?.color || "#2a2a2a",
+      lineHeight: payload?.text?.lineHeight || "20",
       letterSpacing: payload?.text?.letterSpacing,
       wordSpacing: payload?.text?.wordSpacing,
-      textAlign: payload?.text?.textAlign,
+      textAlign: payload?.text?.textAlign || TextAlignments.left,
       textStyle: payload?.text?.textStyle,
       animation: {
         enter: {
@@ -254,7 +259,7 @@ export const updateVariation = async (
 
   return {
     variation: updatedVariation,
-    files: getCodeSnippets(updatedUser?.herotag as string, variations),
+    files: getCodeSnippets(herotag, variations),
   };
 };
 
@@ -287,4 +292,37 @@ export const deleteVariation = async (
     variations: updatedUser?.integrations?.streamElements?.variations || [],
     files,
   };
+};
+
+export const getRowsStructure = async (
+  herotag: string
+): Promise<(string | string[])[]> => {
+  const user = await User.findOne({ herotag: normalizeHerotag(herotag) })
+    .select({ "integrations.streamElements.rowsStructure": true })
+    .lean();
+
+  const rowsStructure = user?.integrations?.streamElements?.rowsStructure;
+
+  if (!rowsStructure) return [];
+
+  return rowsStructure?.map((rows) => (rows.length === 1 ? rows[0] : rows));
+};
+
+export const updateRowsStructure = async (
+  herotag: string,
+  rowsStructure: (string | string[])[]
+): Promise<(string | string[])[]> => {
+  const formattedRowsStructure = rowsStructure.map((row) =>
+    Array.isArray(row) ? row : [row]
+  );
+  await User.updateOne(
+    { herotag: normalizeHerotag(herotag) },
+    {
+      $set: {
+        "integrations.streamElements.rowsStructure": formattedRowsStructure,
+      },
+    }
+  );
+
+  return rowsStructure;
 };
