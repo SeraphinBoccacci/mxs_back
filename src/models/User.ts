@@ -26,7 +26,10 @@ export interface UserType {
     ifttt?: IftttIntegrationData;
     streamElements?: {
       variations: Variation[];
-      rowsStructure: string[][];
+      rowsStructure: {
+        rows: string[];
+        rowsGroupName?: string | undefined;
+      }[];
     };
   };
   isStreaming?: boolean;
@@ -53,7 +56,15 @@ const UserSchema = new Schema(
       },
       streamElements: {
         variations: { type: [VariationSchema], required: false },
-        rowsStructure: { type: [[String]], required: false },
+        rowsStructure: {
+          type: [
+            {
+              rowsGroupName: { type: String, required: false },
+              rows: { type: [String], required: false },
+            },
+          ],
+          required: false,
+        },
       },
     },
     isStreaming: { type: Boolean, required: false },

@@ -296,7 +296,10 @@ export const deleteVariation = async (
 
 export const getRowsStructure = async (
   herotag: string
-): Promise<(string | string[])[]> => {
+): Promise<{
+  rows: string[];
+  rowsGroupName?: string | undefined;
+}[]> => {
   const user = await User.findOne({ herotag: normalizeHerotag(herotag) })
     .select({ "integrations.streamElements.rowsStructure": true })
     .lean();
@@ -305,21 +308,26 @@ export const getRowsStructure = async (
 
   if (!rowsStructure) return [];
 
-  return rowsStructure?.map((rows) => (rows.length === 1 ? rows[0] : rows));
+  return rowsStructure;
 };
 
 export const updateRowsStructure = async (
   herotag: string,
-  rowsStructure: (string | string[])[]
-): Promise<(string | string[])[]> => {
-  const formattedRowsStructure = rowsStructure.map((row) =>
-    Array.isArray(row) ? row : [row]
-  );
+  rowsStructure: {
+    rows: string[];
+    rowsGroupName?: string | undefined;
+  }[]
+): Promise<{
+  rows: string[];
+  rowsGroupName?: string | undefined;
+}[]> => {
   await User.updateOne(
     { herotag: normalizeHerotag(herotag) },
     {
       $set: {
-        "integrations.streamElements.rowsStructure": formattedRowsStructure,
+        "integrations.streamElements.rowsStructure": rowsStructure.filter(
+          ({ rows }) => !!rows.length
+        ),
       },
     }
   );
