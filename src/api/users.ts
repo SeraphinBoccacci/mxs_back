@@ -1,3 +1,4 @@
+import axios from "axios";
 import express from "express";
 import mongoose from "mongoose";
 
@@ -158,5 +159,21 @@ Router.route("/user/trigger/streamElements").post(
     res.sendStatus(204);
   }
 );
+
+Router.route("/egld-price").get(async (req, res) => {
+  const response = await axios.get(
+    "https://api.coingecko.com/api/v3/simple/price?ids=elrond-erd-2&vs_currencies=usd"
+  );
+
+  if (!response) {
+    res.sendStatus(200);
+
+    return;
+  }
+
+  const price = response.data["elrond-erd-2"].usd;
+
+  res.send({ price });
+});
 
 export default Router;
