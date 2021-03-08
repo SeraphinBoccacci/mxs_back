@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import fs from "fs";
 import path, { extname } from "path";
-//@ts-ignore
+
 require("express-async-errors");
 
 import compression from "compression";
@@ -54,7 +54,7 @@ app.use(function(req, res, next) {
   );
   res.setHeader(
     "Content-Security-Policy",
-    "default-src 'self'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; script-src 'self' 'unsafe-inline' https://ajax.googleapis.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; frame-src * http://localhost:4000; media-src data: 'self' https: blob:; frame-ancestors * http://localhost:4000;"
+    "default-src 'self'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; script-src 'self' 'unsafe-inline' https://ajax.googleapis.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; frame-src *; media-src data: 'self' https: blob:;"
   );
   res.header("Access-Control-Allow-Origin", "http://localhost:3000");
   res.header(
@@ -70,6 +70,26 @@ app.use(express.json());
 
 // parse urlencoded request body
 app.use(express.urlencoded({ extended: true }));
+
+// sanitize request data
+app.use(xss());
+app.use(mongoSanitize());
+
+// gzip compression
+app.use(compression());
+
+// enable cors
+app.use(cors());
+// app.options("*", cors());
+
+// jwt authentication
+// app.use(passport.initialize());
+// passport.use("jwt", jwtStrategy);
+
+// limit repeated failed requests to auth endpoints
+// if (config.env === "production") {
+//   app.use("/v1/auth", authLimiter);
+// }
 
 app.use("/images", express.static(path.join("../medias/images")));
 app.use("/audios", express.static(path.join("../medias/audios")));
@@ -97,38 +117,7 @@ app.post("/uploads/:mediaType", async (req, res) => {
   res.send(filename);
 });
 
-// sanitize request data
-app.use(xss());
-app.use(mongoSanitize());
-
-// gzip compression
-app.use(compression());
-
-// enable cors
-app.use(cors());
-// app.options("*", cors());
-
-// jwt authentication
-// app.use(passport.initialize());
-// passport.use("jwt", jwtStrategy);
-
-// limit repeated failed requests to auth endpoints
-// if (config.env === "production") {
-//   app.use("/v1/auth", authLimiter);
-// }
-
 app.use("/api", routes);
-
-// send back a 404 error for any unknown api request
-// app.use((req: Request, res: Response, next: NextFunction) => {
-//   next(new Error("Not found ---------------- !"));
-// });
-
-// convert error to ApiError, if needed
-// app.use(errorConverter);
-
-// handle error
-// app.use(errorHandler);
 
 if (
   process.env.NODE_ENV === "production" ||
@@ -141,8 +130,8 @@ if (
   });
 }
 
-app.get("*", function() {
-  throw new Error("ROUTE_NOT_FOUND");
+app.use((req: Request, res: Response, next: NextFunction) => {
+  next(new Error("Not found ---------------- !"));
 });
 
 app.use(errorMiddleware);
