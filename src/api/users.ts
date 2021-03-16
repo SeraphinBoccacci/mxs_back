@@ -22,13 +22,19 @@ import {
   updateIftttIntegrationData,
 } from "../processes/user";
 import { EventData } from "../types";
+import { RequestWithHerotag } from "../types/express";
 const Router = express.Router();
 
-Router.route("/user/:herotag").get(authenticateMiddleware, async (req, res) => {
-  const user = await getUserData(req.params.herotag);
+Router.route("/user/herotag").get(
+  authenticateMiddleware,
+  async (req: RequestWithHerotag, res) => {
+    if (!req?.herotag) return res.sendStatus(403);
 
-  res.send(user);
-});
+    const user = await getUserData(req?.herotag);
+
+    res.send(user);
+  }
+);
 
 Router.route("/user/poll-maiar/:herotag").post(
   authenticateMiddleware,
@@ -118,6 +124,12 @@ Router.route("/user/stream-elements/rows-structure").post(
   }
 );
 
+const defaultMockedEventData: EventData = {
+  herotag: "test_herotag",
+  amount: "0.001",
+  data: "test message",
+};
+
 Router.route("/user/trigger/ifttt").post(
   authenticateMiddleware,
   async (req, res) => {
@@ -126,11 +138,7 @@ Router.route("/user/trigger/ifttt").post(
     if (!user?.integrations?.ifttt?.isActive)
       throw new Error("IFTTT_INTEGRATION_IS_NOT_ACTIVE");
 
-    const mockedEventData: EventData = {
-      herotag: "test_herotag",
-      amount: "x.xxx",
-      data: "test message",
-    };
+    const mockedEventData = req.body.data || defaultMockedEventData;
 
     await triggerIftttEvent(mockedEventData, user.integrations.ifttt);
 
@@ -148,11 +156,7 @@ Router.route("/user/trigger/streamElements").post(
     // if (!user?.integrations?.streamElements?.isActive)
     //   throw new Error("IFTTT_INTEGRATION_IS_NOT_ACTIVE");
 
-    const mockedEventData: EventData = {
-      herotag: "test_herotag",
-      amount: "x.xxx",
-      data: "test message",
-    };
+    const mockedEventData = req.body.data || defaultMockedEventData;
 
     await triggerStreamElementsEvent(mockedEventData, user);
 

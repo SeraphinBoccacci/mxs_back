@@ -61,7 +61,7 @@ export const VariationSchema = new mongoose.Schema({
         default: "You can display whatever you want here",
       },
       width: { type: Number, required: false, default: 300 },
-      height: { type: Number, required: false, default: 100 },
+      height: { type: Number, required: false },
       size: { type: String, required: false, default: "16" },
       color: { type: String, required: false, default: "#2a2a2a" },
       lineHeight: { type: String, required: false, default: "20" },

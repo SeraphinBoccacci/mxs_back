@@ -28,7 +28,7 @@ const baseUser = {
   status: 1,
   createdAt: new Date("2021-02-11T19:40:50.466Z"),
   updatedAt: new Date("2021-02-15T20:34:04.218Z"),
-  verificationStartDate: new Date(),
+  verificationStartDate: new Date().toISOString(),
   verificationReference: "test",
   integrations: {
     ifttt: {

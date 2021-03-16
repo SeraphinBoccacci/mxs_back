@@ -4,6 +4,7 @@ import {
   TextPositions,
   TextStyles,
   Variation,
+  VariationPositions,
 } from "../../../types/streamElements";
 import { formatVariationName } from "./javascript";
 
@@ -196,7 +197,43 @@ const baseCss = [
   "}",
 ];
 
-const displayMapper = (position: TextPositions) => {
+const positionMapper = (position?: VariationPositions) => {
+  const mapper = {
+    [VariationPositions.BottomCenter]: [
+      "  bottom: 1rem;",
+      "  left: 50%;",
+      "  transform: translateX(-50%);",
+    ],
+    [VariationPositions.BottomLeft]: ["  bottom: 1rem;", "  left: 1rem;"],
+    [VariationPositions.BottomRight]: ["  bottom: 1rem;", "  right: 1rem;"],
+    [VariationPositions.CenterCenter]: [
+      "  top: 50%;",
+      "  left: 50%;",
+      "  transform: translateX(-50%) translateY(-50%);",
+    ],
+    [VariationPositions.CenterLeft]: [
+      "  top: 50%;",
+      "  left: 1rem;",
+      "  transform: translateY(-50%);",
+    ],
+    [VariationPositions.CenterRight]: [
+      "  top: 50%;",
+      "  right: 1rem;",
+      "  transform: translateY(-50%);",
+    ],
+    [VariationPositions.TopCenter]: [
+      "  top: 1rem;",
+      "  left: 50%;",
+      "  transform: translateX(-50%);",
+    ],
+    [VariationPositions.TopLeft]: ["  top: 1rem;", "  left: 1rem;"],
+    [VariationPositions.TopRight]: ["  top: 1rem;", "  right: 1rem;"],
+  };
+
+  return mapper[position || VariationPositions.BottomRight];
+};
+
+const displayMapper = (position?: TextPositions) => {
   const mapper = {
     [TextPositions.over]: [
       "display: flex;",
@@ -206,40 +243,45 @@ const displayMapper = (position: TextPositions) => {
     ],
     [TextPositions.bottom]: [
       "display: flex;",
-      "flex-direction: column;",
+      "flex-direction: column-reverse;",
       "justify-content: center;",
       "align-items: center;",
     ],
     [TextPositions.top]: [
       "display: flex;",
-      "flex-direction: column-reverse;",
+      "flex-direction: column;",
       "justify-content: center;",
       "align-items: center;",
     ],
     [TextPositions.left]: [
       "display: flex;",
-      "flex-direction: row-reverse;",
+      "flex-direction: row;",
       "justify-content: center;",
       "align-items: center;",
     ],
     [TextPositions.right]: [
       "display: flex;",
-      "flex-direction: row;",
+      "flex-direction: row-reverse;",
       "justify-content: center;",
       "align-items: center;",
     ],
   };
 
-  return mapper[position];
+  return mapper[position || TextPositions.bottom];
 };
 
-const widgetContainer = (name: string, textPosition: TextPositions) => [
+const widgetContainer = (
+  name: string,
+  variationPosition?: VariationPositions,
+  variationWidth?: number,
+  variationHeight?: number,
+  textPosition?: TextPositions
+) => [
   `.widget-container-${formatVariationName(name)} {`,
   "  position: absolute;",
-  "  top: 0;",
-  "  left: 0;",
-  "  width: max-content;",
-  "  height: max-content;",
+  ...positionMapper(variationPosition),
+  `  width: ${variationWidth ? `${variationWidth}px` : "max-content"};`,
+  `  height: ${variationHeight ? `${variationHeight}px` : "max-content"};`,
   "",
   ...displayMapper(textPosition),
   "",
@@ -252,48 +294,61 @@ const widgetContainer = (name: string, textPosition: TextPositions) => [
 const imageContainer = (name: string, width = 0, height = 0) => [
   `.image-container-${formatVariationName(name)} {`,
   "  position: relative;",
-  `  width: ${width}px;`,
-  `  height: ${height}px;`,
+  `  width: ${width ? `${width}px` : "max-content"};`,
+  `  height: ${height ? `${height}px` : "max-content"};`,
   "  margin: auto;",
   "}",
 ];
 
-const paragraph = (name: string, text?: Text) => [
-  `.p-container-${formatVariationName(name)} > p {`,
-  "  width: 100%;",
-  "  height: max-content;",
-  `  font-size: ${text?.size ? `${text.size}px` : "normal"};`,
-  `  color: ${text?.color || "normal"};`,
-  `  line-height: ${text?.lineHeight ? `${text.lineHeight}px` : "normal"};`,
-  `  letter-spacing: ${
-    text?.letterSpacing ? `${text.letterSpacing}px` : "normal"
-  };`,
-  `  word-spacing: ${text?.wordSpacing ? `${text.wordSpacing}px` : "normal"};`,
-  `  text-align: ${text?.textAlign || "normal"};`,
-  `  font-weight: ${
-    text?.textStyle?.some((style) => style === TextStyles.bold)
-      ? "800"
-      : "normal"
-  };`,
-  `  text-decoration: ${
-    text?.textStyle?.some((style) => style === TextStyles.underline)
-      ? "underline"
-      : "normal"
-  };`,
-  `  font-style: ${
-    text?.textStyle?.some((style) => style === TextStyles.italic)
-      ? "italic"
-      : "normal"
-  };`,
-  "}",
-];
+const paragraph = (name: string, text?: Text) => {
+  const strokeColor = text?.stroke?.color?.startsWith("#")
+    ? text?.stroke?.color
+    : `#${text?.stroke?.color}`;
+  const strokeWidth = text?.stroke?.width;
+
+  return [
+    `.p-container-${formatVariationName(name)} > p {`,
+    "  width: 100%;",
+    "  height: max-content;",
+    ...(strokeColor && strokeWidth
+      ? [`  -webkit-text-stroke: ${strokeWidth}px ${strokeColor};`]
+      : []),
+    `  font-size: ${text?.size ? `${text.size}px` : "normal"};`,
+    `  color: ${text?.color || "normal"};`,
+    `  line-height: ${text?.lineHeight ? `${text.lineHeight}px` : "normal"};`,
+    `  letter-spacing: ${
+      text?.letterSpacing ? `${text.letterSpacing}px` : "normal"
+    };`,
+    `  word-spacing: ${
+      text?.wordSpacing ? `${text.wordSpacing}px` : "normal"
+    };`,
+    `  text-align: ${text?.textAlign || "normal"};`,
+    `  font-weight: ${
+      text?.textStyle?.some((style) => style === TextStyles.bold)
+        ? "800"
+        : "normal"
+    };`,
+    `  text-decoration: ${
+      text?.textStyle?.some((style) => style === TextStyles.underline)
+        ? "underline"
+        : "normal"
+    };`,
+    `  font-style: ${
+      text?.textStyle?.some((style) => style === TextStyles.italic)
+        ? "italic"
+        : "normal"
+    };`,
+    "}",
+  ];
+};
 
 const pContainer = (name: string, width = 0, height = 0) => [
   `.p-container-${formatVariationName(name)} {`,
   "  position: relative;",
-  `  width: ${width}px;`,
-  `  height: ${height}px;`,
+  `  width: ${width ? `${width}px` : "max-content"};`,
+  `  height: ${height ? `${height}px` : "max-content"};`,
   "  overflow: hidden;",
+  "  margin: 1.3rem",
   "}",
 ];
 
@@ -305,7 +360,10 @@ const generateCssForVariation = (variation: Variation) => {
     "",
     ...widgetContainer(
       formatVariationName(variation.name),
-      variation.text?.position || TextPositions.bottom
+      variation.position,
+      variation.width,
+      variation.heigth,
+      variation.text?.position
     ),
     "",
     ...imageContainer(

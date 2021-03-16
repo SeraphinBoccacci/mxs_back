@@ -51,9 +51,13 @@ export interface Text {
   lineHeight?: string;
   letterSpacing?: string;
   wordSpacing?: string;
-  textAlign?: TextAlignments;
+  textAlign?: string;
   textStyle?: TextStyles[];
   animation?: Animation;
+  stroke?: {
+    color?: string;
+    width?: number;
+  };
 }
 
 export enum VariationLenses {
@@ -88,6 +92,8 @@ export enum VariationLenses {
   "text_wordSpacing" = "text_wordSpacing",
   "text_textAlign" = "text_textAlign",
   "text_textStyle" = "text_textStyle",
+  "text_stroke_width" = "text_stroke_width",
+  "text_stroke_color" = "text_stroke_color",
   "text_animation_enter_type" = "text_animation_enter_type",
   "text_animation_enter_duration" = "text_animation_enter_duration",
   "text_animation_enter_delay" = "text_animation_enter_delay",

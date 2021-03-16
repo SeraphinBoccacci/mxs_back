@@ -57,13 +57,17 @@ const payloadToVariation = (payload: Variation) => {
       content:
         payload?.text?.content || "You can display whatever you want here",
       width: payload?.text?.width || 300,
-      height: payload?.text?.height || 100,
+      height: payload?.text?.height,
       size: payload?.text?.size || "16",
       color: payload?.text?.color || "#2a2a2a",
       lineHeight: payload?.text?.lineHeight || "20",
       letterSpacing: payload?.text?.letterSpacing,
       wordSpacing: payload?.text?.wordSpacing,
       textAlign: payload?.text?.textAlign || TextAlignments.left,
+      stroke: {
+        width: payload.text?.stroke?.width,
+        color: payload.text?.stroke?.color,
+      },
       textStyle: payload?.text?.textStyle,
       animation: {
         enter: {

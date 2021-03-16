@@ -19,11 +19,11 @@ jest.mock("../../../utils/transactions", () => {
 });
 import * as transactions from "../../../utils/transactions";
 import {
+  activateAccountIfTransactionHappened,
   authenticateUser,
   createUserAccount,
   getVerificationReference,
   isProfileVerified,
-  verifyIfTransactionHappened,
 } from "..";
 
 const baseUser = {
@@ -258,7 +258,7 @@ describe("Auth integration testing", () => {
     });
   });
 
-  describe("verifyIfTransactionHappened", () => {
+  describe("activateAccountIfTransactionHappened", () => {
     describe("when no transactions contains verificationReference", () => {
       const mockedTransactions = transactions as jest.Mocked<
         typeof transactions
@@ -295,7 +295,7 @@ describe("Auth integration testing", () => {
       });
 
       it("should not set status to", async () => {
-        await verifyIfTransactionHappened(user);
+        await activateAccountIfTransactionHappened(user);
 
         const updatedUser = await User.findOne({
           herotag: baseUser.herotag,
@@ -358,7 +358,7 @@ describe("Auth integration testing", () => {
       });
 
       it("should return true", async () => {
-        await verifyIfTransactionHappened(user);
+        await activateAccountIfTransactionHappened(user);
 
         const updatedUser = await User.findOne({
           herotag: baseUser.herotag,

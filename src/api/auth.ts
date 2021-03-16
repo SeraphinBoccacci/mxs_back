@@ -3,7 +3,9 @@ import express from "express";
 import {
   authenticateUser,
   createUserAccount,
+  editPassword,
   getVerificationReference,
+  isHerotagValid,
   isProfileVerified,
 } from "../processes/authentication";
 
@@ -21,6 +23,12 @@ Router.post("/create-account", async (req, res) => {
   res.send(creationData);
 });
 
+Router.post("/edit-password", async (req, res) => {
+  await editPassword(req.body);
+
+  res.sendStatus(204);
+});
+
 Router.get("/verification-status/:herotag", async (req, res) => {
   const isVerified = await isProfileVerified(req.params.herotag);
 
@@ -31,6 +39,12 @@ Router.get("/verification-reference/:herotag", async (req, res) => {
   const reference = await getVerificationReference(req.params.herotag);
 
   res.send(reference);
+});
+
+Router.get("/is-valid-herotag/:herotag", async (req, res) => {
+  const result = await isHerotagValid(req.params.herotag);
+
+  res.send(result);
 });
 
 export default Router;
