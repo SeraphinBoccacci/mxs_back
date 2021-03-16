@@ -188,7 +188,7 @@ const findVariationLines = () => [
   "  const matchingVariations = variations.filter((variation) => {",
   "    return (",
   "      !variation.requiredAmount ||",
-  "      (Number(amount) > Number(variation.requiredAmount) && !!variation.chances)",
+  "      (Number(amount) >= Number(variation.requiredAmount) && !!variation.chances)",
   "    );",
   "  });",
   "",
