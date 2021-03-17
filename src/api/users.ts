@@ -3,8 +3,7 @@ import express from "express";
 import mongoose from "mongoose";
 
 import { authenticateMiddleware } from "../middlewares/authMiddleware";
-import { triggerIftttEvent } from "../processes/blockchain-interaction/ifttt";
-import { triggerStreamElementsEvent } from "../processes/blockchain-interaction/streamElements";
+import { reactToNewTransaction } from "../processes/blockchain-interaction";
 import { toggleBlockchainMonitoring } from "../processes/blockchain-monitoring";
 import {
   createVariation,
@@ -21,7 +20,7 @@ import {
   toggleIftttIntegration,
   updateIftttIntegrationData,
 } from "../processes/user";
-import { EventData } from "../types";
+import { EventData, MockedElrondTransaction } from "../types";
 import { RequestWithHerotag } from "../types/express";
 const Router = express.Router();
 
@@ -130,7 +129,7 @@ const defaultMockedEventData: EventData = {
   data: "test message",
 };
 
-Router.route("/user/trigger/ifttt").post(
+Router.route("/user/trigger-event").post(
   authenticateMiddleware,
   async (req, res) => {
     const user = await getUserData(req.body.herotag);
@@ -138,27 +137,13 @@ Router.route("/user/trigger/ifttt").post(
     if (!user?.integrations?.ifttt?.isActive)
       throw new Error("IFTTT_INTEGRATION_IS_NOT_ACTIVE");
 
-    const mockedEventData = req.body.data || defaultMockedEventData;
+    const mockedTransaction: MockedElrondTransaction = {
+      isMockedTransaction: true,
+      ...defaultMockedEventData,
+      ...req.body.data,
+    };
 
-    await triggerIftttEvent(mockedEventData, user.integrations.ifttt);
-
-    res.sendStatus(204);
-  }
-);
-
-Router.route("/user/trigger/streamElements").post(
-  authenticateMiddleware,
-  async (req, res) => {
-    const user = await getUserData(req.body.herotag);
-
-    if (!user) throw new Error("NO_USER_FOUND");
-
-    // if (!user?.integrations?.streamElements?.isActive)
-    //   throw new Error("IFTTT_INTEGRATION_IS_NOT_ACTIVE");
-
-    const mockedEventData = req.body.data || defaultMockedEventData;
-
-    await triggerStreamElementsEvent(mockedEventData, user);
+    await reactToNewTransaction(mockedTransaction, user);
 
     res.sendStatus(204);
   }
