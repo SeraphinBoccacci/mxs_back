@@ -62,11 +62,15 @@ export const VariationSchema = new mongoose.Schema({
       },
       width: { type: Number, required: false, default: 300 },
       height: { type: Number, required: false },
-      size: { type: String, required: false, default: "16" },
+      size: { type: String, required: false, default: "50" },
       color: { type: String, required: false, default: "#2a2a2a" },
-      lineHeight: { type: String, required: false, default: "20" },
+      lineHeight: { type: String, required: false, default: "50" },
       letterSpacing: { type: String, required: false },
       wordSpacing: { type: String, required: false },
+      stroke: {
+        color: { type: String, required: false, default: "#000000" },
+        width: { type: Number, required: false, default: 1 },
+      },
       textAlign: {
         type: String,
         required: false,
