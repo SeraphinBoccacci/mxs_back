@@ -1,6 +1,7 @@
 import sub from "date-fns/sub";
 
 import User, { UserAccountStatus } from "../models/User";
+import logger from "../services/logger";
 import { connectToDatabase } from "../services/mongoose";
 
 export const cleanUnverifiedUserAccount = async (): Promise<void> => {
@@ -15,6 +16,8 @@ export const cleanUnverifiedUserAccount = async (): Promise<void> => {
       },
     ],
   });
+
+  logger.info("cleaned", result);
 };
 
 connectToDatabase().then(async () => {

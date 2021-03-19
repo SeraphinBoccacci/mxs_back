@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon --config nodemon.json src/index.ts",
     "dev:debug": "nodemon --config nodemon.json --inspect-brk src/index.ts",
-    "test": "NODE_ENV=test jest --watch"
+    "test": "NODE_ENV=test jest",
+    "lint": "eslint src --ext .ts"
   },
   "keywords": [],
   "author": "",

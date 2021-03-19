@@ -5,33 +5,34 @@ name: Node.js CI
 
 on:
   - push
-  - pull_request
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [10.x, 12.x, 14.x, 15.x]
+        node-version: [12.x, 14.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }}
-        
-    - name: Install
-      run: npm ci
-        
-    - name: Typescript compiler
-      uses: iCrawl/action-tsc@v1
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
 
-    - name: Test
-      run:  npm run test
-      
-    - name: Linter
-      run:  npm run lint:ci
+      - name: MongoDB in GitHub Actions
+        uses: supercharge/mongodb-github-action@1.3.0
+
+      - name: Install
+        run: npm ci
+
+      - name: Typescript compiler
+        uses: iCrawl/action-tsc@v1
+
+      - name: Test
+        run: npm run test
+
+      - name: Linter
+        run: npm run lint:ci
