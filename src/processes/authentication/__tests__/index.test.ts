@@ -45,7 +45,7 @@ describe("auth unit testing", () => {
     test("when password is missing, it should throw", () => {
       expect(
         validateAccountCreationData({
-          herotag: "serabocca06",
+          herotag: "streamparticles",
           confirm: "helloWorld06",
         })
       ).rejects.toThrow("MISSING_DATA_FOR_ACCOUNT_CREATION");
@@ -54,7 +54,7 @@ describe("auth unit testing", () => {
     test("when confirm is missing, it should throw", () => {
       expect(
         validateAccountCreationData({
-          herotag: "serabocca06",
+          herotag: "streamparticles",
           password: "helloWorld06",
         })
       ).rejects.toThrow("MISSING_DATA_FOR_ACCOUNT_CREATION");
@@ -63,7 +63,7 @@ describe("auth unit testing", () => {
     test("when confirm and password does not match", () => {
       expect(
         validateAccountCreationData({
-          herotag: "serabocca06",
+          herotag: "streamparticles",
           password: "helloWorld06",
           confirm: "helloWorld07",
         })
@@ -82,7 +82,7 @@ describe("auth unit testing", () => {
       it("should throw", () => {
         expect(
           validateAccountCreationData({
-            herotag: "serabocca06",
+            herotag: "streamparticles",
             password: "helloWorld06",
             confirm: "helloWorld06",
           })
@@ -93,11 +93,11 @@ describe("auth unit testing", () => {
     describe("when the herotag is already registered", () => {
       beforeAll(async () => {
         mockedUtilTransactions.getErdAddressFromHerotag.mockResolvedValue(
-          "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8"
+          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm"
         );
 
         await User.create({
-          herotag: "serabocca06.elrond",
+          herotag: "streamparticles.elrond",
           verificationStartDate: new Date(),
           verificationReference: "test",
           password: "test",
@@ -114,7 +114,7 @@ describe("auth unit testing", () => {
       it("should throw", async () => {
         expect(
           validateAccountCreationData({
-            herotag: "serabocca06.elrond",
+            herotag: "streamparticles.elrond",
             password: "helloWorld06",
             confirm: "helloWorld06",
           })
@@ -141,7 +141,7 @@ describe("auth unit testing", () => {
     test("when password is missing, it should throw", () => {
       expect(() =>
         validateAuthenticationData({
-          herotag: "serabocca06",
+          herotag: "streamparticles",
         })
       ).toThrow("FORM_MISSING_DATA_FOR_AUTHENTICATION");
     });

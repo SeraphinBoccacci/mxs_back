@@ -27,7 +27,7 @@ import {
 } from "..";
 
 const baseUser = {
-  herotag: "serabocca06.elrond",
+  herotag: "streamparticles.elrond",
   password: "$2b$10$RzGjFb4jVp77rsiMPOHofOmUzsllH674FnezzIR8Jmjmhr2u1HwXe",
   status: 1,
   verificationStartDate: new Date().toISOString(),
@@ -72,11 +72,11 @@ describe("Auth integration testing", () => {
 
       beforeAll(() => {
         mockedTransactions.getErdAddressFromHerotag.mockResolvedValue(
-          "serabocca06.elrond"
+          "streamparticles.elrond"
         );
 
         mockedTransactions.normalizeHerotag.mockReturnValue(
-          "serabocca06.elrond"
+          "streamparticles.elrond"
         );
       });
 
@@ -88,7 +88,7 @@ describe("Auth integration testing", () => {
 
       it("should create a user with status pending", async () => {
         await createUserAccount({
-          herotag: "serabocca06.elrond",
+          herotag: "streamparticles.elrond",
           password: "test",
           confirm: "test",
         });
@@ -97,7 +97,7 @@ describe("Auth integration testing", () => {
 
         expect(user).not.toBe(null);
 
-        expect((user as UserType).herotag).toEqual("serabocca06.elrond");
+        expect((user as UserType).herotag).toEqual("streamparticles.elrond");
         expect((user as UserType).status).toEqual(0);
 
         expect(user).toHaveProperty("password");
@@ -119,7 +119,10 @@ describe("Auth integration testing", () => {
     describe("when data is ok but herotag is not registered in db", () => {
       it("should throw", async () => {
         expect(
-          authenticateUser({ herotag: "serabocca06.elrond", password: "test" })
+          authenticateUser({
+            herotag: "streamparticles.elrond",
+            password: "test",
+          })
         ).rejects.toThrow("INVALID_FORM_NO_REGISTERED_HEROTAG");
       });
     });
@@ -136,7 +139,7 @@ describe("Auth integration testing", () => {
       it("should throw", async () => {
         expect(
           authenticateUser({
-            herotag: "serabocca06.elrond",
+            herotag: "streamparticles.elrond",
             password: "test___",
           })
         ).rejects.toThrow("INVALID_PASSWORD");
@@ -158,7 +161,7 @@ describe("Auth integration testing", () => {
       it("should throw", async () => {
         expect(
           authenticateUser({
-            herotag: "serabocca06.elrond",
+            herotag: "streamparticles.elrond",
             password: "test",
           })
         ).rejects.toThrow("ACCOUNT_WITH_VERIFICATION_PENDING");
@@ -176,7 +179,7 @@ describe("Auth integration testing", () => {
 
       it("should resolve user and token data", async () => {
         const result = await authenticateUser({
-          herotag: "serabocca06.elrond",
+          herotag: "streamparticles.elrond",
           password: "test",
         });
 
@@ -190,9 +193,9 @@ describe("Auth integration testing", () => {
   describe("isProfileVerified", () => {
     describe("when no user is found", () => {
       it("should return false", async () => {
-        const result = await isProfileVerified("serabocca06.elrond");
+        const result = await isProfileVerified("streamparticles.elrond");
 
-        expect(result).toBe(false);
+        expect(result).toEqual({ isStatusVerified: false });
       });
     });
 
@@ -209,9 +212,9 @@ describe("Auth integration testing", () => {
       });
 
       it("should return false", async () => {
-        const result = await isProfileVerified("serabocca06.elrond");
+        const result = await isProfileVerified("streamparticles.elrond");
 
-        expect(result).toBe(false);
+        expect(result).toEqual({ isStatusVerified: false });
       });
     });
 
@@ -225,9 +228,9 @@ describe("Auth integration testing", () => {
       });
 
       it("should return true", async () => {
-        const result = await isProfileVerified("serabocca06.elrond");
+        const result = await isProfileVerified("streamparticles.elrond");
 
-        expect(result).toBe(true);
+        expect(result).toEqual({ isStatusVerified: true });
       });
     });
   });
@@ -235,9 +238,12 @@ describe("Auth integration testing", () => {
   describe("getVerificationReference", () => {
     describe("when no user is found with this herotag", () => {
       it("should return true", async () => {
-        const result = await getVerificationReference("serabocca06.elrond");
+        const result = await getVerificationReference("streamparticles.elrond");
 
-        expect(result).toBe(null);
+        expect(result).toEqual({
+          accountStatus: null,
+          verificationReference: null,
+        });
       });
     });
 
@@ -251,9 +257,12 @@ describe("Auth integration testing", () => {
       });
 
       it("should return true", async () => {
-        const result = await getVerificationReference("serabocca06.elrond");
+        const result = await getVerificationReference("streamparticles.elrond");
 
-        expect(result).toBe("verificationReference_test");
+        expect(result).toEqual({
+          accountStatus: 1,
+          verificationReference: "verificationReference_test",
+        });
       });
     });
   });
@@ -272,7 +281,7 @@ describe("Auth integration testing", () => {
         });
 
         mockedTransactions.getErdAddressFromHerotag.mockResolvedValue(
-          "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8"
+          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm"
         );
 
         mockedElrond.getLastTransactions.mockResolvedValue([
@@ -280,7 +289,7 @@ describe("Auth integration testing", () => {
             hash:
               "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c12atfc56666",
             receiver:
-              "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8",
+              "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm",
             timestamp: getTime(sub(new Date(), { minutes: 3 })) * 0.001,
             status: "success",
           } as ElrondTransaction,
@@ -306,12 +315,12 @@ describe("Auth integration testing", () => {
         ).toHaveBeenCalledTimes(1);
         expect(
           mockedTransactions.getErdAddressFromHerotag
-        ).toHaveBeenNthCalledWith(1, "serabocca06.elrond");
+        ).toHaveBeenNthCalledWith(1, "streamparticles.elrond");
 
         expect(mockedElrond.getLastTransactions).toHaveBeenCalledTimes(1);
         expect(mockedElrond.getLastTransactions).toHaveBeenNthCalledWith(
           1,
-          "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8"
+          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm"
         );
 
         expect((updatedUser as UserType).status).toEqual(
@@ -334,7 +343,7 @@ describe("Auth integration testing", () => {
         });
 
         mockedTransactions.getErdAddressFromHerotag.mockResolvedValue(
-          "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8"
+          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm"
         );
 
         mockedElrond.getLastTransactions.mockResolvedValue([
@@ -342,7 +351,7 @@ describe("Auth integration testing", () => {
             hash:
               "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
             receiver:
-              "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8",
+              "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm",
             timestamp: getTime(sub(new Date(), { minutes: 3 })) * 0.001,
             data: "TXllVGc5SEpyVw==",
             status: "success",
@@ -369,12 +378,12 @@ describe("Auth integration testing", () => {
         ).toHaveBeenCalledTimes(1);
         expect(
           mockedTransactions.getErdAddressFromHerotag
-        ).toHaveBeenNthCalledWith(1, "serabocca06.elrond");
+        ).toHaveBeenNthCalledWith(1, "streamparticles.elrond");
 
         expect(mockedElrond.getLastTransactions).toHaveBeenCalledTimes(1);
         expect(mockedElrond.getLastTransactions).toHaveBeenNthCalledWith(
           1,
-          "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8"
+          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm"
         );
 
         expect((updatedUser as UserType).status).toEqual(
