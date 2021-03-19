@@ -156,9 +156,8 @@ const findHerotagByVariationId = async (
     "integrations.streamElements.variations._id": variationId,
   })
     .select({ herotag: true })
+    .orFail(new Error("NO_USER_FOUND"))
     .lean();
-
-  if (!user) throw new Error("");
 
   return user.herotag as string;
 };

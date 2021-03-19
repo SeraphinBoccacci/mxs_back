@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon --config nodemon.json src/index.ts",
     "dev:debug": "nodemon --config nodemon.json --inspect-brk src/index.ts",
-    "test": "NODE_ENV=test jest",
+    "test": "NODE_ENV=test npx jest --detectOpenHandles --forceExit",
     "lint": "eslint src --ext .ts"
   },
   "keywords": [],

@@ -21,7 +21,7 @@ const logger = createLogger({
   ],
 });
 
-if (process.env.NODE_ENV !== "production") {
+if (process.env.NODE_ENV !== "production" && process.env.NODE_ENV !== "test") {
   logger.add(
     new transports.Console({
       format: combine(colorize(), timestamp(), withTimestampFormat),
