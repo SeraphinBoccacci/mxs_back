@@ -1,7 +1,8 @@
 import axios, { AxiosRequestConfig } from "axios";
 
-import { EventData } from "../../interfaces";
 import { IftttIntegrationData } from "../../models/User";
+import logger from "../../services/logger";
+import { EventData } from "../../types";
 
 export const triggerIftttEvent = async (
   eventData: EventData,
@@ -19,11 +20,15 @@ export const triggerIftttEvent = async (
     value3: eventData.data,
   };
 
-  console.log(data, config);
+  try {
+    await axios.post(
+      `https://maker.ifttt.com/trigger/${iftttIntegrationData.eventName}/with/key/${iftttIntegrationData.triggerKey}`,
+      data,
+      config
+    );
+  } catch (error) {
+    logger.error(error);
 
-  await axios.post(
-    `https://maker.ifttt.com/trigger/${iftttIntegrationData.eventName}/with/key/${iftttIntegrationData.triggerKey}`,
-    data,
-    config
-  );
+    throw error;
+  }
 };

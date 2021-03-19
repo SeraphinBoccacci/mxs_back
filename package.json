@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon --config nodemon.json src/index.ts",
     "dev:debug": "nodemon --config nodemon.json --inspect-brk src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "NODE_ENV=test jest --watch"
   },
   "keywords": [],
   "author": "",
@@ -21,11 +21,13 @@
     "@types/jest": "^26.0.20",
     "@types/jsonwebtoken": "^8.5.0",
     "@types/mongoose": "^5.10.3",
+    "@types/multer": "^1.4.5",
     "@types/redis": "^2.8.28",
     "@types/socket.io": "^2.1.13",
-    "@typescript-eslint/eslint-plugin": "^4.15.1",
-    "@typescript-eslint/parser": "^4.15.1",
+    "@typescript-eslint/eslint-plugin": "^4.15.2",
+    "@typescript-eslint/parser": "^4.15.2",
     "eslint": "^7.20.0",
+    "eslint-config-typescript": "^3.0.0",
     "eslint-plugin-import-order-alphabetical": "^1.0.1",
     "eslint-plugin-simple-import-sort": "^7.0.0",
     "jest": "^26.6.3",
@@ -49,6 +51,7 @@
     "http": "0.0.1-security",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.11.15",
+    "multer": "^1.4.2",
     "nanoid": "^3.1.20",
     "poll": "^1.0.1",
     "redis": "^3.0.2",

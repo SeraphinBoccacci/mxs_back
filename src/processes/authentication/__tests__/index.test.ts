@@ -8,8 +8,8 @@ import {
   validateAuthenticationData,
 } from "../index";
 
-jest.mock("../utils/transactions", () => {
-  const module = jest.requireActual("../utils/transactions");
+jest.mock("../../../utils/transactions", () => {
+  const module = jest.requireActual("../../../utils/transactions");
   return { ...module, getErdAddressFromHerotag: jest.fn() };
 });
 

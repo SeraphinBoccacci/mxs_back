@@ -1,5 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 
+import { Variation, VariationSchema } from "../types/streamElements";
+
 export enum UserAccountStatus {
   PENDING_VERIFICATION = 0,
   VERIFIED,
@@ -21,6 +23,9 @@ export interface UserType {
   verificationStartDate?: Date;
   integrations?: {
     ifttt?: IftttIntegrationData;
+    streamElements?: {
+      variations: Variation[];
+    };
   };
   isStreaming?: boolean;
   streamingStartDate?: Date | null;
@@ -43,6 +48,9 @@ const UserSchema = new Schema(
         eventName: { type: String, required: false },
         triggerKey: { type: String, required: false },
         isActive: { type: Boolean, required: false },
+      },
+      streamElements: {
+        variations: { type: [VariationSchema], required: false },
       },
     },
     isStreaming: { type: Boolean, required: false },

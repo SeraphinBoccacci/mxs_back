@@ -12,7 +12,6 @@ describe.only("elrond test", () => {
           "address",
           "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8"
         );
-        expect(addressData).toHaveProperty("nonce", 88);
         expect(addressData).toHaveProperty("username", "serabocca06.elrond");
       });
     });
