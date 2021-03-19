@@ -97,14 +97,12 @@ export const toggleBlockchainMonitoring = async (
       },
     },
     { new: true }
-  )
-    .select({ _id: true, herotag: true, integrations: true })
-    .lean();
+  ).lean();
 
   if (!user) return;
 
   if (isStreaming && user.integrations)
-    await launchBlockchainMonitoring(user.herotag as string, user as UserType);
+    await launchBlockchainMonitoring(user.herotag as string, user);
 
   return user;
 };

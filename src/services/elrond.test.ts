@@ -5,14 +5,17 @@ describe.only("elrond test", () => {
     describe("when address is found on proxy", () => {
       it("should return address data", async () => {
         const addressData = await proxy.getAddress(
-          "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8"
+          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm"
         );
 
         expect(addressData).toHaveProperty(
           "address",
-          "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8"
+          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm"
         );
-        expect(addressData).toHaveProperty("username", "serabocca06.elrond");
+        expect(addressData).toHaveProperty(
+          "username",
+          "streamparticles.elrond"
+        );
       });
     });
 
@@ -30,17 +33,17 @@ describe.only("elrond test", () => {
   describe("dns", () => {
     describe("when herotag is found on dns", () => {
       it("should return address data", async () => {
-        const address = await dns.resolve("serabocca06.elrond");
+        const address = await dns.resolve("streamparticles.elrond");
 
         expect(address).toEqual(
-          "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8"
+          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm"
         );
       });
     });
 
     describe("when herotag is not found on dns", () => {
       it("throw error", async () => {
-        const address = await dns.resolve("serabocca06");
+        const address = await dns.resolve("streamparticles");
 
         expect(address).toEqual("");
       });

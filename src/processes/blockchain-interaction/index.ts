@@ -1,5 +1,10 @@
 import { UserType } from "../../models/User";
-import { ElrondTransaction, EventData } from "../../types";
+import {
+  ElrondTransaction,
+  EventData,
+  isMockedElrondTransaction,
+  MockedElrondTransaction,
+} from "../../types";
 import {
   computeSentAmount,
   getHerotagFromErdAddress,
@@ -9,16 +14,28 @@ import { triggerIftttEvent } from "./ifttt";
 import { triggerStreamElementsEvent } from "./streamElements";
 
 export const reactToNewTransaction = async (
-  transaction: ElrondTransaction,
+  transaction: ElrondTransaction | MockedElrondTransaction,
   user: UserType
 ): Promise<void> => {
-  const herotag = await getHerotagFromErdAddress(transaction.sender);
+  const getEventData = async (): Promise<EventData> => {
+    if (isMockedElrondTransaction(transaction)) {
+      return {
+        amount: transaction.amount,
+        herotag: transaction.herotag,
+        data: transaction.data,
+      };
+    } else {
+      const herotag = await getHerotagFromErdAddress(transaction.sender);
 
-  const eventData: EventData = {
-    amount: computeSentAmount(transaction.value),
-    herotag,
-    data: decodeDataFromTx(transaction),
+      return {
+        amount: computeSentAmount(transaction.value),
+        herotag,
+        data: decodeDataFromTx(transaction),
+      };
+    }
   };
+
+  const eventData = await getEventData();
 
   if (user?.integrations?.ifttt && user?.integrations?.ifttt.isActive)
     await triggerIftttEvent(eventData, user?.integrations?.ifttt);

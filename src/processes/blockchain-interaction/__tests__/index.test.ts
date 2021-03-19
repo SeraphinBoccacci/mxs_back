@@ -22,7 +22,7 @@ import * as streamElements from "../streamElements";
 
 const baseUser = {
   _id: mongoose.Types.ObjectId("6025884242b45cd7572870b3"),
-  herotag: "serabocca06.elrond",
+  herotag: "streamparticles.elrond",
   password: "$2b$10$RzGjFb4jVp77rsiMPOHofOmUzsllH674FnezzIR8Jmjmhr2u1HwXe",
   status: 1,
   createdAt: new Date("2021-02-11T19:40:50.466Z"),

@@ -1,14 +1,18 @@
+import axios from "axios";
 import express from "express";
 import mongoose from "mongoose";
 
 import { authenticateMiddleware } from "../middlewares/authMiddleware";
-import { triggerIftttEvent } from "../processes/blockchain-interaction/ifttt";
-import { triggerStreamElementsEvent } from "../processes/blockchain-interaction/streamElements";
+import { reactToNewTransaction } from "../processes/blockchain-interaction";
 import { toggleBlockchainMonitoring } from "../processes/blockchain-monitoring";
 import {
   createVariation,
   deleteVariation,
+  getCodeSnippets,
+  getRowsStructure,
+  getUserVariations,
   getVariation,
+  updateRowsStructure,
   updateVariation,
 } from "../processes/stream-elements";
 import {
@@ -16,100 +20,149 @@ import {
   toggleIftttIntegration,
   updateIftttIntegrationData,
 } from "../processes/user";
-import { EventData } from "../types";
+import { EventData, MockedElrondTransaction } from "../types";
+import { RequestWithHerotag } from "../types/express";
 const Router = express.Router();
 
-Router.route("/user/:herotag").get(authenticateMiddleware, async (req, res) => {
-  const user = await getUserData(req.params.herotag);
+Router.route("/user/herotag").get(
+  authenticateMiddleware,
+  async (req: RequestWithHerotag, res) => {
+    if (!req?.herotag) return res.sendStatus(403);
 
-  res.send(user);
-});
+    const user = await getUserData(req?.herotag);
 
-Router.route("/user/poll-maiar/:herotag").post(async (req, res) => {
-  await toggleBlockchainMonitoring(req.params.herotag, req.body.isStreaming);
+    res.send(user);
+  }
+);
 
-  res.sendStatus(204);
-});
+Router.route("/user/poll-maiar/:herotag").post(
+  authenticateMiddleware,
+  async (req, res) => {
+    await toggleBlockchainMonitoring(req.params.herotag, req.body.isStreaming);
+
+    res.sendStatus(204);
+  }
+);
 
 // define the home page route
-Router.route("/user/ifttt/:herotag").post(async (req, res) => {
-  await updateIftttIntegrationData(req.params.herotag, req.body.ifttt);
+Router.route("/user/ifttt/:herotag").post(
+  authenticateMiddleware,
+  async (req, res) => {
+    await updateIftttIntegrationData(req.params.herotag, req.body.ifttt);
 
-  res.sendStatus(204);
-});
+    res.sendStatus(204);
+  }
+);
 
-Router.route("/user/ifttt/is-active/:herotag").post(async (req, res) => {
-  await toggleIftttIntegration(req.params.herotag, req.body.isActive);
+Router.route("/user/ifttt/is-active/:herotag").post(
+  authenticateMiddleware,
+  async (req, res) => {
+    await toggleIftttIntegration(req.params.herotag, req.body.isActive);
 
-  res.sendStatus(204);
-});
+    res.sendStatus(204);
+  }
+);
 
 Router.route("/user/stream-elements/variation")
-  .post(async (req, res) => {
-    const createdVariation = await createVariation(
-      req.body.herotag,
-      req.body.variation
-    );
+  .post(authenticateMiddleware, async (req, res) => {
+    const result = await createVariation(req.body.herotag, req.body.variation);
 
-    res.send(createdVariation);
+    res.send(result);
   })
-  .put(async (req, res) => {
-    await updateVariation(
+  .put(authenticateMiddleware, async (req, res) => {
+    const result = await updateVariation(
       mongoose.Types.ObjectId(req.body.variationId),
       req.body.variation
     );
 
-    res.sendStatus(204);
+    res.send(result);
   });
 
 Router.route("/user/stream-elements/variation/:variationId")
-  .get(async (req, res) => {
+  .get(authenticateMiddleware, async (req, res) => {
     const variation = await getVariation(
       mongoose.Types.ObjectId(req.params.variationId)
     );
 
     res.send(variation);
   })
-  .delete(async (req, res) => {
-    await deleteVariation(mongoose.Types.ObjectId(req.params.variationId));
+  .delete(authenticateMiddleware, async (req, res) => {
+    const result = await deleteVariation(
+      mongoose.Types.ObjectId(req.params.variationId)
+    );
 
-    res.sendStatus(204);
+    res.send(result);
   });
 
-Router.route("/user/trigger/ifttt").post(async (req, res) => {
-  const user = await getUserData(req.body.herotag);
+Router.route("/user/stream-elements/variations/:herotag").get(
+  authenticateMiddleware,
+  async (req, res) => {
+    const variations = await getUserVariations(req.params.herotag);
 
-  if (!user?.integrations?.ifttt?.isActive)
-    throw new Error("IFTTT_INTEGRATION_IS_NOT_ACTIVE");
+    const files = getCodeSnippets(req.params.herotag, variations);
 
-  const mockedEventData: EventData = {
-    herotag: "test_herotag",
-    amount: "x.xxx",
-    data: "test message",
-  };
+    res.send({ variations, files });
+  }
+);
 
-  await triggerIftttEvent(mockedEventData, user.integrations.ifttt);
+Router.route("/user/stream-elements/rows-structure/:herotag").get(
+  authenticateMiddleware,
+  async (req, res) => {
+    const rowsStructure = await getRowsStructure(req.params.herotag);
 
-  res.sendStatus(204);
-});
+    res.send(rowsStructure);
+  }
+);
 
-Router.route("/user/trigger/streamElements").post(async (req, res) => {
-  const user = await getUserData(req.body.herotag);
+Router.route("/user/stream-elements/rows-structure").post(
+  authenticateMiddleware,
+  async (req, res) => {
+    await updateRowsStructure(req.body.herotag, req.body.rowsStructure);
 
-  if (!user) throw new Error("NO_USER_FOUND");
+    res.sendStatus(204);
+  }
+);
 
-  // if (!user?.integrations?.streamElements?.isActive)
-  //   throw new Error("IFTTT_INTEGRATION_IS_NOT_ACTIVE");
+const defaultMockedEventData: EventData = {
+  herotag: "test_herotag",
+  amount: "0.001",
+  data: "test message",
+};
 
-  const mockedEventData: EventData = {
-    herotag: "test_herotag",
-    amount: "x.xxx",
-    data: "test message",
-  };
+Router.route("/user/trigger-event").post(
+  authenticateMiddleware,
+  async (req, res) => {
+    const user = await getUserData(req.body.herotag);
 
-  await triggerStreamElementsEvent(mockedEventData, user);
+    if (!user?.integrations?.ifttt?.isActive)
+      throw new Error("IFTTT_INTEGRATION_IS_NOT_ACTIVE");
 
-  res.sendStatus(204);
+    const mockedTransaction: MockedElrondTransaction = {
+      isMockedTransaction: true,
+      ...defaultMockedEventData,
+      ...req.body.data,
+    };
+
+    await reactToNewTransaction(mockedTransaction, user);
+
+    res.sendStatus(204);
+  }
+);
+
+Router.route("/egld-price").get(async (req, res) => {
+  const response = await axios.get(
+    "https://api.coingecko.com/api/v3/simple/price?ids=elrond-erd-2&vs_currencies=usd"
+  );
+
+  if (!response) {
+    res.sendStatus(200);
+
+    return;
+  }
+
+  const price = response.data["elrond-erd-2"].usd;
+
+  res.send({ price });
 });
 
 export default Router;

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import fs from "fs";
 import path, { extname } from "path";
-//@ts-ignore
+
 require("express-async-errors");
 
 import compression from "compression";
@@ -42,15 +42,19 @@ const upload = multer({
   storage: storage,
 }).single("media");
 
-// const { errorConverter, errorHandler } = require("./middlewares/error");
-
 const app = express();
 
+// set security HTTP headers /\ CAUTION: Override header below if set after /\
+app.use(helmet());
+
 app.use(function(req, res, next) {
-  //allow cross origin requests
   res.setHeader(
     "Access-Control-Allow-Methods",
     "POST, PUT, OPTIONS, DELETE, GET"
+  );
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; script-src 'self' 'unsafe-inline' https://ajax.googleapis.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; frame-src *; media-src data: 'self' https: blob:; frame-ancestors *;"
   );
   res.header("Access-Control-Allow-Origin", "http://localhost:3000");
   res.header(
@@ -61,32 +65,11 @@ app.use(function(req, res, next) {
   next();
 });
 
-// set security HTTP headers
-app.use(helmet());
-
 // parse json request body
 app.use(express.json());
 
 // parse urlencoded request body
 app.use(express.urlencoded({ extended: true }));
-
-app.use("/images", express.static(path.join("../medias/images")));
-app.use("/audios", express.static(path.join("../medias/audios")));
-
-app.post("/uploads/:mediaType", async (req, res) => {
-  const filename = await new Promise((resolve, reject) => {
-    upload(req, res, function(err: any) {
-      if (err) {
-        logger.error(err);
-        reject(err);
-      }
-
-      resolve(req.file.filename);
-    });
-  });
-
-  res.send(filename);
-});
 
 // sanitize request data
 app.use(xss());
@@ -108,18 +91,33 @@ app.use(cors());
 //   app.use("/v1/auth", authLimiter);
 // }
 
+app.use("/images", express.static(path.join("../medias/images")));
+app.use("/audios", express.static(path.join("../medias/audios")));
+
+app.use("/files/:fileType/file-name/:fileName", (req, res) => {
+  const { fileType, fileName } = req.params;
+
+  res.sendFile(path.join(`/files/${fileName}.${fileType}`), {
+    root: path.join("../medias"),
+  });
+});
+
+app.post("/uploads/:mediaType", async (req, res) => {
+  const filename = await new Promise((resolve, reject) => {
+    upload(req, res, function(err: any) {
+      if (err) {
+        logger.error(err);
+        reject(err);
+      }
+
+      resolve(req.file.filename);
+    });
+  });
+
+  res.send(filename);
+});
+
 app.use("/api", routes);
-
-// send back a 404 error for any unknown api request
-// app.use((req: Request, res: Response, next: NextFunction) => {
-//   next(new Error("Not found ---------------- !"));
-// });
-
-// convert error to ApiError, if needed
-// app.use(errorConverter);
-
-// handle error
-// app.use(errorHandler);
 
 if (
   process.env.NODE_ENV === "production" ||
@@ -132,8 +130,8 @@ if (
   });
 }
 
-app.get("*", function() {
-  throw new Error("ROUTE_NOT_FOUND");
+app.use((req: Request, res: Response, next: NextFunction) => {
+  next(new Error("Not found ---------------- !"));
 });
 
 app.use(errorMiddleware);

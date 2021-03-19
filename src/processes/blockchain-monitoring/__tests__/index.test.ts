@@ -8,7 +8,7 @@ import { findNewIncomingTransactions } from "../";
 
 const baseUser = {
   _id: mongoose.Types.ObjectId("6025884242b45cd7572870b3"),
-  herotag: "serabocca06.elrond",
+  herotag: "streamparticles.elrond",
   password: "$2b$10$RzGjFb4jVp77rsiMPOHofOmUzsllH674FnezzIR8Jmjmhr2u1HwXe",
   status: 1,
   createdAt: new Date("2021-02-11T19:40:50.466Z"),
@@ -62,7 +62,7 @@ describe("Blockchain monitoring unit testing", () => {
         round: 2876481,
         value: "1243000000000000",
         receiver:
-          "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8",
+          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm",
         sender:
           "erd1tdadwyyk3llcpj5mwsy4qej5vcv3yg95y2gv2pav7a6zv6r4lpfqmce9kv",
         receiverShard: 0,
@@ -87,7 +87,7 @@ describe("Blockchain monitoring unit testing", () => {
         round: 2876465,
         value: "134253000000000",
         receiver:
-          "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8",
+          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm",
         sender:
           "erd1tdadwyyk3llcpj5mwsy4qej5vcv3yg95y2gv2pav7a6zv6r4lpfqmce9kv",
         receiverShard: 0,
@@ -112,7 +112,7 @@ describe("Blockchain monitoring unit testing", () => {
         round: 2876438,
         value: "142530000000000",
         receiver:
-          "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8",
+          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm",
         sender:
           "erd1tdadwyyk3llcpj5mwsy4qej5vcv3yg95y2gv2pav7a6zv6r4lpfqmce9kv",
         receiverShard: 0,
@@ -134,7 +134,7 @@ describe("Blockchain monitoring unit testing", () => {
         describe("when receiver address does not match target address", () => {
           it("should not return tx", () => {
             const targetErdAdress =
-              "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8";
+              "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
             const notMatchingTx = {
               receiver:
                 "erd1tdadwyyk3llcpj5mwsy4qej5vcv3yg95y2gv2pav7a6zv6r4lpfqmce9kv",
@@ -156,7 +156,7 @@ describe("Blockchain monitoring unit testing", () => {
         describe("when user hasn't streamingStartDate", () => {
           it("should not return tx", () => {
             const targetErdAdress =
-              "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8";
+              "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
             const notMatchingTx = {
               receiver: targetErdAdress,
               timestamp: getTime(sub(new Date(), { hours: 1 })) * 0.001,
@@ -177,7 +177,7 @@ describe("Blockchain monitoring unit testing", () => {
         describe("when tx timestamp is smaller than user streamingStartDate", () => {
           it("should not return tx", () => {
             const targetErdAdress =
-              "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8";
+              "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
             const notMatchingTx = {
               receiver: targetErdAdress,
               timestamp: getTime(sub(new Date(), { hours: 6 })) * 0.001,
@@ -198,7 +198,7 @@ describe("Blockchain monitoring unit testing", () => {
         describe("when status is not success", () => {
           it("should not return tx", () => {
             const targetErdAdress =
-              "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8";
+              "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
             const notMatchingTx = {
               receiver: targetErdAdress,
               timestamp: getTime(sub(new Date(), { hours: 3 })) * 0.001,
@@ -220,7 +220,7 @@ describe("Blockchain monitoring unit testing", () => {
       describe("when receiver address match target address, user has streamingStartDate,  tx timestamp is greater or equal to user streamingStartDate, status is success", () => {
         it("should return tx", () => {
           const targetErdAdress =
-            "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8";
+            "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
           const timestamp = getTime(sub(new Date(), { hours: 3 })) * 0.001;
           const matchingTx = {
             hash:
@@ -246,7 +246,7 @@ describe("Blockchain monitoring unit testing", () => {
       describe("when many txs match filters", () => {
         it("should return txs", () => {
           const targetErdAdress =
-            "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8";
+            "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
           const timestamp = getTime(sub(new Date(), { hours: 3 })) * 0.001;
           const timestamp2 = getTime(sub(new Date(), { hours: 2 })) * 0.001;
           const matchingTx1 = {
@@ -283,7 +283,7 @@ describe("Blockchain monitoring unit testing", () => {
         describe("when receiver address does not match target address", () => {
           it("should not return tx", () => {
             const targetErdAdress =
-              "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8";
+              "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
             const notMatchingTx = {
               receiver:
                 "erd1tdadwyyk3llcpj5mwsy4qej5vcv3yg95y2gv2pav7a6zv6r4lpfqmce9kv",
@@ -308,7 +308,7 @@ describe("Blockchain monitoring unit testing", () => {
         describe("when user hasn't streamingStartDate", () => {
           it("should not return tx", () => {
             const targetErdAdress =
-              "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8";
+              "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
             const notMatchingTx = {
               receiver: targetErdAdress,
               timestamp: getTime(sub(new Date(), { hours: 1 })) * 0.001,
@@ -332,7 +332,7 @@ describe("Blockchain monitoring unit testing", () => {
         describe("when tx timestamp is smaller than user streamingStartDate", () => {
           it("should not return tx", () => {
             const targetErdAdress =
-              "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8";
+              "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
             const notMatchingTx = {
               receiver: targetErdAdress,
               timestamp: getTime(sub(new Date(), { hours: 6 })) * 0.001,
@@ -356,7 +356,7 @@ describe("Blockchain monitoring unit testing", () => {
         describe("when tx timestamp is smaller than last balance snapshot timestamp", () => {
           it("should not return tx", () => {
             const targetErdAdress =
-              "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8";
+              "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
             const notMatchingTx = {
               receiver: targetErdAdress,
               timestamp: getTime(sub(new Date(), { hours: 3 })) * 0.001,
@@ -380,7 +380,7 @@ describe("Blockchain monitoring unit testing", () => {
         describe("when status is not success", () => {
           it("should not return tx", () => {
             const targetErdAdress =
-              "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8";
+              "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
             const notMatchingTx = {
               receiver: targetErdAdress,
               timestamp: getTime(sub(new Date(), { hours: 3 })) * 0.001,
@@ -405,7 +405,7 @@ describe("Blockchain monitoring unit testing", () => {
       describe("when receiver address match target address, user has streamingStartDate,  tx timestamp is greater or equal to user streamingStartDate, status is success", () => {
         it("should return tx", () => {
           const targetErdAdress =
-            "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8";
+            "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
           const timestamp = getTime(sub(new Date(), { hours: 1 })) * 0.001;
           const matchingTx = {
             hash:
@@ -434,7 +434,7 @@ describe("Blockchain monitoring unit testing", () => {
       describe("when many txs match filters", () => {
         it("should return txs", () => {
           const targetErdAdress =
-            "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8";
+            "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
           const timestamp = getTime(sub(new Date(), { minutes: 3 })) * 0.001;
           const timestamp2 = getTime(sub(new Date(), { minutes: 2 })) * 0.001;
           const matchingTx1 = {

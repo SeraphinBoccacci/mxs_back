@@ -1,10 +1,12 @@
 import mongoose, { Schema } from "mongoose";
 
-import { Variation, VariationSchema } from "../types/streamElements";
+import { VariationSchema } from "../models/schemas/StreamElementsVariation";
+import { Variation } from "../types/streamElements";
 
 export enum UserAccountStatus {
   PENDING_VERIFICATION = 0,
   VERIFIED,
+  PENDING_EDIT_PASSWORD_VERIFICATION,
 }
 
 export interface IftttIntegrationData {
@@ -16,15 +18,22 @@ export interface IftttIntegrationData {
 export interface UserType {
   _id?: mongoose.Types.ObjectId;
   password?: string;
+  pendingPassword?: string;
   herotag?: string;
   erdAddress?: string;
   status: UserAccountStatus;
   verificationReference?: string;
-  verificationStartDate?: Date;
+  passwordEditionVerificationReference?: string;
+  verificationStartDate?: string;
+  passwordEditionVerificationStartDate?: string;
   integrations?: {
     ifttt?: IftttIntegrationData;
     streamElements?: {
       variations: Variation[];
+      rowsStructure: {
+        rows: string[];
+        rowsGroupName?: string | undefined;
+      }[];
     };
   };
   isStreaming?: boolean;
@@ -34,6 +43,7 @@ export interface UserType {
 const UserSchema = new Schema(
   {
     password: { type: String, required: true },
+    pendingPassword: { type: String, required: false },
     herotag: {
       type: String,
       required: true,
@@ -42,7 +52,9 @@ const UserSchema = new Schema(
     erdAddress: { type: String, required: false },
     status: { type: UserAccountStatus, required: true },
     verificationReference: { type: String, required: true },
+    passwordEditionVerificationReference: { type: String, required: false },
     verificationStartDate: { type: String, required: true },
+    passwordEditionVerificationStartDate: { type: String, required: false },
     integrations: {
       ifttt: {
         eventName: { type: String, required: false },
@@ -51,6 +63,15 @@ const UserSchema = new Schema(
       },
       streamElements: {
         variations: { type: [VariationSchema], required: false },
+        rowsStructure: {
+          type: [
+            {
+              rowsGroupName: { type: String, required: false },
+              rows: { type: [String], required: false },
+            },
+          ],
+          required: false,
+        },
       },
     },
     isStreaming: { type: Boolean, required: false },

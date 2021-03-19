@@ -16,7 +16,7 @@ const server = http.createServer(app);
 
 listen(server);
 
-server.listen(PORT, async () => {
+server.listen(PORT, () => {
   logger.info(`Start listenning on port : ${PORT}`);
 
   try {

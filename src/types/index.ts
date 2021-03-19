@@ -1,3 +1,15 @@
+export interface MockedElrondTransaction {
+  isMockedTransaction: true;
+  herotag: string;
+  amount: string;
+  data: string;
+}
+
+export const isMockedElrondTransaction = (
+  transaction: ElrondTransaction | MockedElrondTransaction
+): transaction is MockedElrondTransaction =>
+  !!(transaction as MockedElrondTransaction).isMockedTransaction;
+
 export interface ElrondTransaction {
   hash: string;
   fee: string;

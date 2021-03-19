@@ -6,6 +6,7 @@ import { connectToDatabase } from "../../services/mongoose";
 import {
   EnterAnimationTypes,
   ExitAnimationTypes,
+  TextAlignments,
   TextStyles,
   Variation,
   VariationPositions,
@@ -74,7 +75,7 @@ const baseVariation: Variation = {
     lineHeight: "10",
     letterSpacing: "10",
     wordSpacing: "10",
-    textAlign: "center",
+    textAlign: TextAlignments.center,
     textStyle: [TextStyles.bold],
     animation: {
       enter: {

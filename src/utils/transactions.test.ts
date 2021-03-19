@@ -4,31 +4,31 @@ describe("Maiar utils unit testing", () => {
   describe("normalizeHerotag", () => {
     describe("when herotag does not end with .elrond", () => {
       it("should return herotag with .elrond at end", () => {
-        const herotag = "serabocca06";
+        const herotag = "streamparticles";
 
         const normalizedHerotag = normalizeHerotag(herotag);
 
-        expect(normalizedHerotag).toEqual("serabocca06.elrond");
+        expect(normalizedHerotag).toEqual("streamparticles.elrond");
       });
     });
 
     describe("when herotag does end with .elrond", () => {
       it("should return same herotag", () => {
-        const herotag = "serabocca06.elrond";
+        const herotag = "streamparticles.elrond";
 
         const normalizedHerotag = normalizeHerotag(herotag);
 
-        expect(normalizedHerotag).toEqual("serabocca06.elrond");
+        expect(normalizedHerotag).toEqual("streamparticles.elrond");
       });
     });
 
     describe("when herotag starts with @", () => {
       it("should return herotag without @ and with .elrond at end", () => {
-        const herotag = "@serabocca06";
+        const herotag = "@streamparticles";
 
         const normalizedHerotag = normalizeHerotag(herotag);
 
-        expect(normalizedHerotag).toEqual("serabocca06.elrond");
+        expect(normalizedHerotag).toEqual("streamparticles.elrond");
       });
     });
   });

@@ -1,30 +1,31 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import cleanStack from "clean-stack";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 
-const errorMiddleware = (err: Error, req: Request, res: Response): void => {
-  if (typeof err === "string") {
-    err = new Error(err);
-  }
+import logger from "../services/logger";
+
+const errorMiddleware = (
+  err: Error,
+  req: Request,
+  res: Response,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  next: NextFunction
+): void => {
+  const error = typeof err === "string" ? new Error(err) : err;
+
+  logger.error({
+    error: error.message,
+    url: req.url,
+    params: req.params,
+    query: req.query,
+    body: req.body,
+  });
 
   //@ts-ignore
-  const status = err.status || 500;
+  const status = error.status || 500;
 
-  err.stack = err.stack && cleanStack(err.stack);
+  const { message } = error;
 
-  //@ts-ignore
-  const { message, data = {}, ...remains } = err;
-
-  let json = Object.assign({}, data);
-
-  json.data = message;
-
-  json.stack = err.stack;
-  json = { ...json, ...remains };
-
-  res.set("Content-Type", "application/json");
-  res.status(status);
-  res.send(json);
+  res.status(status).send({ message });
 };
 
 export default errorMiddleware;

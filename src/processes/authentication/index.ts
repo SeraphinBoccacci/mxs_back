@@ -105,7 +105,7 @@ export const authenticateUser = async (
 
   await verifyPassword(data.password as string, user.password as string);
 
-  if (user.status === UserAccountStatus.PENDING_VERIFICATION)
+  if (user.status !== UserAccountStatus.VERIFIED)
     throw new Error("ACCOUNT_WITH_VERIFICATION_PENDING");
 
   const token = generateJwt(user.herotag as string);
@@ -113,27 +113,45 @@ export const authenticateUser = async (
   return { user, token: token, expiresIn: 60 * 60 * 4 };
 };
 
-export const isProfileVerified = async (herotag: string): Promise<boolean> => {
+export const isProfileVerified = async (
+  herotag: string
+): Promise<{ isStatusVerified: boolean }> => {
   const user = await User.findOne({ herotag: normalizeHerotag(herotag) })
     .select({ status: true })
     .lean();
 
   const isStatusVerified = user?.status === UserAccountStatus.VERIFIED;
 
-  return isStatusVerified;
+  return { isStatusVerified };
 };
 
 export const getVerificationReference = async (
   herotag: string
-): Promise<string | null> => {
+): Promise<{
+  verificationReference: string | null;
+  accountStatus: UserAccountStatus | null;
+}> => {
   const user = await User.findOne({ herotag: normalizeHerotag(herotag) })
-    .select({ verificationReference: true })
+    .select({
+      verificationReference: true,
+      passwordEditionVerificationReference: true,
+      status: true,
+    })
     .lean();
 
-  return user?.verificationReference || null;
+  if (user?.status === UserAccountStatus.PENDING_EDIT_PASSWORD_VERIFICATION)
+    return {
+      verificationReference: user?.passwordEditionVerificationReference || null,
+      accountStatus: user?.status || null,
+    };
+
+  return {
+    verificationReference: user?.verificationReference || null,
+    accountStatus: user?.status || null,
+  };
 };
 
-export const verifyIfTransactionHappened = async (
+export const activateAccountIfTransactionHappened = async (
   user: UserType
 ): Promise<void> => {
   try {
@@ -158,21 +176,128 @@ export const verifyIfTransactionHappened = async (
       );
     }
   } catch (error) {
-    logger.error("An error occured while verifyIfTransactionHappened", {
-      error,
-      user,
-    });
+    logger.error(
+      "An error occured while activateAccountIfTransactionHappened ",
+      {
+        error,
+        user,
+      }
+    );
+  }
+};
+
+export const savePasswordChangeIfTransactionHappened = async (
+  user: UserType
+): Promise<void> => {
+  try {
+    if (!user.herotag) return;
+
+    const erdAddress = await getErdAddressFromHerotag(user.herotag);
+
+    const transactions: ElrondTransaction[] = await getLastTransactions(
+      erdAddress
+    );
+
+    const hasReferenceInTransactions = transactions.some(
+      (transaction) =>
+        decodeDataFromTx(transaction) ===
+        user.passwordEditionVerificationReference
+      // && transaction.receiver === VERIFY_TRANSACTION_TARGET TO-DO add this condition
+    );
+
+    if (hasReferenceInTransactions) {
+      await User.updateOne({ _id: user._id }, [
+        {
+          $set: {
+            status: UserAccountStatus.VERIFIED,
+            password: "$pendingPassword",
+          },
+        },
+        {
+          $unset: [
+            "pendingPassword",
+            "passwordEditionVerificationReference",
+            "passwordEditionVerificationStartDate",
+          ],
+        },
+      ]);
+    }
+  } catch (error) {
+    logger.error(
+      `An error occured while savePasswordChangeIfTransactionHappened ${error}`,
+      {
+        error,
+        user,
+      }
+    );
   }
 };
 
 export const pollTransactionsToVerifyAccountStatuses = async (): Promise<void> => {
   const verifyStatuses = async () => {
-    const users: UserType[] = await User.find({
+    const pendingVerificationUsers: UserType[] = await User.find({
       status: UserAccountStatus.PENDING_VERIFICATION,
     }).lean();
 
-    await Promise.all(users.map(verifyIfTransactionHappened));
+    const pendingEditPasswordVerificationUsers: UserType[] = await User.find({
+      status: UserAccountStatus.PENDING_EDIT_PASSWORD_VERIFICATION,
+    }).lean();
+
+    await Promise.all([
+      ...pendingVerificationUsers.map(activateAccountIfTransactionHappened),
+      ...pendingEditPasswordVerificationUsers.map(
+        savePasswordChangeIfTransactionHappened
+      ),
+    ]);
   };
 
   await poll(verifyStatuses, 10000, () => false);
+};
+
+export const isHerotagValid = async (
+  herotag: string
+): Promise<{ herotag: string }> => {
+  const doesAccountExist = await User.exists({
+    herotag: normalizeHerotag(herotag),
+  });
+
+  if (!doesAccountExist) throw new Error("NO_REGISTERED_HEROTAG");
+
+  return { herotag };
+};
+
+export const validatePasswordEditionData = async (
+  data?: UserAccountCreationData
+): Promise<void> => {
+  if (!data || !data.herotag || !data.password || !data.confirm)
+    throw new Error("MISSING_DATA_FOR_ACCOUNT_CREATION");
+
+  if (data.password !== data.confirm)
+    throw new Error("PASSWORD_AND_CONFIRM_NOT_MATCHING");
+
+  const doesAccountExist = await User.exists({
+    herotag: normalizeHerotag(data.herotag as string),
+  });
+
+  if (!doesAccountExist) throw new Error("NO_REGISTERED_HEROTAG");
+};
+
+export const editPassword = async (
+  data: UserAccountCreationData
+): Promise<void> => {
+  await validatePasswordEditionData(data);
+
+  const passwordEditionVerificationReference = await generateNewVerificationReference();
+
+  const hashedPassword = await getHashedPassword(data.password as string);
+
+  await User.updateOne(
+    { herotag: normalizeHerotag(data.herotag as string) },
+    {
+      pendingPassword: hashedPassword,
+      passwordEditionVerificationReference,
+      passwordEditionVerificationStartDate: new Date().toISOString(),
+      status: UserAccountStatus.PENDING_EDIT_PASSWORD_VERIFICATION,
+    }
+  );
 };

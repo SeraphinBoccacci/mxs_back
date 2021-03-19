@@ -23,12 +23,12 @@ import {
 } from "../";
 
 const baseUser = {
-  herotag: "serabocca06.elrond",
+  herotag: "streamparticles.elrond",
   password: "$2b$10$RzGjFb4jVp77rsiMPOHofOmUzsllH674FnezzIR8Jmjmhr2u1HwXe",
   status: 1,
   createdAt: new Date("2021-02-11T19:40:50.466Z"),
   updatedAt: new Date("2021-02-15T20:34:04.218Z"),
-  verificationStartDate: new Date(),
+  verificationStartDate: new Date().toISOString(),
   verificationReference: "test",
   integrations: {
     ifttt: {
@@ -80,7 +80,7 @@ describe("Maiar integration testing", () => {
 
       it("should not call neither getLastTransactions, reactToNewTransaction or setNewBalance", async () => {
         await handleBalance(
-          "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8",
+          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm",
           "1000000000000000000"
         );
 
@@ -100,7 +100,7 @@ describe("Maiar integration testing", () => {
       >;
 
       const targetErdAdress =
-        "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8";
+        "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
 
       const updatedAmount = "10000000000000000000";
 
@@ -158,7 +158,7 @@ describe("Maiar integration testing", () => {
       >;
 
       const targetErdAdress =
-        "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8";
+        "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
 
       const updatedAmount = "6100000000000000000";
 
@@ -240,7 +240,7 @@ describe("Maiar integration testing", () => {
       >;
 
       const targetErdAdress =
-        "erd1zr6yyqxq5p7cxk5e08kjm8dwdccla6r9v6hz4qjjkhtefgzf30uqxk06r8";
+        "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
 
       const updatedAmount = "6100000000000000000";
 
@@ -369,7 +369,7 @@ describe("Maiar integration testing", () => {
           false
         );
 
-        expect(result).toEqual({
+        expect(result).toMatchObject({
           _id: createdUser._id,
           herotag: createdUser.herotag,
           integrations: createdUser.integrations,
@@ -396,7 +396,7 @@ describe("Maiar integration testing", () => {
       it("should start blockchain monitoring", async () => {
         const result = await toggleBlockchainMonitoring(baseUser.herotag, true);
 
-        expect(result).toEqual({
+        expect(result).toMatchObject({
           _id: createdUser._id,
           herotag: createdUser.herotag,
           integrations: createdUser.integrations,
