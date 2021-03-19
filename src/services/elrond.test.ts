@@ -1,6 +1,6 @@
 import { dns, proxy } from "./elrond";
 
-describe.only("elrond test", () => {
+describe("elrond test", () => {
   describe("proxy", () => {
     describe("when address is found on proxy", () => {
       it("should return address data", async () => {

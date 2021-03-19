@@ -1,3 +1,4 @@
+jest.mock("fs");
 import { sub } from "date-fns";
 import mongoose from "mongoose";
 
