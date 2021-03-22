@@ -1,4 +1,4 @@
-import { getUpdatedBalance } from "../elrond";
+import { getUpdatedBalance } from "../services/elrond";
 import { getErdAddressFromHerotag } from "./transactions";
 
 type ShouldStopPollingFn = (() => boolean) | (() => Promise<boolean>);

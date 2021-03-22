@@ -104,7 +104,7 @@ app.use("/files/:fileType/file-name/:fileName", (req, res) => {
 
 app.post("/uploads/:mediaType", async (req, res) => {
   const filename = await new Promise((resolve, reject) => {
-    upload(req, res, function(err: any) {
+    upload(req, res, function(err: unknown) {
       if (err) {
         logger.error(err);
         reject(err);
@@ -120,19 +120,25 @@ app.post("/uploads/:mediaType", async (req, res) => {
 app.use("/api", routes);
 
 if (
-  process.env.NODE_ENV === "production" ||
-  process.env.NODE_ENV === "staging"
+  fs.existsSync(
+    path.join(__dirname, "../../streamParticles_front/build/index.html")
+  )
 ) {
-  app.use(express.static(path.join(__dirname, "../../mxs_front/build")));
-
+  app.use(
+    express.static(path.join(__dirname, "../../streamParticles_front/build"))
+  );
   app.get("*", function(req, res) {
-    res.sendFile(path.join(__dirname, "../../mxs_front/build/index.html"));
+    res.sendFile(
+      path.join(__dirname, "../../streamParticles_front/build/index.html")
+    );
+  });
+} else {
+  logger.warn("No front build directory found.");
+
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    next(new Error("ROUTE_NOT_FOUND"));
   });
 }
-
-app.use((req: Request, res: Response, next: NextFunction) => {
-  next(new Error("Not found ---------------- !"));
-});
 
 app.use(errorMiddleware);
 

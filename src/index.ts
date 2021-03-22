@@ -5,19 +5,18 @@ connectToDatabase();
 import http from "http";
 
 import app from "./app";
+import config from "./config/config";
 import { pollTransactionsToVerifyAccountStatuses } from "./processes/authentication";
 import { resumeBlockchainMonitoring } from "./processes/blockchain-monitoring";
 import logger from "./services/logger";
 import { listen } from "./services/sockets";
 
-const PORT = 4000;
-
 const server = http.createServer(app);
 
 listen(server);
 
-server.listen(PORT, () => {
-  logger.info(`Start listenning on port : ${PORT}`);
+server.listen(config.port, () => {
+  logger.info(`Start listenning on port : ${config.port}`);
 
   try {
     pollTransactionsToVerifyAccountStatuses();
