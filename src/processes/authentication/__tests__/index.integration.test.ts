@@ -1,11 +1,11 @@
 import { getTime, sub } from "date-fns";
 import mongoose from "mongoose";
 
+import User, { UserAccountStatus, UserType } from "../../../models/User";
 import { connectToDatabase } from "../../../services/mongoose";
 
-jest.mock("../../../elrond");
-import * as elrond from "../../../elrond";
-import User, { UserAccountStatus, UserType } from "../../../models/User";
+jest.mock("../../../services/elrond");
+import * as elrond from "../../../services/elrond";
 import { ElrondTransaction } from "../../../types";
 
 jest.mock("../../../utils/transactions", () => {

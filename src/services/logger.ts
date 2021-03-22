@@ -1,9 +1,8 @@
 import { createLogger, format, transports } from "winston";
-const { combine, timestamp, printf, colorize } = format;
 
-const isObject = (variable: any) => {
-  return Object.prototype.toString.call(variable) === "[object Object]";
-};
+import config from "../config/config";
+import { isObject } from "../utils/object";
+const { combine, timestamp, printf, colorize } = format;
 
 const withTimestampFormat = printf(({ level, message, timestamp }) => {
   const formattedMessage = isObject(message)
@@ -21,7 +20,7 @@ const logger = createLogger({
   ],
 });
 
-if (process.env.NODE_ENV !== "production" && process.env.NODE_ENV !== "test") {
+if (config.withConsoleTransport) {
   logger.add(
     new transports.Console({
       format: combine(colorize(), timestamp(), withTimestampFormat),

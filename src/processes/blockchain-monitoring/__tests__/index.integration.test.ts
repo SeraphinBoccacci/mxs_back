@@ -1,9 +1,10 @@
 import { getTime, sub } from "date-fns";
 import mongoose from "mongoose";
 
-jest.mock("../../../elrond");
-import * as elrond from "../../../elrond";
 import User, { UserType } from "../../../models/User";
+
+jest.mock("../../../services/elrond");
+import * as elrond from "../../../services/elrond";
 import { ElrondTransaction } from "../../../types";
 
 jest.mock("../../../redis");
