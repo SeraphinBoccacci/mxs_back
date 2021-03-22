@@ -1,9 +1,9 @@
-import { getLastTransactions } from "../../elrond";
 import User, {
   UserAccountStatus,
   UserMongooseDocument,
   UserType,
 } from "../../models/User";
+import { getLastTransactions } from "../../services/elrond";
 import logger from "../../services/logger";
 import { ElrondTransaction } from "../../types";
 import {
@@ -165,8 +165,9 @@ export const activateAccountIfTransactionHappened = async (
 
     const hasReferenceInTransactions = transactions.some(
       (transaction) =>
-        decodeDataFromTx(transaction) === user.verificationReference
-      // && transaction.receiver === VERIFY_TRANSACTION_TARGET TO-DO add this condition
+        decodeDataFromTx(transaction) === user.verificationReference &&
+        transaction.receiver ===
+          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm"
     );
 
     if (hasReferenceInTransactions) {

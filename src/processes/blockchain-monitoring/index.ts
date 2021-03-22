@@ -1,6 +1,6 @@
-import { getLastTransactions } from "../../elrond";
 import User, { UserMongooseDocument, UserType } from "../../models/User";
 import { getLastBalanceSnapShot, setNewBalance } from "../../redis";
+import { getLastTransactions } from "../../services/elrond";
 import { ElrondTransaction, LastSnapshotBalance } from "../../types";
 import { pollBalance } from "../../utils/poll";
 import { normalizeHerotag } from "../../utils/transactions";

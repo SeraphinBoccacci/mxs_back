@@ -1,15 +1,11 @@
 import mongoose from "mongoose";
 
+import config from "../config/config";
 import logger from "./logger";
 
 export const connectToDatabase = async (): Promise<void> => {
-  const dbUri =
-    process.env.NODE_ENV === "test"
-      ? "mongodb://localhost:27017/mxs_test"
-      : "mongodb://localhost:27017/mxs";
-
   mongoose
-    .connect(dbUri, {
+    .connect(config.dbUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       useFindAndModify: false,
