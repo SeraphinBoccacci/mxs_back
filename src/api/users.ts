@@ -134,16 +134,13 @@ Router.route("/user/trigger-event").post(
   async (req, res) => {
     const user = await getUserData(req.body.herotag);
 
-    if (!user?.integrations?.ifttt?.isActive)
-      throw new Error("IFTTT_INTEGRATION_IS_NOT_ACTIVE");
-
     const mockedTransaction: MockedElrondTransaction = {
       isMockedTransaction: true,
       ...defaultMockedEventData,
       ...req.body.data,
     };
 
-    await reactToNewTransaction(mockedTransaction, user);
+    if (user) await reactToNewTransaction(mockedTransaction, user);
 
     res.sendStatus(204);
   }
