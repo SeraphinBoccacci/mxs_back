@@ -10,3 +10,5 @@ test/*.log
 
 combined.log
 error.log
+
+package-lock.json
