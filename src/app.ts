@@ -54,7 +54,7 @@ app.use(function(req, res, next) {
   );
   res.setHeader(
     "Content-Security-Policy",
-    "default-src 'self'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; script-src 'self' 'unsafe-inline' https://ajax.googleapis.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; frame-src *; media-src data: 'self' https: blob:; frame-ancestors *;"
+    "default-src 'self'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; script-src 'self' 'unsafe-inline' https://www.youtube.com https://ajax.googleapis.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; frame-src *; media-src data: 'self' https: blob:; frame-ancestors *;"
   );
   res.header("Access-Control-Allow-Origin", "http://localhost:3000");
   res.header(
