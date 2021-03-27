@@ -1,36 +1,65 @@
+import { partition } from "lodash";
+
 import User, { UserMongooseDocument, UserType } from "../../models/User";
 import { getLastBalanceSnapShot, setNewBalance } from "../../redis";
-import { getLastTransactions } from "../../services/elrond";
+import {
+  getLastTransactions,
+  getTransactionByHash,
+} from "../../services/elrond";
 import { ElrondTransaction, LastSnapshotBalance } from "../../types";
-import { pollBalance } from "../../utils/poll";
+import poll, { pollBalance } from "../../utils/poll";
 import { normalizeHerotag } from "../../utils/transactions";
 import { reactToNewTransaction } from "../blockchain-interaction";
+
+export const pollPendingTransactions = (
+  transaction: ElrondTransaction,
+  user: UserType
+): void => {
+  const isTransactionNotPendingAnymore = async () => {
+    const elrondTransaction = await getTransactionByHash(transaction.hash);
+
+    return !!elrondTransaction && elrondTransaction.status !== "pending";
+  };
+
+  const transactionHandler = async () => {
+    const elrondTransaction = await getTransactionByHash(transaction.hash);
+
+    if (elrondTransaction && elrondTransaction.status === "success") {
+      reactToNewTransaction(transaction, user);
+    }
+  };
+
+  poll(transactionHandler, 2000, isTransactionNotPendingAnymore);
+};
 
 export const findNewIncomingTransactions = (
   transactions: ElrondTransaction[],
   erdAddress: string,
   user: UserType,
   lastSnapshotBalance: LastSnapshotBalance | null
-): ElrondTransaction[] => {
-  if (!lastSnapshotBalance)
-    return transactions.filter(
-      ({ receiver, timestamp, status }: ElrondTransaction) =>
-        receiver === erdAddress &&
-        user?.streamingStartDate &&
-        timestamp >
-          Math.ceil(new Date(user?.streamingStartDate).getTime() * 0.001) &&
-        status === "success"
-    );
+): [ElrondTransaction[], ElrondTransaction[]] => {
+  const isOk = ({ receiver, timestamp }: ElrondTransaction) =>
+    receiver === erdAddress &&
+    user?.streamingStartDate &&
+    timestamp > Math.ceil(new Date(user?.streamingStartDate).getTime() * 0.001);
 
-  return transactions.filter(
-    ({ receiver, timestamp, status }: ElrondTransaction) =>
-      receiver === erdAddress &&
-      (!lastSnapshotBalance || timestamp > lastSnapshotBalance.timestamp) &&
-      user?.streamingStartDate &&
-      timestamp >
-        Math.ceil(new Date(user?.streamingStartDate).getTime() * 0.001) &&
-      status === "success"
+  const newTransactions = !lastSnapshotBalance
+    ? transactions.filter(isOk)
+    : transactions.filter(
+        (transaction: ElrondTransaction) =>
+          transaction.timestamp > lastSnapshotBalance.timestamp &&
+          isOk(transaction)
+      );
+
+  const [successfulTransactions, others] = partition(
+    newTransactions,
+    ({ status }) => status === "success"
   );
+
+  return [
+    successfulTransactions,
+    others.filter(({ status }) => status === "pending"),
+  ];
 };
 
 export const balanceHandler = (user: UserType) => async (
@@ -46,7 +75,10 @@ export const balanceHandler = (user: UserType) => async (
       erdAddress
     );
 
-    const newReceivedTransactions = findNewIncomingTransactions(
+    const [
+      successfulTransactions,
+      pendingTransactions,
+    ] = findNewIncomingTransactions(
       transactions,
       erdAddress,
       user,
@@ -54,10 +86,14 @@ export const balanceHandler = (user: UserType) => async (
     );
 
     await Promise.all(
-      newReceivedTransactions.map(async (transaction: ElrondTransaction) =>
-        reactToNewTransaction(transaction, user)
-      )
+      successfulTransactions.map(async (transaction: ElrondTransaction) => {
+        reactToNewTransaction(transaction, user);
+      })
     );
+
+    pendingTransactions.forEach((transaction) => {
+      pollPendingTransactions(transaction, user);
+    });
 
     await setNewBalance(erdAddress, newBalance);
   }
