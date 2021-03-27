@@ -18,18 +18,18 @@ export const pollPendingTransactions = (
   const isTransactionNotPendingAnymore = async () => {
     const elrondTransaction = await getTransactionByHash(transaction.hash);
 
-    return !!elrondTransaction && elrondTransaction.status !== "pending";
-  };
+    if (elrondTransaction) {
+      if (elrondTransaction.status === "success") {
+        await reactToNewTransaction(transaction, user);
+      }
 
-  const transactionHandler = async () => {
-    const elrondTransaction = await getTransactionByHash(transaction.hash);
-
-    if (elrondTransaction && elrondTransaction.status === "success") {
-      reactToNewTransaction(transaction, user);
+      return elrondTransaction.status !== "pending";
     }
+
+    return false;
   };
 
-  poll(transactionHandler, 2000, isTransactionNotPendingAnymore);
+  poll(null, 2000, isTransactionNotPendingAnymore);
 };
 
 export const findNewIncomingTransactions = (

@@ -28,16 +28,14 @@ export const pollBalance: pollBalanceFn = async (
 };
 
 const poll = async (
-  fn: () => void,
+  fn: (() => void) | null,
   delay: number,
   shouldStopPolling: ShouldStopPollingFn
 ): Promise<void> => {
   delay = Math.max(1000, delay);
   do {
-    await fn();
-    // if (await shouldStopPolling()) { double check may be usefull later
-    //   break;
-    // }
+    if (fn) await fn();
+
     await new Promise((resolve) => setTimeout(resolve, delay));
   } while (!(await shouldStopPolling()));
 };
