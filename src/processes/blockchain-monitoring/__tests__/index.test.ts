@@ -142,14 +142,17 @@ describe("Blockchain monitoring unit testing", () => {
               status: "success",
             } as ElrondTransaction;
 
-            const newTxs = findNewIncomingTransactions(
+            const txs = findNewIncomingTransactions(
               [...baseTxs, notMatchingTx],
               targetErdAdress,
               baseUser as UserType,
               null
             );
+            expect(txs).toHaveLength(2);
+            const [newSuccessfulTxs, newPendingTxs] = txs;
 
-            expect(newTxs).toHaveLength(0);
+            expect(newSuccessfulTxs).toHaveLength(0);
+            expect(newPendingTxs).toHaveLength(0);
           });
         });
 
@@ -163,14 +166,18 @@ describe("Blockchain monitoring unit testing", () => {
               status: "success",
             } as ElrondTransaction;
 
-            const newTxs = findNewIncomingTransactions(
+            const txs = findNewIncomingTransactions(
               [...baseTxs, notMatchingTx],
               targetErdAdress,
               { ...(baseUser as UserType), streamingStartDate: null },
               null
             );
 
-            expect(newTxs).toHaveLength(0);
+            expect(txs).toHaveLength(2);
+            const [newSuccessfulTxs, newPendingTxs] = txs;
+
+            expect(newSuccessfulTxs).toHaveLength(0);
+            expect(newPendingTxs).toHaveLength(0);
           });
         });
 
@@ -184,18 +191,22 @@ describe("Blockchain monitoring unit testing", () => {
               status: "success",
             } as ElrondTransaction;
 
-            const newTxs = findNewIncomingTransactions(
+            const txs = findNewIncomingTransactions(
               [...baseTxs, notMatchingTx],
               targetErdAdress,
               baseUser as UserType,
               null
             );
 
-            expect(newTxs).toHaveLength(0);
+            expect(txs).toHaveLength(2);
+            const [newSuccessfulTxs, newPendingTxs] = txs;
+
+            expect(newSuccessfulTxs).toHaveLength(0);
+            expect(newPendingTxs).toHaveLength(0);
           });
         });
 
-        describe("when status is not success", () => {
+        describe("when status is failed", () => {
           it("should not return tx", () => {
             const targetErdAdress =
               "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
@@ -205,19 +216,23 @@ describe("Blockchain monitoring unit testing", () => {
               status: "failed",
             } as ElrondTransaction;
 
-            const newTxs = findNewIncomingTransactions(
+            const txs = findNewIncomingTransactions(
               [...baseTxs, notMatchingTx],
               targetErdAdress,
               baseUser as UserType,
               null
             );
 
-            expect(newTxs).toHaveLength(0);
+            expect(txs).toHaveLength(2);
+            const [newSuccessfulTxs, newPendingTxs] = txs;
+
+            expect(newSuccessfulTxs).toHaveLength(0);
+            expect(newPendingTxs).toHaveLength(0);
           });
         });
       });
 
-      describe("when receiver address match target address, user has streamingStartDate,  tx timestamp is greater or equal to user streamingStartDate, status is success", () => {
+      describe("when receiver address match target address, user has streamingStartDate, tx timestamp is greater or equal to user streamingStartDate, status is success", () => {
         it("should return tx", () => {
           const targetErdAdress =
             "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
@@ -230,16 +245,50 @@ describe("Blockchain monitoring unit testing", () => {
             status: "success",
           } as ElrondTransaction;
 
-          const newTxs = findNewIncomingTransactions(
+          const txs = findNewIncomingTransactions(
             [...baseTxs, matchingTx],
             targetErdAdress,
             baseUser as UserType,
             null
           );
 
-          expect(newTxs).toHaveLength(1);
+          expect(txs).toHaveLength(2);
+          const [newSuccessfulTxs, newPendingTxs] = txs;
 
-          expect(newTxs).toEqual([matchingTx]);
+          expect(newSuccessfulTxs).toHaveLength(1);
+          expect(newSuccessfulTxs).toEqual([matchingTx]);
+
+          expect(newPendingTxs).toHaveLength(0);
+        });
+      });
+
+      describe("when receiver address match target address, user has streamingStartDate, tx timestamp is greater or equal to user streamingStartDate, status is pending", () => {
+        it("should return tx", () => {
+          const targetErdAdress =
+            "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
+          const timestamp = getTime(sub(new Date(), { hours: 3 })) * 0.001;
+          const matchingTx = {
+            hash:
+              "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
+            receiver: targetErdAdress,
+            timestamp,
+            status: "pending",
+          } as ElrondTransaction;
+
+          const txs = findNewIncomingTransactions(
+            [...baseTxs, matchingTx],
+            targetErdAdress,
+            baseUser as UserType,
+            null
+          );
+
+          expect(txs).toHaveLength(2);
+          const [newSuccessfulTxs, newPendingTxs] = txs;
+
+          expect(newSuccessfulTxs).toHaveLength(0);
+
+          expect(newPendingTxs).toHaveLength(1);
+          expect(newPendingTxs).toEqual([matchingTx]);
         });
       });
 
@@ -249,9 +298,10 @@ describe("Blockchain monitoring unit testing", () => {
             "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
           const timestamp = getTime(sub(new Date(), { hours: 3 })) * 0.001;
           const timestamp2 = getTime(sub(new Date(), { hours: 2 })) * 0.001;
+          const timestamp3 = getTime(sub(new Date(), { hours: 1 })) * 0.001;
           const matchingTx1 = {
             hash:
-              "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
+              "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc5e666",
             receiver: targetErdAdress,
             timestamp,
             status: "success",
@@ -263,17 +313,29 @@ describe("Blockchain monitoring unit testing", () => {
             timestamp: timestamp2,
             status: "success",
           } as ElrondTransaction;
+          const matchingTx3 = {
+            hash:
+              "b7334dbf756d24fff81ee49eac98b1be7993345bc8932c7d6c7b914c123bc56766",
+            receiver: targetErdAdress,
+            timestamp: timestamp3,
+            status: "pending",
+          } as ElrondTransaction;
 
-          const newTxs = findNewIncomingTransactions(
-            [...baseTxs, matchingTx1, matchingTx2],
+          const txs = findNewIncomingTransactions(
+            [...baseTxs, matchingTx1, matchingTx2, matchingTx3],
             targetErdAdress,
             baseUser as UserType,
             null
           );
 
-          expect(newTxs).toHaveLength(2);
+          expect(txs).toHaveLength(2);
+          const [newSuccessfulTxs, newPendingTxs] = txs;
 
-          expect(newTxs).toEqual([matchingTx1, matchingTx2]);
+          expect(newSuccessfulTxs).toHaveLength(2);
+          expect(newSuccessfulTxs).toEqual([matchingTx1, matchingTx2]);
+
+          expect(newPendingTxs).toHaveLength(1);
+          expect(newPendingTxs).toEqual([matchingTx3]);
         });
       });
     });
@@ -291,7 +353,7 @@ describe("Blockchain monitoring unit testing", () => {
               status: "success",
             } as ElrondTransaction;
 
-            const newTxs = findNewIncomingTransactions(
+            const txs = findNewIncomingTransactions(
               [...baseTxs, notMatchingTx],
               targetErdAdress,
               baseUser as UserType,
@@ -301,7 +363,11 @@ describe("Blockchain monitoring unit testing", () => {
               }
             );
 
-            expect(newTxs).toHaveLength(0);
+            expect(txs).toHaveLength(2);
+            const [newSuccessfulTxs, newPendingTxs] = txs;
+
+            expect(newSuccessfulTxs).toHaveLength(0);
+            expect(newPendingTxs).toHaveLength(0);
           });
         });
 
@@ -315,7 +381,7 @@ describe("Blockchain monitoring unit testing", () => {
               status: "success",
             } as ElrondTransaction;
 
-            const newTxs = findNewIncomingTransactions(
+            const txs = findNewIncomingTransactions(
               [...baseTxs, notMatchingTx],
               targetErdAdress,
               { ...(baseUser as UserType), streamingStartDate: null },
@@ -325,7 +391,11 @@ describe("Blockchain monitoring unit testing", () => {
               }
             );
 
-            expect(newTxs).toHaveLength(0);
+            expect(txs).toHaveLength(2);
+            const [newSuccessfulTxs, newPendingTxs] = txs;
+
+            expect(newSuccessfulTxs).toHaveLength(0);
+            expect(newPendingTxs).toHaveLength(0);
           });
         });
 
@@ -339,7 +409,7 @@ describe("Blockchain monitoring unit testing", () => {
               status: "success",
             } as ElrondTransaction;
 
-            const newTxs = findNewIncomingTransactions(
+            const txs = findNewIncomingTransactions(
               [...baseTxs, notMatchingTx],
               targetErdAdress,
               baseUser as UserType,
@@ -349,7 +419,11 @@ describe("Blockchain monitoring unit testing", () => {
               }
             );
 
-            expect(newTxs).toHaveLength(0);
+            expect(txs).toHaveLength(2);
+            const [newSuccessfulTxs, newPendingTxs] = txs;
+
+            expect(newSuccessfulTxs).toHaveLength(0);
+            expect(newPendingTxs).toHaveLength(0);
           });
         });
 
@@ -363,7 +437,7 @@ describe("Blockchain monitoring unit testing", () => {
               status: "success",
             } as ElrondTransaction;
 
-            const newTxs = findNewIncomingTransactions(
+            const txs = findNewIncomingTransactions(
               [...baseTxs, notMatchingTx],
               targetErdAdress,
               baseUser as UserType,
@@ -373,7 +447,11 @@ describe("Blockchain monitoring unit testing", () => {
               }
             );
 
-            expect(newTxs).toHaveLength(0);
+            expect(txs).toHaveLength(2);
+            const [newSuccessfulTxs, newPendingTxs] = txs;
+
+            expect(newSuccessfulTxs).toHaveLength(0);
+            expect(newPendingTxs).toHaveLength(0);
           });
         });
 
@@ -387,7 +465,7 @@ describe("Blockchain monitoring unit testing", () => {
               status: "failed",
             } as ElrondTransaction;
 
-            const newTxs = findNewIncomingTransactions(
+            const txs = findNewIncomingTransactions(
               [...baseTxs, notMatchingTx],
               targetErdAdress,
               baseUser as UserType,
@@ -397,12 +475,16 @@ describe("Blockchain monitoring unit testing", () => {
               }
             );
 
-            expect(newTxs).toHaveLength(0);
+            expect(txs).toHaveLength(2);
+            const [newSuccessfulTxs, newPendingTxs] = txs;
+
+            expect(newSuccessfulTxs).toHaveLength(0);
+            expect(newPendingTxs).toHaveLength(0);
           });
         });
       });
 
-      describe("when receiver address match target address, user has streamingStartDate,  tx timestamp is greater or equal to user streamingStartDate, status is success", () => {
+      describe("when receiver address match target address, user has streamingStartDate, tx timestamp is greater or equal to user streamingStartDate, status is success", () => {
         it("should return tx", () => {
           const targetErdAdress =
             "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
@@ -415,7 +497,7 @@ describe("Blockchain monitoring unit testing", () => {
             status: "success",
           } as ElrondTransaction;
 
-          const newTxs = findNewIncomingTransactions(
+          const txs = findNewIncomingTransactions(
             [...baseTxs, matchingTx],
             targetErdAdress,
             baseUser as UserType,
@@ -425,9 +507,46 @@ describe("Blockchain monitoring unit testing", () => {
             }
           );
 
-          expect(newTxs).toHaveLength(1);
+          expect(txs).toHaveLength(2);
+          const [newSuccessfulTxs, newPendingTxs] = txs;
 
-          expect(newTxs).toEqual([matchingTx]);
+          expect(newSuccessfulTxs).toHaveLength(1);
+          expect(newSuccessfulTxs).toEqual([matchingTx]);
+
+          expect(newPendingTxs).toHaveLength(0);
+        });
+      });
+
+      describe("when receiver address match target address, user has streamingStartDate, tx timestamp is greater or equal to user streamingStartDate, status is pending", () => {
+        it("should return tx", () => {
+          const targetErdAdress =
+            "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
+          const timestamp = getTime(sub(new Date(), { hours: 1 })) * 0.001;
+          const matchingTx = {
+            hash:
+              "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
+            receiver: targetErdAdress,
+            timestamp,
+            status: "pending",
+          } as ElrondTransaction;
+
+          const txs = findNewIncomingTransactions(
+            [...baseTxs, matchingTx],
+            targetErdAdress,
+            baseUser as UserType,
+            {
+              amount: "1000000000000000000",
+              timestamp: getTime(sub(new Date(), { hours: 2 })) * 0.001,
+            }
+          );
+
+          expect(txs).toHaveLength(2);
+          const [newSuccessfulTxs, newPendingTxs] = txs;
+
+          expect(newSuccessfulTxs).toHaveLength(0);
+
+          expect(newPendingTxs).toHaveLength(1);
+          expect(newPendingTxs).toEqual([matchingTx]);
         });
       });
 
@@ -437,23 +556,31 @@ describe("Blockchain monitoring unit testing", () => {
             "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
           const timestamp = getTime(sub(new Date(), { minutes: 3 })) * 0.001;
           const timestamp2 = getTime(sub(new Date(), { minutes: 2 })) * 0.001;
+          const timestamp3 = getTime(sub(new Date(), { minutes: 1 })) * 0.001;
           const matchingTx1 = {
             hash:
-              "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
+              "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc5d666",
             receiver: targetErdAdress,
             timestamp,
             status: "success",
           } as ElrondTransaction;
           const matchingTx2 = {
             hash:
-              "b7334dbf756d24fff81ee49eac98b1be7993345bc8932c7d6c7b914c123bc56666",
+              "b7334dbf756d24fff81ee49eac98b1be7993345bc8932c7d6c7b914c123bc5a666",
             receiver: targetErdAdress,
             timestamp: timestamp2,
             status: "success",
           } as ElrondTransaction;
+          const matchingTx3 = {
+            hash:
+              "b7334dbf756d24fff81ee49eac98b1be7993345bc8932c7d6c7b914c123bc56f66",
+            receiver: targetErdAdress,
+            timestamp: timestamp3,
+            status: "pending",
+          } as ElrondTransaction;
 
-          const newTxs = findNewIncomingTransactions(
-            [...baseTxs, matchingTx1, matchingTx2],
+          const txs = findNewIncomingTransactions(
+            [...baseTxs, matchingTx1, matchingTx2, matchingTx3],
             targetErdAdress,
             baseUser as UserType,
             {
@@ -462,9 +589,14 @@ describe("Blockchain monitoring unit testing", () => {
             }
           );
 
-          expect(newTxs).toHaveLength(2);
+          expect(txs).toHaveLength(2);
+          const [newSuccessfulTxs, newPendingTxs] = txs;
 
-          expect(newTxs).toEqual([matchingTx1, matchingTx2]);
+          expect(newSuccessfulTxs).toHaveLength(2);
+          expect(newSuccessfulTxs).toEqual([matchingTx1, matchingTx2]);
+
+          expect(newPendingTxs).toHaveLength(1);
+          expect(newPendingTxs).toEqual([matchingTx3]);
         });
       });
     });
