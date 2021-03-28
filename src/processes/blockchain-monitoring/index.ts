@@ -1,13 +1,11 @@
-import { partition } from "lodash";
-
 import User, { UserMongooseDocument, UserType } from "../../models/User";
-import { getLastBalanceSnapShot, setNewBalance } from "../../redis";
 import {
-  getLastTransactions,
-  getTransactionByHash,
-} from "../../services/elrond";
-import { ElrondTransaction, LastSnapshotBalance } from "../../types";
-import poll, { pollBalance } from "../../utils/poll";
+  getAlreadyListennedTransactions,
+  setAlreadyListennedTransactions,
+} from "../../redis";
+import { getTransactionByHash } from "../../services/elrond";
+import { ElrondTransaction } from "../../types";
+import poll, { pollTransactions } from "../../utils/poll";
 import { normalizeHerotag } from "../../utils/transactions";
 import { reactToNewTransaction } from "../blockchain-interaction";
 
@@ -36,74 +34,55 @@ export const findNewIncomingTransactions = (
   transactions: ElrondTransaction[],
   erdAddress: string,
   user: UserType,
-  lastSnapshotBalance: LastSnapshotBalance | null
-): [ElrondTransaction[], ElrondTransaction[]] => {
-  const isOk = ({ receiver, timestamp }: ElrondTransaction) =>
-    receiver === erdAddress &&
+  last30ListennedTransactions: string[]
+): ElrondTransaction[] => {
+  const isTimestampOk = (timestamp: number) =>
     user?.streamingStartDate &&
     timestamp > Math.ceil(new Date(user?.streamingStartDate).getTime() * 0.001);
 
-  const newTransactions = !lastSnapshotBalance
-    ? transactions.filter(isOk)
-    : transactions.filter(
-        (transaction: ElrondTransaction) =>
-          transaction.timestamp > lastSnapshotBalance.timestamp &&
-          isOk(transaction)
-      );
-
-  const [successfulTransactions, others] = partition(
-    newTransactions,
-    ({ status }) => status === "success"
+  return transactions.filter(
+    ({ receiver, timestamp, hash, status }: ElrondTransaction) =>
+      receiver === erdAddress &&
+      isTimestampOk(timestamp) &&
+      !last30ListennedTransactions.includes(hash) &&
+      status === "success"
   );
-
-  return [
-    successfulTransactions,
-    others.filter(({ status }) => status === "pending"),
-  ];
 };
 
-export const balanceHandler = (user: UserType) => async (
+export const transactionsHandler = (user: UserType) => async (
   erdAddress: string,
-  newBalance: string
+  transactions: ElrondTransaction[]
 ): Promise<void> => {
-  const lastSnapshotBalance: LastSnapshotBalance | null = await getLastBalanceSnapShot(
+  const last30ListennedTransactions = await getAlreadyListennedTransactions(
     erdAddress
   );
 
-  if (lastSnapshotBalance?.amount !== newBalance) {
-    const transactions: ElrondTransaction[] = await getLastTransactions(
-      erdAddress
-    );
+  const newTransactions = findNewIncomingTransactions(
+    transactions,
+    erdAddress,
+    user,
+    last30ListennedTransactions
+  );
 
-    const [
-      successfulTransactions,
-      pendingTransactions,
-    ] = findNewIncomingTransactions(
-      transactions,
-      erdAddress,
-      user,
-      lastSnapshotBalance
-    );
+  if (!newTransactions.length) return;
 
-    await Promise.all(
-      successfulTransactions.map(async (transaction: ElrondTransaction) => {
-        reactToNewTransaction(transaction, user);
-      })
-    );
+  await setAlreadyListennedTransactions(
+    erdAddress,
+    newTransactions.map(({ hash }) => hash)
+  );
 
-    pendingTransactions.forEach((transaction) => {
-      pollPendingTransactions(transaction, user);
-    });
-
-    await setNewBalance(erdAddress, newBalance);
-  }
+  await Promise.all(
+    newTransactions.map(async (transaction: ElrondTransaction) => {
+      reactToNewTransaction(transaction, user);
+    })
+  );
 };
 
 export const launchBlockchainMonitoring = async (
   herotag: string,
   user: UserType
 ): Promise<string> => {
-  const handleBalance = balanceHandler(user);
+  const handleTransactions = transactionsHandler(user);
 
   const shouldStopPolling = async () => {
     const currentUser = await User.findById(user._id)
@@ -115,7 +94,7 @@ export const launchBlockchainMonitoring = async (
     return !currentUser?.isStreaming;
   };
 
-  pollBalance(herotag, handleBalance, shouldStopPolling);
+  pollTransactions(herotag, handleTransactions, shouldStopPolling);
 
   return user.herotag as string;
 };
