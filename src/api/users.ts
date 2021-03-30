@@ -17,8 +17,10 @@ import {
 } from "../processes/stream-elements";
 import {
   getUserData,
-  toggleIftttIntegration,
-  updateIftttIntegrationData,
+  toggleIftttParticle,
+  toggleStreamElementsParticle,
+  updateIftttParticleData,
+  updateMinimumRequiredAmount,
 } from "../processes/user";
 import { EventData, MockedElrondTransaction } from "../types";
 import { RequestWithHerotag } from "../types/express";
@@ -48,7 +50,7 @@ Router.route("/user/poll-maiar/:herotag").post(
 Router.route("/user/ifttt/:herotag").post(
   authenticateMiddleware,
   async (req, res) => {
-    await updateIftttIntegrationData(req.params.herotag, req.body.ifttt);
+    await updateIftttParticleData(req.params.herotag, req.body.ifttt);
 
     res.sendStatus(204);
   }
@@ -57,7 +59,7 @@ Router.route("/user/ifttt/:herotag").post(
 Router.route("/user/ifttt/is-active/:herotag").post(
   authenticateMiddleware,
   async (req, res) => {
-    await toggleIftttIntegration(req.params.herotag, req.body.isActive);
+    await toggleIftttParticle(req.params.herotag, req.body.isActive);
 
     res.sendStatus(204);
   }
@@ -123,6 +125,15 @@ Router.route("/user/stream-elements/rows-structure").post(
   }
 );
 
+Router.route("/user/streamElements/is-active/:herotag").post(
+  authenticateMiddleware,
+  async (req, res) => {
+    await toggleStreamElementsParticle(req.params.herotag, req.body.isActive);
+
+    res.sendStatus(204);
+  }
+);
+
 const defaultMockedEventData: EventData = {
   herotag: "test_herotag",
   amount: "0.001",
@@ -141,6 +152,18 @@ Router.route("/user/trigger-event").post(
     };
 
     if (user) await reactToNewTransaction(mockedTransaction, user);
+
+    res.sendStatus(204);
+  }
+);
+
+Router.route("/user/update-minimum-required-amount").post(
+  authenticateMiddleware,
+  async (req, res) => {
+    await updateMinimumRequiredAmount(
+      req.body.herotag,
+      req.body.minimumRequiredAmount
+    );
 
     res.sendStatus(204);
   }

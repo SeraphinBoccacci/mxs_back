@@ -202,8 +202,9 @@ export const savePasswordChangeIfTransactionHappened = async (
     const hasReferenceInTransactions = transactions.some(
       (transaction) =>
         decodeDataFromTx(transaction) ===
-        user.passwordEditionVerificationReference
-      // && transaction.receiver === VERIFY_TRANSACTION_TARGET TO-DO add this condition
+          user.passwordEditionVerificationReference &&
+        transaction.receiver ===
+          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm"
     );
 
     if (hasReferenceInTransactions) {

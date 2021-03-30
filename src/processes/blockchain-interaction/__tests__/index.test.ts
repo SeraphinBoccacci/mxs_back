@@ -18,6 +18,7 @@ jest.mock("../ifttt");
 import * as ifttt from "../ifttt";
 
 jest.mock("../streamElements");
+import { IftttParticleData, UserType } from "../../../models/User";
 import * as streamElements from "../streamElements";
 
 const baseUser = {
@@ -33,10 +34,15 @@ const baseUser = {
       triggerKey: "x2qQHAJF89ljX-IwFjNdjZ8raTicSvQpLQcdxggWooJ7",
       isActive: true,
     },
+    streamElements: {
+      variations: [],
+      rowsStructure: [],
+      isActive: true,
+    },
   },
   isStreaming: true,
   streamingStartDate: sub(new Date(), { hours: 4 }),
-};
+} as UserType;
 
 describe("Blockchain interaction unit testing", () => {
   describe("reactToNewTransaction", () => {
@@ -63,7 +69,7 @@ describe("Blockchain interaction unit testing", () => {
       mockedIfttt.triggerIftttEvent.mockClear();
     });
 
-    describe("when user has not ifttt integration data", () => {
+    describe("when user has no ifttt particle data and no SE data", () => {
       const transaction = {
         hash:
           "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
@@ -73,10 +79,72 @@ describe("Blockchain interaction unit testing", () => {
 
       const user = {
         ...baseUser,
-        integrations: { ...baseUser.integrations, ifttt: undefined },
+        integrations: {
+          ...baseUser.integrations,
+          ifttt: undefined,
+          streamElements: undefined,
+        },
       };
 
-      it("should not call trigger ifttt", async () => {
+      it("should not call trigger ifttt nor SE", async () => {
+        await reactToNewTransaction(transaction, user);
+
+        expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledTimes(0);
+
+        expect(
+          mockedStreamElements.triggerStreamElementsEvent
+        ).toHaveBeenCalledTimes(0);
+      });
+    });
+
+    describe("when user has ifttt integration data but not SE", () => {
+      const transaction = {
+        hash:
+          "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
+        status: "success",
+        value: "1000000000000000000",
+      } as ElrondTransaction;
+
+      const user = {
+        ...baseUser,
+        integrations: {
+          ...baseUser.integrations,
+          streamElements: undefined,
+        },
+      };
+
+      it("should call only trigger ifttt", async () => {
+        await reactToNewTransaction(transaction, user);
+
+        expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledTimes(1);
+        expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledWith(
+          { amount: "1", data: "", herotag: "remdem" },
+          user.integrations.ifttt
+        );
+
+        expect(
+          mockedStreamElements.triggerStreamElementsEvent
+        ).toHaveBeenCalledTimes(0);
+      });
+    });
+
+    describe("when user has SE integration data but not ifttt", () => {
+      const transaction = {
+        hash:
+          "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
+        status: "success",
+        value: "1000000000000000000",
+      } as ElrondTransaction;
+
+      const user = {
+        ...baseUser,
+        integrations: {
+          ...baseUser.integrations,
+          ifttt: undefined,
+        },
+      };
+
+      it("should call only trigger SE", async () => {
         await reactToNewTransaction(transaction, user);
 
         expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledTimes(0);
@@ -93,7 +161,7 @@ describe("Blockchain interaction unit testing", () => {
       });
     });
 
-    describe("when user has ifttt integration data", () => {
+    describe("when user has ifttt integration data and SE particle data", () => {
       const transaction = {
         hash:
           "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
@@ -101,13 +169,13 @@ describe("Blockchain interaction unit testing", () => {
         value: "1000000000000000000",
       } as ElrondTransaction;
 
-      it("should call trigger ifttt", async () => {
+      it("should call trigger ifttt & SE", async () => {
         await reactToNewTransaction(transaction, baseUser);
 
         expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledTimes(1);
         expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledWith(
           { amount: "1", data: "", herotag: "remdem" },
-          baseUser.integrations.ifttt
+          baseUser?.integrations?.ifttt as IftttParticleData
         );
 
         expect(

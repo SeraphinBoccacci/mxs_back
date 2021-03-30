@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 import User, { UserMongooseDocument, UserType } from "../../models/User";
 import {
   getAlreadyListennedTransactions,
@@ -10,10 +12,11 @@ import { getLastTransactions, getUpdatedBalance } from "../../services/elrond";
 import { ElrondTransaction, LastSnapshotBalance } from "../../types";
 import poll from "../../utils/poll";
 import {
+  computeSentAmount,
   getErdAddressFromHerotag,
   normalizeHerotag,
 } from "../../utils/transactions";
-import { reactToNewTransaction } from "../blockchain-interaction";
+import { reactToManyTransactions } from "../blockchain-interaction";
 
 export const findNewIncomingTransactions = (
   transactions: ElrondTransaction[],
@@ -27,12 +30,20 @@ export const findNewIncomingTransactions = (
     user?.streamingStartDate &&
     timestamp > Math.ceil(new Date(user?.streamingStartDate).getTime() * 0.001);
 
+  const isAmountValid = (value: string) =>
+    !user.integrations?.minimumRequiredAmount ||
+    Number(computeSentAmount(value)) >= user.integrations.minimumRequiredAmount;
+
   return transactions.filter(
-    ({ receiver, timestamp, hash, status }: ElrondTransaction) =>
-      receiver === erdAddress &&
-      isTimestampOk(timestamp) &&
-      !last30ListennedTransactions.includes(hash) &&
-      status === "success"
+    ({ receiver, timestamp, hash, status, value }: ElrondTransaction) => {
+      return (
+        isAmountValid(value) &&
+        receiver === erdAddress &&
+        isTimestampOk(timestamp) &&
+        !last30ListennedTransactions.includes(hash) &&
+        status === "success"
+      );
+    }
   );
 };
 
@@ -41,11 +52,13 @@ export interface HandleTransactionFn {
 }
 
 export const transactionsHandler = (
-  user: UserType,
+  userId: mongoose.Types.ObjectId,
   lastRestartTimestamp: number
 ): HandleTransactionFn => {
   return async (): Promise<boolean> => {
-    if (!user.herotag) return true;
+    const user = await User.findById(userId).lean();
+
+    if (!user || !user.herotag) return true;
 
     const erdAddress = await getErdAddressFromHerotag(user.herotag);
     const transactions = await getLastTransactions(erdAddress);
@@ -69,11 +82,7 @@ export const transactionsHandler = (
       newTransactions.map(({ hash }) => hash)
     );
 
-    await Promise.all(
-      newTransactions.map(async (transaction: ElrondTransaction) => {
-        reactToNewTransaction(transaction, user);
-      })
-    );
+    reactToManyTransactions(newTransactions, user);
 
     return false;
   };
@@ -118,7 +127,10 @@ export const launchBlockchainMonitoring = async (
 
   const erdAddress = await getErdAddressFromHerotag(herotag);
 
-  const handleTransactions = transactionsHandler(user, lastRestartTimestamp);
+  const handleTransactions = transactionsHandler(
+    user._id as mongoose.Types.ObjectId,
+    lastRestartTimestamp
+  );
 
   const handleBalance = balanceHandler(erdAddress, handleTransactions);
 
