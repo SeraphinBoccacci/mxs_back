@@ -13,6 +13,21 @@ import { decodeDataFromTx } from "../../utils/transactions";
 import { triggerIftttEvent } from "./ifttt";
 import { triggerStreamElementsEvent } from "./streamElements";
 
+export const reactToManyTransactions = async (
+  transactions: ElrondTransaction[],
+  user: UserType,
+  delay = 20000
+): Promise<void> => {
+  transactions.reduce(
+    (prevPromise, transaction) =>
+      prevPromise.then(async () => {
+        await reactToNewTransaction(transaction, user);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }),
+    Promise.resolve()
+  );
+};
+
 export const reactToNewTransaction = async (
   transaction: ElrondTransaction | MockedElrondTransaction,
   user: UserType
@@ -40,5 +55,9 @@ export const reactToNewTransaction = async (
   if (user?.integrations?.ifttt && user?.integrations?.ifttt.isActive)
     await triggerIftttEvent(eventData, user?.integrations?.ifttt);
 
-  await triggerStreamElementsEvent(eventData, user);
+  if (
+    user?.integrations?.streamElements &&
+    user?.integrations?.streamElements.isActive
+  )
+    await triggerStreamElementsEvent(eventData, user);
 };

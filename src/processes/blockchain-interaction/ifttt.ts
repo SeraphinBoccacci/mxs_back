@@ -1,12 +1,12 @@
 import axios, { AxiosRequestConfig } from "axios";
 
-import { IftttIntegrationData } from "../../models/User";
+import { IftttParticleData } from "../../models/User";
 import logger from "../../services/logger";
 import { EventData } from "../../types";
 
 export const triggerIftttEvent = async (
   eventData: EventData,
-  iftttIntegrationData: IftttIntegrationData
+  iftttParticleData: IftttParticleData
 ): Promise<void> => {
   const config: AxiosRequestConfig = {
     headers: {
@@ -22,7 +22,7 @@ export const triggerIftttEvent = async (
 
   try {
     await axios.post(
-      `https://maker.ifttt.com/trigger/${iftttIntegrationData.eventName}/with/key/${iftttIntegrationData.triggerKey}`,
+      `https://maker.ifttt.com/trigger/${iftttParticleData.eventName}/with/key/${iftttParticleData.triggerKey}`,
       data,
       config
     );

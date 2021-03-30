@@ -23,6 +23,7 @@ import {
 } from "../";
 
 const baseUser = {
+  _id: mongoose.Types.ObjectId(),
   herotag: "streamparticles.elrond",
   password: "$2b$10$RzGjFb4jVp77rsiMPOHofOmUzsllH674FnezzIR8Jmjmhr2u1HwXe",
   status: 1,
@@ -724,9 +725,13 @@ describe("Maiar integration testing", () => {
       let createdUser2: UserType;
 
       beforeAll(async () => {
-        createdUser1 = await User.create(baseUser);
+        createdUser1 = await User.create({
+          ...baseUser,
+          _id: mongoose.Types.ObjectId(),
+        });
         createdUser2 = await User.create({
           ...baseUser,
+          _id: mongoose.Types.ObjectId(),
           herotag: "remdem.elrond",
         });
       });
