@@ -1,101 +1,112 @@
-import { partition } from "lodash";
-
 import User, { UserMongooseDocument, UserType } from "../../models/User";
-import { getLastBalanceSnapShot, setNewBalance } from "../../redis";
 import {
-  getLastTransactions,
-  getTransactionByHash,
-} from "../../services/elrond";
+  getAlreadyListennedTransactions,
+  getLastBalanceSnapShot,
+  getLastRestart,
+  setAlreadyListennedTransactions,
+  setNewBalance,
+} from "../../redis";
+import { getLastTransactions, getUpdatedBalance } from "../../services/elrond";
 import { ElrondTransaction, LastSnapshotBalance } from "../../types";
-import poll, { pollBalance } from "../../utils/poll";
-import { normalizeHerotag } from "../../utils/transactions";
+import poll from "../../utils/poll";
+import {
+  getErdAddressFromHerotag,
+  normalizeHerotag,
+} from "../../utils/transactions";
 import { reactToNewTransaction } from "../blockchain-interaction";
-
-export const pollPendingTransactions = (
-  transaction: ElrondTransaction,
-  user: UserType
-): void => {
-  const isTransactionNotPendingAnymore = async () => {
-    const elrondTransaction = await getTransactionByHash(transaction.hash);
-
-    return !!elrondTransaction && elrondTransaction.status !== "pending";
-  };
-
-  const transactionHandler = async () => {
-    const elrondTransaction = await getTransactionByHash(transaction.hash);
-
-    if (elrondTransaction && elrondTransaction.status === "success") {
-      reactToNewTransaction(transaction, user);
-    }
-  };
-
-  poll(transactionHandler, 2000, isTransactionNotPendingAnymore);
-};
 
 export const findNewIncomingTransactions = (
   transactions: ElrondTransaction[],
   erdAddress: string,
   user: UserType,
-  lastSnapshotBalance: LastSnapshotBalance | null
-): [ElrondTransaction[], ElrondTransaction[]] => {
-  const isOk = ({ receiver, timestamp }: ElrondTransaction) =>
-    receiver === erdAddress &&
+  last30ListennedTransactions: string[],
+  lastRestartTimestamp: number
+): ElrondTransaction[] => {
+  const isTimestampOk = (timestamp: number) =>
+    timestamp > lastRestartTimestamp &&
     user?.streamingStartDate &&
     timestamp > Math.ceil(new Date(user?.streamingStartDate).getTime() * 0.001);
 
-  const newTransactions = !lastSnapshotBalance
-    ? transactions.filter(isOk)
-    : transactions.filter(
-        (transaction: ElrondTransaction) =>
-          transaction.timestamp > lastSnapshotBalance.timestamp &&
-          isOk(transaction)
-      );
-
-  const [successfulTransactions, others] = partition(
-    newTransactions,
-    ({ status }) => status === "success"
+  return transactions.filter(
+    ({ receiver, timestamp, hash, status }: ElrondTransaction) =>
+      receiver === erdAddress &&
+      isTimestampOk(timestamp) &&
+      !last30ListennedTransactions.includes(hash) &&
+      status === "success"
   );
-
-  return [
-    successfulTransactions,
-    others.filter(({ status }) => status === "pending"),
-  ];
 };
 
-export const balanceHandler = (user: UserType) => async (
-  erdAddress: string,
-  newBalance: string
-): Promise<void> => {
-  const lastSnapshotBalance: LastSnapshotBalance | null = await getLastBalanceSnapShot(
-    erdAddress
-  );
+export interface HandleTransactionFn {
+  (): Promise<boolean>;
+}
 
-  if (lastSnapshotBalance?.amount !== newBalance) {
-    const transactions: ElrondTransaction[] = await getLastTransactions(
+export const transactionsHandler = (
+  user: UserType,
+  lastRestartTimestamp: number
+): HandleTransactionFn => {
+  return async (): Promise<boolean> => {
+    if (!user.herotag) return true;
+
+    const erdAddress = await getErdAddressFromHerotag(user.herotag);
+    const transactions = await getLastTransactions(erdAddress);
+
+    const last30ListennedTransactions = await getAlreadyListennedTransactions(
       erdAddress
     );
 
-    const [
-      successfulTransactions,
-      pendingTransactions,
-    ] = findNewIncomingTransactions(
+    const newTransactions = findNewIncomingTransactions(
       transactions,
       erdAddress,
       user,
-      lastSnapshotBalance
+      last30ListennedTransactions,
+      lastRestartTimestamp
+    );
+
+    if (!newTransactions.length) return false;
+
+    await setAlreadyListennedTransactions(
+      erdAddress,
+      newTransactions.map(({ hash }) => hash)
     );
 
     await Promise.all(
-      successfulTransactions.map(async (transaction: ElrondTransaction) => {
+      newTransactions.map(async (transaction: ElrondTransaction) => {
         reactToNewTransaction(transaction, user);
       })
     );
 
-    pendingTransactions.forEach((transaction) => {
-      pollPendingTransactions(transaction, user);
-    });
+    return false;
+  };
+};
 
+interface HandleBalanceFn {
+  (): Promise<void>;
+}
+
+export const balanceHandler = (
+  erdAddress: string,
+  handleTransactions: HandleTransactionFn
+): HandleBalanceFn => async () => {
+  const newBalance = await getUpdatedBalance(erdAddress);
+
+  if (!newBalance) return;
+
+  const lastSnapshotBalance: LastSnapshotBalance | null = await getLastBalanceSnapShot(
+    erdAddress
+  );
+
+  if (!lastSnapshotBalance?.amount) {
     await setNewBalance(erdAddress, newBalance);
+
+    return;
+  }
+
+  if (newBalance > lastSnapshotBalance?.amount) {
+    await setNewBalance(erdAddress, String(newBalance));
+
+    await poll(null, 10000, handleTransactions, 60000);
+
+    return;
   }
 };
 
@@ -103,7 +114,13 @@ export const launchBlockchainMonitoring = async (
   herotag: string,
   user: UserType
 ): Promise<string> => {
-  const handleBalance = balanceHandler(user);
+  const lastRestartTimestamp = await getLastRestart();
+
+  const erdAddress = await getErdAddressFromHerotag(herotag);
+
+  const handleTransactions = transactionsHandler(user, lastRestartTimestamp);
+
+  const handleBalance = balanceHandler(erdAddress, handleTransactions);
 
   const shouldStopPolling = async () => {
     const currentUser = await User.findById(user._id)
@@ -115,7 +132,7 @@ export const launchBlockchainMonitoring = async (
     return !currentUser?.isStreaming;
   };
 
-  pollBalance(herotag, handleBalance, shouldStopPolling);
+  poll(handleBalance, 2000, shouldStopPolling);
 
   return user.herotag as string;
 };
@@ -137,8 +154,16 @@ export const toggleBlockchainMonitoring = async (
 
   if (!user) return;
 
-  if (isStreaming && user.integrations)
-    await launchBlockchainMonitoring(user.herotag as string, user);
+  if (isStreaming && user.integrations) {
+    const erdAddress = await getErdAddressFromHerotag(herotag);
+    const newBalance = await getUpdatedBalance(erdAddress);
+
+    if (newBalance) {
+      await setNewBalance(erdAddress, newBalance);
+
+      await launchBlockchainMonitoring(user.herotag as string, user);
+    } else throw new Error("UNABLE_TO_LAUCH_BC_MONITORING");
+  }
 
   return user;
 };
@@ -147,9 +172,19 @@ export const resumeBlockchainMonitoring = async (): Promise<string[]> => {
   const usersToPoll = await User.find({ isStreaming: true }).lean();
 
   const launchedUsers = await Promise.all(
-    usersToPoll.map((user) =>
-      launchBlockchainMonitoring(user.herotag as string, user)
-    )
+    usersToPoll.map(async (user) => {
+      if (!user.herotag) throw new Error("UNABLE_TO_LAUCH_BC_MONITORING");
+
+      const erdAddress = await getErdAddressFromHerotag(user.herotag);
+
+      const newBalance = await getUpdatedBalance(erdAddress);
+
+      if (newBalance) {
+        await setNewBalance(erdAddress, newBalance);
+
+        return launchBlockchainMonitoring(user.herotag as string, user);
+      } else throw new Error("UNABLE_TO_LAUCH_BC_MONITORING");
+    })
   );
 
   return launchedUsers;

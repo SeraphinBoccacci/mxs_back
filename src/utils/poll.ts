@@ -1,44 +1,29 @@
-import { getUpdatedBalance } from "../services/elrond";
-import { getErdAddressFromHerotag } from "./transactions";
-
 type ShouldStopPollingFn = (() => boolean) | (() => Promise<boolean>);
 
-interface pollBalanceFn {
-  (
-    herotag: string,
-    balanceHandler: (erdAddress: string, newBalance: string) => Promise<void>,
-    shouldStopPolling: ShouldStopPollingFn
-  ): Promise<void>;
-}
+/**
+ * @param fn function to execute in loop; can be async
+ * @param delay delay between loops; min: 1000ms
+ * @param shouldStopPolling function resolving/returning a boolean to continue loop; can alse be used to execute extra code.
+ */
+export const poll = async (
+  fn: (() => void) | null,
+  delay: number,
+  shouldStopPolling: ShouldStopPollingFn,
+  duration?: number
+): Promise<void> => {
+  const compelledDelay = Math.max(1000, delay);
 
-export const pollBalance: pollBalanceFn = async (
-  herotag,
-  balanceHandler,
-  shouldStopPolling
-) => {
-  const erdAddress = await getErdAddressFromHerotag(herotag);
+  const endTimestamp = duration ? Date.now() + duration : null;
 
-  const fetchBalanceAndHandle = async () => {
-    const newBalance = await getUpdatedBalance(erdAddress);
+  const shouldStop = async () => {
+    if (endTimestamp && Date.now() > endTimestamp) return true;
 
-    if (newBalance) await balanceHandler(erdAddress, newBalance);
+    return shouldStopPolling();
   };
 
-  poll(fetchBalanceAndHandle, 1000, shouldStopPolling);
-};
-
-const poll = async (
-  fn: () => void,
-  delay: number,
-  shouldStopPolling: ShouldStopPollingFn
-): Promise<void> => {
-  delay = Math.max(1000, delay);
   do {
-    await fn();
-    // if (await shouldStopPolling()) { double check may be usefull later
-    //   break;
-    // }
-    await new Promise((resolve) => setTimeout(resolve, delay));
-  } while (!(await shouldStopPolling()));
+    if (fn) await fn();
+    await new Promise((resolve) => setTimeout(resolve, compelledDelay));
+  } while (!(await shouldStop()));
 };
 export default poll;
