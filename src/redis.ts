@@ -3,9 +3,7 @@ import { redisClient } from "./services/redis";
 
 export const setLastRestart = async (timestamp?: number): Promise<boolean> => {
   return new Promise((resolve) => {
-    const ts = timestamp
-      ? String(timestamp)
-      : Math.floor(Date.now() * 0.001).toString();
+    const ts = String(timestamp) || (Date.now() * 0.001).toString();
 
     redisClient.set("LAST_RESTART", ts, (err) => {
       if (!err) {
