@@ -244,15 +244,20 @@ export const pollTransactionsToVerifyAccountStatuses = async (): Promise<void> =
       status: UserAccountStatus.PENDING_EDIT_PASSWORD_VERIFICATION,
     }).lean();
 
-    await Promise.all([
-      ...pendingVerificationUsers.map(activateAccountIfTransactionHappened),
-      ...pendingEditPasswordVerificationUsers.map(
-        savePasswordChangeIfTransactionHappened
-      ),
-    ]);
+    for (const user of pendingVerificationUsers) {
+      await setTimeout(async () => {
+        await activateAccountIfTransactionHappened(user);
+      }, 500);
+    }
+
+    for (const user of pendingEditPasswordVerificationUsers) {
+      await setTimeout(async () => {
+        await savePasswordChangeIfTransactionHappened(user);
+      }, 500);
+    }
   };
 
-  await poll(verifyStatuses, 10000, () => false);
+  await poll(verifyStatuses, 20000, () => false);
 };
 
 export const isHerotagValid = async (

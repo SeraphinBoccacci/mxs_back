@@ -31,6 +31,11 @@ export interface ElrondTransaction {
   data?: string;
 }
 
+export interface LastSnapshotBalance {
+  amount: string;
+  timestamp: number;
+}
+
 export interface IftttConfig {
   eventName: string;
   triggerKey: string;

@@ -1,35 +1,19 @@
 import User, { UserMongooseDocument, UserType } from "../../models/User";
 import {
   getAlreadyListennedTransactions,
+  getLastBalanceSnapShot,
   getLastRestart,
   setAlreadyListennedTransactions,
+  setNewBalance,
 } from "../../redis";
-import { getTransactionByHash } from "../../services/elrond";
-import { ElrondTransaction } from "../../types";
-import poll, { pollTransactions } from "../../utils/poll";
-import { normalizeHerotag } from "../../utils/transactions";
+import { getLastTransactions, getUpdatedBalance } from "../../services/elrond";
+import { ElrondTransaction, LastSnapshotBalance } from "../../types";
+import poll from "../../utils/poll";
+import {
+  getErdAddressFromHerotag,
+  normalizeHerotag,
+} from "../../utils/transactions";
 import { reactToNewTransaction } from "../blockchain-interaction";
-
-export const pollPendingTransactions = (
-  transaction: ElrondTransaction,
-  user: UserType
-): void => {
-  const isTransactionNotPendingAnymore = async () => {
-    const elrondTransaction = await getTransactionByHash(transaction.hash);
-
-    if (elrondTransaction) {
-      if (elrondTransaction.status === "success") {
-        await reactToNewTransaction(transaction, user);
-      }
-
-      return elrondTransaction.status !== "pending";
-    }
-
-    return false;
-  };
-
-  poll(null, 2000, isTransactionNotPendingAnymore);
-};
 
 export const findNewIncomingTransactions = (
   transactions: ElrondTransaction[],
@@ -52,37 +36,78 @@ export const findNewIncomingTransactions = (
   );
 };
 
+export interface HandleTransactionFn {
+  (): Promise<boolean>;
+}
+
 export const transactionsHandler = (
   user: UserType,
   lastRestartTimestamp: number
-) => async (
+): HandleTransactionFn => {
+  return async (): Promise<boolean> => {
+    if (!user.herotag) return true;
+
+    const erdAddress = await getErdAddressFromHerotag(user.herotag);
+    const transactions = await getLastTransactions(erdAddress);
+
+    const last30ListennedTransactions = await getAlreadyListennedTransactions(
+      erdAddress
+    );
+
+    const newTransactions = findNewIncomingTransactions(
+      transactions,
+      erdAddress,
+      user,
+      last30ListennedTransactions,
+      lastRestartTimestamp
+    );
+
+    if (!newTransactions.length) return false;
+
+    await setAlreadyListennedTransactions(
+      erdAddress,
+      newTransactions.map(({ hash }) => hash)
+    );
+
+    await Promise.all(
+      newTransactions.map(async (transaction: ElrondTransaction) => {
+        reactToNewTransaction(transaction, user);
+      })
+    );
+
+    return false;
+  };
+};
+
+interface HandleBalanceFn {
+  (): Promise<void>;
+}
+
+export const balanceHandler = (
   erdAddress: string,
-  transactions: ElrondTransaction[]
-): Promise<void> => {
-  const last30ListennedTransactions = await getAlreadyListennedTransactions(
+  handleTransactions: HandleTransactionFn
+): HandleBalanceFn => async () => {
+  const newBalance = await getUpdatedBalance(erdAddress);
+
+  if (!newBalance) return;
+
+  const lastSnapshotBalance: LastSnapshotBalance | null = await getLastBalanceSnapShot(
     erdAddress
   );
 
-  const newTransactions = findNewIncomingTransactions(
-    transactions,
-    erdAddress,
-    user,
-    last30ListennedTransactions,
-    lastRestartTimestamp
-  );
+  if (!lastSnapshotBalance?.amount) {
+    await setNewBalance(erdAddress, newBalance);
 
-  if (!newTransactions.length) return;
+    return;
+  }
 
-  await setAlreadyListennedTransactions(
-    erdAddress,
-    newTransactions.map(({ hash }) => hash)
-  );
+  if (newBalance > lastSnapshotBalance?.amount) {
+    await setNewBalance(erdAddress, String(newBalance));
 
-  await Promise.all(
-    newTransactions.map(async (transaction: ElrondTransaction) => {
-      reactToNewTransaction(transaction, user);
-    })
-  );
+    await poll(null, 10000, handleTransactions, 60000);
+
+    return;
+  }
 };
 
 export const launchBlockchainMonitoring = async (
@@ -91,7 +116,11 @@ export const launchBlockchainMonitoring = async (
 ): Promise<string> => {
   const lastRestartTimestamp = await getLastRestart();
 
+  const erdAddress = await getErdAddressFromHerotag(herotag);
+
   const handleTransactions = transactionsHandler(user, lastRestartTimestamp);
+
+  const handleBalance = balanceHandler(erdAddress, handleTransactions);
 
   const shouldStopPolling = async () => {
     const currentUser = await User.findById(user._id)
@@ -103,7 +132,7 @@ export const launchBlockchainMonitoring = async (
     return !currentUser?.isStreaming;
   };
 
-  pollTransactions(herotag, handleTransactions, shouldStopPolling);
+  poll(handleBalance, 2000, shouldStopPolling);
 
   return user.herotag as string;
 };
@@ -125,8 +154,16 @@ export const toggleBlockchainMonitoring = async (
 
   if (!user) return;
 
-  if (isStreaming && user.integrations)
-    await launchBlockchainMonitoring(user.herotag as string, user);
+  if (isStreaming && user.integrations) {
+    const erdAddress = await getErdAddressFromHerotag(herotag);
+    const newBalance = await getUpdatedBalance(erdAddress);
+
+    if (newBalance) {
+      await setNewBalance(erdAddress, newBalance);
+
+      await launchBlockchainMonitoring(user.herotag as string, user);
+    } else throw new Error("UNABLE_TO_LAUCH_BC_MONITORING");
+  }
 
   return user;
 };
@@ -135,9 +172,19 @@ export const resumeBlockchainMonitoring = async (): Promise<string[]> => {
   const usersToPoll = await User.find({ isStreaming: true }).lean();
 
   const launchedUsers = await Promise.all(
-    usersToPoll.map((user) =>
-      launchBlockchainMonitoring(user.herotag as string, user)
-    )
+    usersToPoll.map(async (user) => {
+      if (!user.herotag) throw new Error("UNABLE_TO_LAUCH_BC_MONITORING");
+
+      const erdAddress = await getErdAddressFromHerotag(user.herotag);
+
+      const newBalance = await getUpdatedBalance(erdAddress);
+
+      if (newBalance) {
+        await setNewBalance(erdAddress, newBalance);
+
+        return launchBlockchainMonitoring(user.herotag as string, user);
+      } else throw new Error("UNABLE_TO_LAUCH_BC_MONITORING");
+    })
   );
 
   return launchedUsers;

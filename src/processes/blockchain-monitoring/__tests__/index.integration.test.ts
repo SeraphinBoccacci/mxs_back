@@ -2,6 +2,9 @@ import { getTime, sub } from "date-fns";
 import mongoose from "mongoose";
 
 import User, { UserType } from "../../../models/User";
+
+jest.mock("../../../services/elrond");
+import * as elrond from "../../../services/elrond";
 import { ElrondTransaction } from "../../../types";
 
 jest.mock("../../../redis");
@@ -12,16 +15,12 @@ import * as poll from "../../../utils/poll";
 
 jest.mock("../../blockchain-interaction");
 import { connectToDatabase } from "../../../services/mongoose";
-import * as blockchainInteraction from "../../blockchain-interaction";
 import {
+  balanceHandler,
   launchBlockchainMonitoring,
   resumeBlockchainMonitoring,
   toggleBlockchainMonitoring,
-  transactionsHandler,
 } from "../";
-
-const targetErdAdress =
-  "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
 
 const baseUser = {
   herotag: "streamparticles.elrond",
@@ -41,6 +40,9 @@ const baseUser = {
   isStreaming: true,
   streamingStartDate: sub(new Date(), { hours: 4 }),
 };
+
+const targetErdAdress =
+  "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
 
 const baseLastTxs: ElrondTransaction[] = [
   {
@@ -285,7 +287,7 @@ const baseLastTxs: ElrondTransaction[] = [
   },
 ] as ElrondTransaction[];
 
-const lastRestart = getTime(sub(new Date(), { days: 1 })) * 0.001;
+// const lastRestart = getTime(sub(new Date(), { days: 1 })) * 0.001;
 
 describe("Maiar integration testing", () => {
   beforeAll(async () => {
@@ -300,183 +302,305 @@ describe("Maiar integration testing", () => {
     mongoose.disconnect();
   });
 
-  describe("handleTransactions", () => {
-    const handleTransactions = transactionsHandler(baseUser, lastRestart);
+  describe("handleBalance", () => {
+    const handleTransaction = jest.fn();
+    const handleBalance = balanceHandler(targetErdAdress, handleTransaction);
 
-    describe("when no new transaction hash is met", () => {
+    describe("when balance there is no balance returned by elrond", () => {
       const mockedRedis = redis as jest.Mocked<typeof redis>;
-      const mockedBlockchainInteraction = blockchainInteraction as jest.Mocked<
-        typeof blockchainInteraction
-      >;
+      const mockedElrond = elrond as jest.Mocked<typeof elrond>;
 
       beforeAll(() => {
-        mockedRedis.getAlreadyListennedTransactions.mockResolvedValue(
-          baseLastTxs.map(({ hash }) => hash)
-        );
+        mockedRedis.getLastBalanceSnapShot.mockResolvedValue({
+          amount: "1000000000000000000",
+          timestamp: getTime(sub(new Date(), { minutes: 10 })) * 0.001,
+        });
       });
 
       afterAll(() => {
+        mockedElrond.getUpdatedBalance.mockClear();
+
+        mockedRedis.setNewBalance.mockClear();
+        mockedRedis.getLastBalanceSnapShot.mockClear();
         mockedRedis.getAlreadyListennedTransactions.mockClear();
-        mockedBlockchainInteraction.reactToNewTransaction.mockClear();
         mockedRedis.setAlreadyListennedTransactions.mockClear();
       });
 
-      it("should call reactToNewTransaction and setAlreadyListennedTransactions", async () => {
-        await handleTransactions(
-          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm",
-          baseLastTxs
-        );
+      it("should not call neither getUpdatedBalance, getLastBalanceSnapShot, setNewBalance", async () => {
+        await handleBalance();
 
-        expect(
-          mockedBlockchainInteraction.reactToNewTransaction
-        ).toHaveBeenCalledTimes(0);
-        expect(
-          mockedRedis.setAlreadyListennedTransactions
-        ).toHaveBeenCalledTimes(0);
+        expect(mockedElrond.getUpdatedBalance).toHaveBeenCalledTimes(1);
+
+        expect(mockedRedis.getLastBalanceSnapShot).toHaveBeenCalledTimes(0);
+        expect(mockedRedis.setNewBalance).toHaveBeenCalledTimes(0);
       });
     });
 
-    describe("when one new tx hash is met", () => {
+    describe("when balance there is no balance in redis yet", () => {
       const mockedRedis = redis as jest.Mocked<typeof redis>;
-      const mockedBlockchainInteraction = blockchainInteraction as jest.Mocked<
-        typeof blockchainInteraction
-      >;
+      const mockedElrond = elrond as jest.Mocked<typeof elrond>;
+
+      beforeAll(() => {
+        mockedElrond.getUpdatedBalance.mockResolvedValue("1000000000000000000");
+        mockedRedis.getLastBalanceSnapShot.mockResolvedValue(null);
+      });
+
+      afterAll(() => {
+        mockedElrond.getUpdatedBalance.mockClear();
+
+        mockedRedis.setNewBalance.mockClear();
+        mockedRedis.getLastBalanceSnapShot.mockClear();
+        mockedRedis.getAlreadyListennedTransactions.mockClear();
+        mockedRedis.setAlreadyListennedTransactions.mockClear();
+      });
+
+      it("should call getUpdatedBalance, getLastBalanceSnapShot, setNewBalance", async () => {
+        await handleBalance();
+
+        expect(mockedElrond.getUpdatedBalance).toHaveBeenCalledTimes(1);
+
+        expect(mockedRedis.getLastBalanceSnapShot).toHaveBeenCalledTimes(1);
+        expect(mockedRedis.setNewBalance).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe("when balance is not updated", () => {
+      const mockedRedis = redis as jest.Mocked<typeof redis>;
+      const mockedElrond = elrond as jest.Mocked<typeof elrond>;
+
+      beforeAll(() => {
+        mockedRedis.getLastBalanceSnapShot.mockResolvedValue({
+          amount: "1000000000000000000",
+          timestamp: getTime(sub(new Date(), { minutes: 10 })) * 0.001,
+        });
+        mockedElrond.getUpdatedBalance.mockResolvedValue("1000000000000000000");
+      });
+
+      afterAll(() => {
+        mockedElrond.getUpdatedBalance.mockClear();
+
+        mockedRedis.setNewBalance.mockClear();
+        mockedRedis.getLastBalanceSnapShot.mockClear();
+        mockedRedis.getAlreadyListennedTransactions.mockClear();
+        mockedRedis.setAlreadyListennedTransactions.mockClear();
+      });
+
+      it("should call neither getUpdatedBalance and getLastBalanceSnapShot, but not setNewBalance", async () => {
+        await handleBalance();
+
+        expect(mockedElrond.getUpdatedBalance).toHaveBeenCalledTimes(1);
+
+        expect(mockedRedis.getLastBalanceSnapShot).toHaveBeenCalledTimes(1);
+        expect(mockedRedis.setNewBalance).toHaveBeenCalledTimes(0);
+      });
+    });
+
+    describe("when balance is updated", () => {
+      const mockedRedis = redis as jest.Mocked<typeof redis>;
+      const mockedElrond = elrond as jest.Mocked<typeof elrond>;
+
+      const updatedAmount = "11000000000000000000";
 
       const newTransaction = {
-        timestamp: getTime(sub(new Date(), { minutes: 1 })) * 0.001,
-        hash:
-          "lcb6304f15d0cbb73a654d6544876a9bef77d24a09b3bba6a161a156b726lcd2",
         receiver: targetErdAdress,
-        receiverShard: 0,
-        sender:
-          "erd19kzxa002kd7jyksc0fd5zcj8r3qyl6h4eafx82kmnvxurmvp2n7lcv9vg8",
-        senderShard: 1,
+        timestamp: getTime(sub(new Date(), { minutes: 1 })) * 0.001,
         status: "success",
-        value: "1000000000000000",
+        value: "9000000000000000000",
       } as ElrondTransaction;
 
       beforeAll(() => {
+        mockedRedis.getLastBalanceSnapShot.mockResolvedValue({
+          amount: "1000000000000000000",
+          timestamp: getTime(sub(new Date(), { minutes: 10 })) * 0.001,
+        });
+        mockedElrond.getUpdatedBalance.mockResolvedValue(updatedAmount);
+
         mockedRedis.getAlreadyListennedTransactions.mockResolvedValue(
           baseLastTxs.map(({ hash }) => hash)
         );
+
+        mockedElrond.getLastTransactions.mockResolvedValue([newTransaction]);
       });
 
       afterAll(() => {
+        mockedElrond.getUpdatedBalance.mockClear();
+
+        mockedRedis.setNewBalance.mockClear();
+        mockedRedis.getLastBalanceSnapShot.mockClear();
         mockedRedis.getAlreadyListennedTransactions.mockClear();
-        mockedBlockchainInteraction.reactToNewTransaction.mockClear();
         mockedRedis.setAlreadyListennedTransactions.mockClear();
       });
 
-      it("should not call neither reactToNewTransaction or setNewBalance", async () => {
-        await handleTransactions(targetErdAdress, [
-          newTransaction,
-          ...baseLastTxs,
-        ]);
+      it("should call getUpdatedBalance, getLastBalanceSnapShot, setNewBalance", async () => {
+        await handleBalance();
 
-        expect(
-          mockedBlockchainInteraction.reactToNewTransaction
-        ).toHaveBeenCalledTimes(1);
-        expect(
-          mockedBlockchainInteraction.reactToNewTransaction
-        ).toHaveBeenCalledWith(newTransaction, baseUser);
+        expect(mockedElrond.getUpdatedBalance).toHaveBeenCalledTimes(1);
+        expect(mockedElrond.getUpdatedBalance).toHaveBeenCalledWith(
+          targetErdAdress
+        );
 
-        expect(
-          mockedRedis.setAlreadyListennedTransactions
-        ).toHaveBeenCalledTimes(1);
-        expect(
-          mockedRedis.setAlreadyListennedTransactions
-        ).toHaveBeenCalledWith(targetErdAdress, [newTransaction.hash]);
+        expect(mockedRedis.getLastBalanceSnapShot).toHaveBeenCalledTimes(1);
+        expect(mockedRedis.getLastBalanceSnapShot).toHaveBeenCalledWith(
+          targetErdAdress
+        );
+
+        expect(mockedRedis.setNewBalance).toHaveBeenCalledTimes(1);
+        expect(mockedRedis.setNewBalance).toHaveBeenCalledWith(
+          targetErdAdress,
+          updatedAmount
+        );
       });
     });
 
-    describe("when three new transactions hash are met", () => {
+    describe("when balance is updated and there is three new transactions", () => {
       const mockedRedis = redis as jest.Mocked<typeof redis>;
-      const mockedBlockchainInteraction = blockchainInteraction as jest.Mocked<
-        typeof blockchainInteraction
-      >;
+      const mockedElrond = elrond as jest.Mocked<typeof elrond>;
+
+      const updatedAmount = "6100000000000000000";
 
       const newTransaction1 = {
         receiver: targetErdAdress,
         timestamp: getTime(sub(new Date(), { minutes: 3 })) * 0.001,
-        hash:
-          "lcb6304f15d0cbb73a654d6544876a9bef77d24a09b3bba6a161a156b726lcd2",
-        receiverShard: 0,
-        sender:
-          "erd19kzxa002kd7jyksc0fd5zcj8r3qyl6h4eafx82kmnvxurmvp2n7lcv9vg8",
-        senderShard: 1,
         status: "success",
-        value: "1000000000000000",
+        value: "900000000000000000",
       } as ElrondTransaction;
 
       const newTransaction2 = {
         receiver: targetErdAdress,
         timestamp: getTime(sub(new Date(), { minutes: 2 })) * 0.001,
-        hash:
-          "lcb6304f15d0cbb71a654d6544876a9bef77d24a09b3bba6a161a156b726lcd2",
-        receiverShard: 0,
-        sender:
-          "erd19kzxa002kd7jyksc0fd5zcj8r3qyl6h4eafx82kmnvxurmvp2n7lcv9vg8",
-        senderShard: 1,
         status: "success",
-        value: "1000000000000000",
+        value: "1700000000000000000",
       } as ElrondTransaction;
 
       const newTransaction3 = {
         receiver: targetErdAdress,
         timestamp: getTime(sub(new Date(), { minutes: 1 })) * 0.001,
-        hash:
-          "lcb6304f15d0cbb73a154d6544876a9bef77d24a09b3bba6a161a156b726lcd2",
-        receiverShard: 0,
-        sender:
-          "erd19kzxa002kd7jyksc0fd5zcj8r3qyl6h4eafx82kmnvxurmvp2n7lcv9vg8",
-        senderShard: 1,
         status: "success",
-        value: "1000000000000000",
+        value: "2300000000000000000",
       } as ElrondTransaction;
 
       beforeAll(() => {
+        mockedRedis.getLastBalanceSnapShot.mockResolvedValue({
+          amount: "1000000000000000000",
+          timestamp: getTime(sub(new Date(), { minutes: 10 })) * 0.001,
+        });
+        mockedElrond.getUpdatedBalance.mockResolvedValue(updatedAmount);
+
         mockedRedis.getAlreadyListennedTransactions.mockResolvedValue(
           baseLastTxs.map(({ hash }) => hash)
         );
-      });
 
-      afterAll(() => {
-        mockedRedis.getAlreadyListennedTransactions.mockClear();
-        mockedBlockchainInteraction.reactToNewTransaction.mockClear();
-        mockedRedis.setAlreadyListennedTransactions.mockClear();
-      });
-
-      it("should call reactToNewTransaction and setAlreadyListennedTransactions", async () => {
-        await handleTransactions(targetErdAdress, [
+        mockedElrond.getLastTransactions.mockResolvedValue([
           newTransaction1,
           newTransaction2,
           newTransaction3,
-          ...baseLastTxs,
         ]);
+      });
 
-        expect(
-          mockedBlockchainInteraction.reactToNewTransaction
-        ).toHaveBeenCalledTimes(3);
-        expect(
-          mockedBlockchainInteraction.reactToNewTransaction
-        ).toHaveBeenNthCalledWith(1, newTransaction1, baseUser);
-        expect(
-          mockedBlockchainInteraction.reactToNewTransaction
-        ).toHaveBeenNthCalledWith(2, newTransaction2, baseUser);
-        expect(
-          mockedBlockchainInteraction.reactToNewTransaction
-        ).toHaveBeenNthCalledWith(3, newTransaction3, baseUser);
+      afterAll(() => {
+        mockedElrond.getUpdatedBalance.mockClear();
 
-        expect(
-          mockedRedis.setAlreadyListennedTransactions
-        ).toHaveBeenCalledTimes(1);
-        expect(
-          mockedRedis.setAlreadyListennedTransactions
-        ).toHaveBeenCalledWith(targetErdAdress, [
-          newTransaction1.hash,
-          newTransaction2.hash,
-          newTransaction3.hash,
+        mockedRedis.setNewBalance.mockClear();
+        mockedRedis.getLastBalanceSnapShot.mockClear();
+        mockedRedis.getAlreadyListennedTransactions.mockClear();
+        mockedRedis.setAlreadyListennedTransactions.mockClear();
+      });
+
+      it("should call getUpdatedBalance, getLastBalanceSnapShot and setNewBalance", async () => {
+        await handleBalance();
+
+        expect(mockedElrond.getUpdatedBalance).toHaveBeenCalledTimes(1);
+        expect(mockedElrond.getUpdatedBalance).toHaveBeenCalledWith(
+          targetErdAdress
+        );
+
+        expect(mockedRedis.getLastBalanceSnapShot).toHaveBeenCalledTimes(1);
+        expect(mockedRedis.getLastBalanceSnapShot).toHaveBeenCalledWith(
+          targetErdAdress
+        );
+
+        expect(mockedRedis.setNewBalance).toHaveBeenCalledTimes(1);
+        expect(mockedRedis.setNewBalance).toHaveBeenCalledWith(
+          targetErdAdress,
+          updatedAmount
+        );
+      });
+    });
+
+    describe("when balance is updated, there is one new transaction and three old transactions", () => {
+      const mockedRedis = redis as jest.Mocked<typeof redis>;
+      const mockedElrond = elrond as jest.Mocked<typeof elrond>;
+
+      const updatedAmount = "6100000000000000000";
+
+      const oldTransactions = [
+        {
+          receiver: targetErdAdress,
+          timestamp: getTime(sub(new Date(), { minutes: 15 })) * 0.001,
+          status: "success",
+          value: "1700000000000000000",
+        },
+        {
+          receiver: targetErdAdress,
+          timestamp: getTime(sub(new Date(), { minutes: 17 })) * 0.001,
+          status: "success",
+          value: "1700000000000000000",
+        },
+        {
+          receiver: targetErdAdress,
+          timestamp: getTime(sub(new Date(), { minutes: 20 })) * 0.001,
+          status: "success",
+          value: "1700000000000000000",
+        },
+      ] as ElrondTransaction[];
+
+      const newTransaction = {
+        receiver: targetErdAdress,
+        timestamp: getTime(sub(new Date(), { minutes: 3 })) * 0.001,
+        status: "success",
+        value: "900000000000000000",
+      } as ElrondTransaction;
+
+      beforeAll(() => {
+        mockedRedis.getLastBalanceSnapShot.mockResolvedValue({
+          amount: "1000000000000000000",
+          timestamp: getTime(sub(new Date(), { minutes: 10 })) * 0.001,
+        });
+        mockedElrond.getUpdatedBalance.mockResolvedValue(updatedAmount);
+
+        mockedElrond.getLastTransactions.mockResolvedValue([
+          ...oldTransactions,
+          newTransaction,
         ]);
+      });
+
+      afterAll(() => {
+        mockedElrond.getUpdatedBalance.mockClear();
+
+        mockedRedis.setNewBalance.mockClear();
+        mockedRedis.getLastBalanceSnapShot.mockClear();
+        mockedRedis.getAlreadyListennedTransactions.mockClear();
+        mockedRedis.setAlreadyListennedTransactions.mockClear();
+      });
+
+      it("should not call neither getLastTransactions, reactToNewTransaction or setNewBalance", async () => {
+        await handleBalance();
+
+        expect(mockedElrond.getUpdatedBalance).toHaveBeenCalledTimes(1);
+        expect(mockedElrond.getUpdatedBalance).toHaveBeenCalledWith(
+          targetErdAdress
+        );
+
+        expect(mockedRedis.getLastBalanceSnapShot).toHaveBeenCalledTimes(1);
+        expect(mockedRedis.getLastBalanceSnapShot).toHaveBeenCalledWith(
+          targetErdAdress
+        );
+
+        expect(mockedRedis.setNewBalance).toHaveBeenCalledTimes(1);
+        expect(mockedRedis.setNewBalance).toHaveBeenCalledWith(
+          targetErdAdress,
+          updatedAmount
+        );
       });
     });
   });
@@ -484,15 +608,16 @@ describe("Maiar integration testing", () => {
   describe("activateBlockchainMonitoring", () => {
     const mockedPoll = poll as jest.Mocked<typeof poll>;
 
-    afterAll(() => mockedPoll.pollTransactions.mockClear());
+    afterAll(() => mockedPoll.poll.mockClear());
+    beforeAll(() => mockedPoll.poll.mockClear());
 
     test("", async () => {
       await launchBlockchainMonitoring(baseUser.herotag, baseUser);
 
-      expect(mockedPoll.pollTransactions).toHaveBeenCalledTimes(1);
-      expect(mockedPoll.pollTransactions).toHaveBeenCalledWith(
-        baseUser.herotag,
+      expect(mockedPoll.poll).toHaveBeenCalledTimes(1);
+      expect(mockedPoll.poll).toHaveBeenCalledWith(
         expect.any(Function),
+        2000,
         expect.any(Function)
       );
     });
@@ -503,7 +628,7 @@ describe("Maiar integration testing", () => {
       const mockedPoll = poll as jest.Mocked<typeof poll>;
 
       afterAll(() => {
-        mockedPoll.pollTransactions.mockClear();
+        mockedPoll.poll.mockClear();
       });
 
       it("should not start blockchain monitoring", async () => {
@@ -511,7 +636,7 @@ describe("Maiar integration testing", () => {
 
         expect(result).toBe(undefined);
 
-        expect(mockedPoll.pollTransactions).toHaveBeenCalledTimes(0);
+        expect(mockedPoll.poll).toHaveBeenCalledTimes(0);
       });
     });
 
@@ -524,7 +649,7 @@ describe("Maiar integration testing", () => {
       });
 
       afterAll(async () => {
-        mockedPoll.pollTransactions.mockClear();
+        mockedPoll.poll.mockClear();
 
         await User.deleteMany();
       });
@@ -541,7 +666,7 @@ describe("Maiar integration testing", () => {
           integrations: createdUser.integrations,
         });
 
-        expect(mockedPoll.pollTransactions).toHaveBeenCalledTimes(0);
+        expect(mockedPoll.poll).toHaveBeenCalledTimes(0);
       });
     });
 
@@ -554,7 +679,7 @@ describe("Maiar integration testing", () => {
       });
 
       afterAll(async () => {
-        mockedPoll.pollTransactions.mockClear();
+        mockedPoll.poll.mockClear();
 
         await User.deleteMany();
       });
@@ -568,10 +693,10 @@ describe("Maiar integration testing", () => {
           integrations: createdUser.integrations,
         });
 
-        expect(mockedPoll.pollTransactions).toHaveBeenCalledTimes(1);
-        expect(mockedPoll.pollTransactions).toHaveBeenCalledWith(
-          baseUser.herotag,
+        expect(mockedPoll.poll).toHaveBeenCalledTimes(1);
+        expect(mockedPoll.poll).toHaveBeenCalledWith(
           expect.any(Function),
+          2000,
           expect.any(Function)
         );
       });
@@ -583,13 +708,13 @@ describe("Maiar integration testing", () => {
       const mockedPoll = poll as jest.Mocked<typeof poll>;
 
       afterAll(async () => {
-        mockedPoll.pollTransactions.mockClear();
+        mockedPoll.poll.mockClear();
       });
 
       it("should start blockchain monitoring", async () => {
         await resumeBlockchainMonitoring();
 
-        expect(mockedPoll.pollTransactions).toHaveBeenCalledTimes(0);
+        expect(mockedPoll.poll).toHaveBeenCalledTimes(0);
       });
     });
 
@@ -607,7 +732,7 @@ describe("Maiar integration testing", () => {
       });
 
       afterAll(async () => {
-        mockedPoll.pollTransactions.mockClear();
+        mockedPoll.poll.mockClear();
 
         await User.deleteMany();
       });
@@ -620,17 +745,17 @@ describe("Maiar integration testing", () => {
           createdUser1.herotag,
         ]);
 
-        expect(mockedPoll.pollTransactions).toHaveBeenCalledTimes(2);
+        expect(mockedPoll.poll).toHaveBeenCalledTimes(2);
 
-        expect(mockedPoll.pollTransactions).toHaveBeenCalledWith(
-          createdUser1.herotag,
+        expect(mockedPoll.poll).toHaveBeenCalledWith(
           expect.any(Function),
+          2000,
           expect.any(Function)
         );
 
-        expect(mockedPoll.pollTransactions).toHaveBeenCalledWith(
-          createdUser2.herotag,
+        expect(mockedPoll.poll).toHaveBeenCalledWith(
           expect.any(Function),
+          2000,
           expect.any(Function)
         );
       });
