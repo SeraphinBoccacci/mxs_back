@@ -1,5 +1,4 @@
-import { getLastTransactions, getUpdatedBalance } from "../services/elrond";
-import { ElrondTransaction } from "../types";
+import { getUpdatedBalance } from "../services/elrond";
 import { getErdAddressFromHerotag } from "./transactions";
 
 type ShouldStopPollingFn = (() => boolean) | (() => Promise<boolean>);
@@ -26,33 +25,6 @@ export const pollBalance: pollBalanceFn = async (
   };
 
   poll(fetchBalanceAndHandle, 1000, shouldStopPolling);
-};
-
-interface pollTransactionsFn {
-  (
-    herotag: string,
-    handleTransactions: (
-      erdAddress: string,
-      transactions: ElrondTransaction[]
-    ) => Promise<void>,
-    shouldStopPolling: ShouldStopPollingFn
-  ): Promise<void>;
-}
-
-export const pollTransactions: pollTransactionsFn = async (
-  herotag,
-  handleTransactions,
-  shouldStopPolling
-) => {
-  const erdAddress = await getErdAddressFromHerotag(herotag);
-
-  const fetchBalanceAndHandle = async () => {
-    const transactions = await getLastTransactions(erdAddress);
-
-    if (transactions) await handleTransactions(erdAddress, transactions);
-  };
-
-  poll(fetchBalanceAndHandle, 5000, shouldStopPolling);
 };
 
 const poll = async (
