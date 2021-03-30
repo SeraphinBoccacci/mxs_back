@@ -285,8 +285,6 @@ const baseLastTxs: ElrondTransaction[] = [
   },
 ] as ElrondTransaction[];
 
-const lastRestart = getTime(sub(new Date(), { days: 1 })) * 0.001;
-
 describe("Maiar integration testing", () => {
   beforeAll(async () => {
     await connectToDatabase();
@@ -301,7 +299,7 @@ describe("Maiar integration testing", () => {
   });
 
   describe("handleTransactions", () => {
-    const handleTransactions = transactionsHandler(baseUser, lastRestart);
+    const handleTransactions = transactionsHandler(baseUser);
 
     describe("when no new transaction hash is met", () => {
       const mockedRedis = redis as jest.Mocked<typeof redis>;

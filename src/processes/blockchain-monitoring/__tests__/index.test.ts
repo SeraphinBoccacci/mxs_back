@@ -120,8 +120,6 @@ const baseLastTxs: ElrondTransaction[] = [
 
 const hashes = baseLastTxs.map(({ hash }) => hash);
 
-const lastRestart = getTime(sub(new Date(), { days: 1 })) * 0.001;
-
 describe("Blockchain monitoring unit testing", () => {
   describe("findNewIncomingTransactions", () => {
     describe("when there is no last balance snapshot", () => {
@@ -141,8 +139,7 @@ describe("Blockchain monitoring unit testing", () => {
               [notMatchingTx, ...baseLastTxs],
               targetErdAdress,
               baseUser as UserType,
-              hashes,
-              lastRestart
+              hashes
             );
             expect(txs).toHaveLength(0);
           });
@@ -162,8 +159,7 @@ describe("Blockchain monitoring unit testing", () => {
               [notMatchingTx, ...baseLastTxs],
               targetErdAdress,
               { ...(baseUser as UserType), streamingStartDate: null },
-              hashes,
-              lastRestart
+              hashes
             );
 
             expect(txs).toHaveLength(0);
@@ -184,8 +180,7 @@ describe("Blockchain monitoring unit testing", () => {
               [notMatchingTx, ...baseLastTxs],
               targetErdAdress,
               baseUser as UserType,
-              hashes,
-              lastRestart
+              hashes
             );
 
             expect(txs).toHaveLength(0);
@@ -205,8 +200,7 @@ describe("Blockchain monitoring unit testing", () => {
               [notMatchingTx, ...baseLastTxs],
               targetErdAdress,
               baseUser as UserType,
-              hashes,
-              lastRestart
+              hashes
             );
 
             expect(txs).toHaveLength(0);
@@ -227,8 +221,7 @@ describe("Blockchain monitoring unit testing", () => {
               [notMatchingTx, ...baseLastTxs],
               targetErdAdress,
               baseUser as UserType,
-              hashes,
-              lastRestart
+              hashes
             );
 
             expect(txs).toHaveLength(0);
@@ -251,8 +244,7 @@ describe("Blockchain monitoring unit testing", () => {
             [matchingTx, ...baseLastTxs],
             targetErdAdress,
             baseUser as UserType,
-            hashes,
-            lastRestart
+            hashes
           );
 
           expect(txs).toHaveLength(1);
@@ -293,8 +285,7 @@ describe("Blockchain monitoring unit testing", () => {
             [matchingTx1, matchingTx2, matchingTx3, ...baseLastTxs],
             targetErdAdress,
             baseUser as UserType,
-            hashes,
-            lastRestart
+            hashes
           );
 
           expect(txs).toHaveLength(3);

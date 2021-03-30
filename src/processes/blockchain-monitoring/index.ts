@@ -1,7 +1,6 @@
 import User, { UserMongooseDocument, UserType } from "../../models/User";
 import {
   getAlreadyListennedTransactions,
-  getLastRestart,
   setAlreadyListennedTransactions,
 } from "../../redis";
 import { getTransactionByHash } from "../../services/elrond";
@@ -35,11 +34,9 @@ export const findNewIncomingTransactions = (
   transactions: ElrondTransaction[],
   erdAddress: string,
   user: UserType,
-  last30ListennedTransactions: string[],
-  lastRestartTimestamp: number
+  last30ListennedTransactions: string[]
 ): ElrondTransaction[] => {
   const isTimestampOk = (timestamp: number) =>
-    timestamp > lastRestartTimestamp &&
     user?.streamingStartDate &&
     timestamp > Math.ceil(new Date(user?.streamingStartDate).getTime() * 0.001);
 
@@ -52,10 +49,7 @@ export const findNewIncomingTransactions = (
   );
 };
 
-export const transactionsHandler = (
-  user: UserType,
-  lastRestartTimestamp: number
-) => async (
+export const transactionsHandler = (user: UserType) => async (
   erdAddress: string,
   transactions: ElrondTransaction[]
 ): Promise<void> => {
@@ -67,8 +61,7 @@ export const transactionsHandler = (
     transactions,
     erdAddress,
     user,
-    last30ListennedTransactions,
-    lastRestartTimestamp
+    last30ListennedTransactions
   );
 
   if (!newTransactions.length) return;
@@ -89,9 +82,7 @@ export const launchBlockchainMonitoring = async (
   herotag: string,
   user: UserType
 ): Promise<string> => {
-  const lastRestartTimestamp = await getLastRestart();
-
-  const handleTransactions = transactionsHandler(user, lastRestartTimestamp);
+  const handleTransactions = transactionsHandler(user);
 
   const shouldStopPolling = async () => {
     const currentUser = await User.findById(user._id)
