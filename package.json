@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "start:prod": "tsc && NODE_ENV=production node dist/index.js",
-    "start:staging": "tsc && NODE_ENV=staging node dist/index.js",
+    "start:prod": "NODE_ENV=production node dist/index.js",
+    "start:staging": "NODE_ENV=staging node dist/index.js",
     "dev": "NODE_ENV=development nodemon --config nodemon.json src/index.ts",
     "dev:debug": "NODE_ENV=development nodemon --config nodemon.json --inspect-brk src/index.ts",
     "test": "NODE_ENV=test npx jest --detectOpenHandles --forceExit",
