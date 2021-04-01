@@ -110,13 +110,11 @@ export const balanceHandler = (
     return;
   }
 
-  if (newBalance > lastSnapshotBalance?.amount) {
+  if (newBalance !== lastSnapshotBalance?.amount)
     await setNewBalance(erdAddress, String(newBalance));
 
+  if (newBalance > lastSnapshotBalance?.amount)
     await poll(null, 10000, handleTransactions, 60000);
-
-    return;
-  }
 };
 
 export const launchBlockchainMonitoring = async (
