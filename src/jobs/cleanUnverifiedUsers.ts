@@ -2,7 +2,6 @@ import sub from "date-fns/sub";
 
 import User, { UserAccountStatus } from "../models/User";
 import logger from "../services/logger";
-import { connectToDatabase } from "../services/mongoose";
 
 export const cleanUnverifiedUserAccount = async (): Promise<void> => {
   const result = await User.deleteMany({
@@ -17,13 +16,15 @@ export const cleanUnverifiedUserAccount = async (): Promise<void> => {
     ],
   });
 
-  logger.info("cleaned", result);
+  logger.info({ data: "Unverified user accounts cleaned", ...result });
 };
 
-connectToDatabase().then(async () => {
-  await cleanUnverifiedUserAccount();
-
-  setInterval(async () => {
+const main = (): (() => void) => {
+  const interval = setInterval(async () => {
     await cleanUnverifiedUserAccount();
   }, 1000 * 60 * 60 * 10);
-});
+
+  return () => clearInterval(interval);
+};
+
+export default main;

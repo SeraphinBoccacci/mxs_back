@@ -17,10 +17,12 @@ import {
 } from "../processes/stream-elements";
 import {
   getUserData,
+  getViewerOnboardingData,
   toggleIftttParticle,
   toggleStreamElementsParticle,
   updateIftttParticleData,
   updateMinimumRequiredAmount,
+  updateViewerOnboardingData,
 } from "../processes/user";
 import { EventData, MockedElrondTransaction } from "../types";
 import { RequestWithHerotag } from "../types/express";
@@ -157,7 +159,7 @@ Router.route("/user/trigger-event").post(
   }
 );
 
-Router.route("/user/update-minimum-required-amount").post(
+Router.route("/user/minimum-required-amount").post(
   authenticateMiddleware,
   async (req, res) => {
     await updateMinimumRequiredAmount(
@@ -166,6 +168,30 @@ Router.route("/user/update-minimum-required-amount").post(
     );
 
     res.sendStatus(204);
+  }
+);
+
+Router.route("/user/viewers-onboarding-data").post(
+  authenticateMiddleware,
+  async (req, res) => {
+    await updateViewerOnboardingData(
+      req.body.herotag,
+      req.body.referralLink,
+      req.body.herotagQrCodePath
+    );
+
+    res.sendStatus(204);
+  }
+);
+
+Router.route("/user/viewers-onboarding-data/herotag/:herotag").get(
+  async (req, res) => {
+    const user = await getViewerOnboardingData(req.params.herotag);
+
+    res.send({
+      referralLink: user?.referralLink,
+      herotagQrCodePath: user?.herotagQrCodePath,
+    });
   }
 );
 

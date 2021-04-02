@@ -8,16 +8,15 @@ require("express-async-errors");
 import compression from "compression";
 import cors from "cors";
 import mongoSanitize from "express-mongo-sanitize";
+import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import multer from "multer";
 //@ts-ignore
 import xss from "xss-clean";
 
-// const httpStatus = require("http-status");
-// const config = require("./config/config");
-// const { authLimiter } = require("./middlewares/rateLimiter");
 import routes from "./api";
 import errorMiddleware from "./middlewares/errorHandler";
+import { requestLoggerMiddleware } from "./middlewares/requestLoggerMiddleware";
 import logger from "./services/logger";
 
 const storage = multer.diskStorage({
@@ -46,6 +45,15 @@ const app = express();
 
 // set security HTTP headers /\ CAUTION: Override header below if set after /\
 app.use(helmet());
+app.use(requestLoggerMiddleware);
+
+const limiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 100, // limit each IP to 100 requests per windowMs
+});
+
+app.set("trust proxy", 1);
+app.use(limiter);
 
 app.use(function(req, res, next) {
   res.setHeader(
@@ -80,16 +88,6 @@ app.use(compression());
 
 // enable cors
 app.use(cors());
-// app.options("*", cors());
-
-// jwt authentication
-// app.use(passport.initialize());
-// passport.use("jwt", jwtStrategy);
-
-// limit repeated failed requests to auth endpoints
-// if (config.env === "production") {
-//   app.use("/v1/auth", authLimiter);
-// }
 
 app.use("/images", express.static(path.join("../medias/images")));
 app.use("/audios", express.static(path.join("../medias/audios")));

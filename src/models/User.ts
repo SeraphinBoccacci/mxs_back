@@ -42,6 +42,9 @@ export interface UserType {
   };
   isStreaming?: boolean;
   streamingStartDate?: Date | null;
+
+  referralLink?: string;
+  herotagQrCodePath?: string;
 }
 
 const UserSchema = new Schema(
@@ -82,6 +85,9 @@ const UserSchema = new Schema(
     },
     isStreaming: { type: Boolean, required: false },
     streamingStartDate: { type: Date, required: false },
+
+    referralLink: { type: String, required: false },
+    herotagQrCodePath: { type: String, required: false },
   },
   { timestamps: true }
 );
