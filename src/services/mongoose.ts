@@ -4,7 +4,7 @@ import config from "../config/config";
 import logger from "./logger";
 
 export const connectToDatabase = async (): Promise<void> => {
-  mongoose
+  await mongoose
     .connect(config.dbUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,

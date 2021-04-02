@@ -55,6 +55,31 @@ export const updateMinimumRequiredAmount = async (
   );
 };
 
+export const updateViewerOnboardingData = async (
+  herotag: string,
+  referralLink: string,
+  herotagQrCodePath?: string
+): Promise<void> => {
+  await User.updateOne(
+    { herotag: normalizeHerotag(herotag) },
+    {
+      $set: {
+        referralLink: referralLink,
+        herotagQrCodePath: herotagQrCodePath,
+      },
+    }
+  );
+};
+
+export const getViewerOnboardingData = async (
+  herotag: string
+): Promise<UserMongooseDocument | null> => {
+  return User.findOne({ herotag: normalizeHerotag(herotag) }).select({
+    referralLink: true,
+    herotagQrCodePath: true,
+  });
+};
+
 export const getUserData = async (
   herotag: string
 ): Promise<UserMongooseDocument | undefined> => {

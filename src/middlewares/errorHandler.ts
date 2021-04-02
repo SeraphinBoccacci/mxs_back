@@ -15,9 +15,9 @@ const errorMiddleware = (
   logger.error({
     error: error.message,
     url: req.url,
-    params: req.params,
-    query: req.query,
-    body: req.body,
+    ...(!!req.params && { params: req.params }),
+    ...(!!req.query && { query: req.query }),
+    ...(!!req.body && { body: req.body }),
   });
 
   //@ts-ignore
