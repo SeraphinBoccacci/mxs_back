@@ -1,7 +1,6 @@
 import axios, { AxiosRequestConfig } from "axios";
 
 import { IftttParticleData } from "../../models/User";
-import logger from "../../services/logger";
 import { EventData } from "../../types";
 
 export const triggerIftttEvent = async (
@@ -20,15 +19,9 @@ export const triggerIftttEvent = async (
     value3: eventData.data,
   };
 
-  try {
-    await axios.post(
-      `https://maker.ifttt.com/trigger/${iftttParticleData.eventName}/with/key/${iftttParticleData.triggerKey}`,
-      data,
-      config
-    );
-  } catch (error) {
-    logger.error(error);
-
-    throw error;
-  }
+  await axios.post(
+    `https://maker.ifttt.com/trigger/${iftttParticleData.eventName}/with/key/${iftttParticleData.triggerKey}`,
+    data,
+    config
+  );
 };

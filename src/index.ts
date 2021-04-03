@@ -27,25 +27,24 @@ server.listen(config.port, async () => {
 
   try {
     pollTransactionsToVerifyAccountStatuses();
-  } catch (err) {
-    logger.error(
-      "An error occured while trying to pollTransactionsToVerifyAccountStatuses",
-      { err }
-    );
+  } catch (error) {
+    logger.error({
+      ...error,
+      error:
+        "An error occured while trying to pollTransactionsToVerifyAccountStatuses",
+    });
 
-    throw err;
+    throw error;
   }
 
   try {
     resumeBlockchainMonitoring();
-  } catch (err) {
-    logger.error(
-      "An error occured while trying to resumeBlockchainMonitoring",
-      {
-        err,
-      }
-    );
+  } catch (error) {
+    logger.error({
+      ...error,
+      error: "An error occured while trying to resumeBlockchainMonitoring",
+    });
 
-    throw err;
+    throw error;
   }
 });
