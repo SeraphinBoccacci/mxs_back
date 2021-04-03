@@ -2,7 +2,7 @@ import { createLogger, format, transports } from "winston";
 
 import config from "../config/config";
 import { isObject } from "../utils/object";
-const { combine, timestamp, printf, colorize } = format;
+const { combine, timestamp, printf, colorize, errors } = format;
 
 const withTimestampFormat = printf(({ level, message, timestamp }) => {
   const formattedMessage = isObject(message)
@@ -13,7 +13,12 @@ const withTimestampFormat = printf(({ level, message, timestamp }) => {
 
 const logger = createLogger({
   level: "info",
-  format: combine(timestamp(), withTimestampFormat),
+  format: combine(
+    colorize(),
+    errors({ stack: true }),
+    timestamp(),
+    withTimestampFormat
+  ),
   transports: [
     new transports.File({ filename: "error.log", level: "error" }),
     new transports.File({ filename: "combined.log" }),
@@ -23,7 +28,12 @@ const logger = createLogger({
 if (config.withConsoleTransport) {
   logger.add(
     new transports.Console({
-      format: combine(colorize(), timestamp(), withTimestampFormat),
+      format: combine(
+        colorize(),
+        errors({ stack: true }),
+        timestamp(),
+        withTimestampFormat
+      ),
     })
   );
 }

@@ -177,13 +177,11 @@ export const activateAccountIfTransactionHappened = async (
       );
     }
   } catch (error) {
-    logger.error(
-      "An error occured while activateAccountIfTransactionHappened ",
-      {
-        error,
-        user,
-      }
-    );
+    logger.error({
+      ...error,
+      user,
+      error: "An error occured while activateAccountIfTransactionHappened ",
+    });
   }
 };
 
@@ -225,13 +223,11 @@ export const savePasswordChangeIfTransactionHappened = async (
       ]);
     }
   } catch (error) {
-    logger.error(
-      `An error occured while savePasswordChangeIfTransactionHappened ${error}`,
-      {
-        error,
-        user,
-      }
-    );
+    logger.error({
+      ...error,
+      user,
+      error: `An error occured while savePasswordChangeIfTransactionHappened ${error}`,
+    });
   }
 };
 

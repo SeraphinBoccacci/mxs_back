@@ -32,10 +32,11 @@ export const listen = (server: HttpServer): void => {
 
       io.to(room).emit("newDonation", parsedData);
     } catch (error) {
-      logger.error("Unparsable redis publish data", {
-        error,
+      logger.error({
+        ...error,
         channel,
         stringifiedData,
+        error: "Unparsable redis publish data",
       });
     }
   });

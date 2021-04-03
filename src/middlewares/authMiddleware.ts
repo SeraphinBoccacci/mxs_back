@@ -2,7 +2,6 @@ import { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
 
 import User, { UserAccountStatus } from "../models/User";
-import logger from "../services/logger";
 import { RequestWithHerotag } from "../types/express";
 import { normalizeHerotag } from "../utils/transactions";
 
@@ -46,10 +45,6 @@ export const authenticateMiddleware = async (
 
     next();
   } catch (error) {
-    //If token is not valid, respond with 401 (unauthorized)
-    logger.error("Auth failed " + error);
-
-    res.status(401).send(error);
-    return;
+    throw new Error("INVALID_TOKEN");
   }
 };

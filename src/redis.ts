@@ -13,7 +13,9 @@ export const getLastBalanceSnapShot = (
 
           resolve(lastBalanceSnapShot);
         } catch (error) {
-          logger.error("Unparsable Redis data : clear redis", {
+          logger.error({
+            ...error,
+            error: "Unparsable Redis data : clear redis",
             redisData: data,
           });
         }
@@ -83,7 +85,9 @@ export const getAlreadyListennedTransactions = (
 
           resolve(alreadyListennedTransactions);
         } catch (error) {
-          logger.error("Unparsable Redis data : clear redis", {
+          logger.error({
+            ...error,
+            error: "Unparsable Redis data : clear redis",
             redisData: data,
           });
           resolve([]);
@@ -120,7 +124,9 @@ export const getLastRestart = async (): Promise<number> => {
 
           resolve(Number(restartTimestamp));
         } catch (error) {
-          logger.error("Unparsable Redis data : clear redis", {
+          logger.error({
+            ...error,
+            error: "Unparsable Redis data : clear redis",
             redisData: data,
           });
 

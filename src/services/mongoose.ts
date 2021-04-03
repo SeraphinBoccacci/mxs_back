@@ -14,6 +14,9 @@ export const connectToDatabase = async (): Promise<void> => {
       logger.info("Connected to database");
     })
     .catch((error) => {
-      logger.error("Connection to database failed", { error });
+      logger.error({
+        ...error,
+        error: "Connection to database failed",
+      });
     });
 };

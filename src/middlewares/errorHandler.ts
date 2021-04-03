@@ -13,11 +13,12 @@ const errorMiddleware = (
   const error = typeof err === "string" ? new Error(err) : err;
 
   logger.error({
-    error: error.message,
-    url: req.url,
     ...(!!req.params && { params: req.params }),
     ...(!!req.query && { query: req.query }),
     ...(!!req.body && { body: req.body }),
+    url: req.url,
+    error: error.message,
+    stack: error.stack,
   });
 
   //@ts-ignore
