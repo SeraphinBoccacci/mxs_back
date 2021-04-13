@@ -24,7 +24,7 @@ export const cleanUnverifiedUserAccount = async (): Promise<void> => {
 const main = (): void => {
   setInterval(async () => {
     await cleanUnverifiedUserAccount();
-  }, 1000 * 60 * 60 * 10);
+  }, 1000 * 60 * 10);
 };
 
 export default main;
