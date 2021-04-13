@@ -4,6 +4,8 @@ import User, { UserAccountStatus } from "../models/User";
 import logger from "../services/logger";
 
 export const cleanUnverifiedUserAccount = async (): Promise<void> => {
+  logger.info({ data: "Start cleaning unverified accounts" });
+
   const result = await User.deleteMany({
     status: UserAccountStatus.PENDING_VERIFICATION,
     $or: [
@@ -19,12 +21,10 @@ export const cleanUnverifiedUserAccount = async (): Promise<void> => {
   logger.info({ data: "Unverified user accounts cleaned", ...result });
 };
 
-const main = (): (() => void) => {
-  const interval = setInterval(async () => {
+const main = (): void => {
+  setInterval(async () => {
     await cleanUnverifiedUserAccount();
   }, 1000 * 60 * 60 * 10);
-
-  return () => clearInterval(interval);
 };
 
 export default main;
