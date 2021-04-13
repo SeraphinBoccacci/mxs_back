@@ -11,7 +11,7 @@ export const connectToDatabase = async (): Promise<void> => {
       useFindAndModify: false,
     })
     .then(async () => {
-      logger.info("Connected to database");
+      logger.info(`Connected to database : ${config.dbUri}`);
     })
     .catch((error) => {
       logger.error({
