@@ -4,10 +4,10 @@ import User, {
   UserType,
 } from "../../models/User";
 import { getLastTransactions } from "../../services/elrond";
+import { jwtSign } from "../../services/jwt";
 import logger from "../../services/logger";
 import { ElrondTransaction } from "../../types";
 import {
-  generateJwt,
   getHashedPassword,
   verifyPassword,
 } from "../../utils/auth";
@@ -97,7 +97,7 @@ export const authenticateUser = async (
 }> => {
   await validateAuthenticationData(data);
 
-  const user: UserMongooseDocument = await User.findOne({
+  const user: UserMongooseDocument | null = await User.findOne({
     herotag: normalizeHerotag(data?.herotag || ""),
   }).lean();
 
@@ -108,7 +108,7 @@ export const authenticateUser = async (
   if (user.status !== UserAccountStatus.VERIFIED)
     throw new Error("ACCOUNT_WITH_VERIFICATION_PENDING");
 
-  const token = generateJwt(user.herotag as string);
+  const token = jwtSign(user.herotag as string);
 
   return { user, token: token, expiresIn: 60 * 60 * 4 };
 };

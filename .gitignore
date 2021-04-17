@@ -7,8 +7,13 @@ node_modules/
 dist/
 npm-debug.log
 test/*.log
-
 combined.log
 error.log
-
 package-lock.json
+
+# ENV VARIABLES (WILL BE SET IN GITLAB CI + PRODUCTION SERVERS)
+.env
+.env.staging
+.env.production
+SECURITY.md
+yarn.lock

@@ -2,6 +2,7 @@ import mongoose, { Schema } from "mongoose";
 
 import { VariationSchema } from "../models/schemas/StreamElementsVariation";
 import { Variation } from "../types/streamElements";
+import { ENV } from "../utils/env";
 
 export enum UserAccountStatus {
   PENDING_VERIFICATION = 0,
@@ -54,7 +55,7 @@ const UserSchema = new Schema(
     herotag: {
       type: String,
       required: true,
-      validate: (herotag: string) => herotag.endsWith(".elrond"),
+      validate: (herotag: string) => herotag.endsWith(`${ENV.ELROND_HEROTAG_DOMAIN}`),
     },
     erdAddress: { type: String, required: false },
     status: { type: UserAccountStatus, required: true },

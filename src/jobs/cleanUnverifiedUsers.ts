@@ -21,6 +21,7 @@ export const cleanUnverifiedUserAccount = async (): Promise<void> => {
   logger.info({ data: "Unverified user accounts cleaned", ...result });
 };
 
+// TODO : be fault tolerant by running a child process instead of main job
 const main = (): void => {
   setInterval(async () => {
     await cleanUnverifiedUserAccount();

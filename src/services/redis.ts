@@ -1,16 +1,14 @@
 import redis from "redis";
 
-export const subscriber = redis.createClient({
-  host: "localhost",
-  port: 6379,
-});
+import { ENV } from "../utils/env";
 
-export const publisher = redis.createClient({
-  host: "localhost",
-  port: 6379,
-});
+const createRedisClient = () => {
+  return redis.createClient({
+    host: `${ENV.REDIS_HOST}`,
+    port: parseInt(`${ENV.REDIS_PORT}`),
+  });
+}
 
-export const redisClient = redis.createClient({
-  host: "localhost",
-  port: 6379,
-});
+export const subscriber = createRedisClient();
+export const publisher = createRedisClient();
+export const redisClient = createRedisClient();

@@ -1,13 +1,9 @@
 import { NextFunction, Response } from "express";
-import jwt from "jsonwebtoken";
 
 import User, { UserAccountStatus } from "../models/User";
+import { jwtPayload } from "../services/jwt";
 import { RequestWithHerotag } from "../types/express";
 import { normalizeHerotag } from "../utils/transactions";
-
-interface JwtDecoded {
-  herotag: string;
-}
 
 export const authenticateMiddleware = async (
   req: RequestWithHerotag,
@@ -24,15 +20,10 @@ export const authenticateMiddleware = async (
   }
 
   try {
-    const jwtPayload = <JwtDecoded>(
-      jwt.verify(
-        token,
-        "Curtness24Radium89Honestly41Memo's83Casuals35cherishes09Sanctification97restarting42slot's28ephemerides"
-      )
-    );
+    const payload = jwtPayload(token);
 
     const user = await User.findOne({
-      herotag: normalizeHerotag(jwtPayload.herotag),
+      herotag: normalizeHerotag(payload.herotag),
     })
       .select({ status: true })
       .orFail(new Error("NOT_REGISTERED_HEROTAG"))
@@ -41,7 +32,7 @@ export const authenticateMiddleware = async (
     if (user?.status === UserAccountStatus.PENDING_VERIFICATION)
       throw new Error("USER_WITH_STILL_PENDING_VERIFICATION");
 
-    req.herotag = jwtPayload.herotag;
+    req.herotag = payload.herotag;
 
     next();
   } catch (error) {

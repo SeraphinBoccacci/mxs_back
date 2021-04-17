@@ -151,7 +151,7 @@ export const toggleBlockchainMonitoring = async (
   herotag: string,
   isStreaming: boolean
 ): Promise<UserMongooseDocument | void> => {
-  const user: UserMongooseDocument = await User.findOneAndUpdate(
+  const user: UserMongooseDocument | null = await User.findOneAndUpdate(
     { herotag: normalizeHerotag(herotag) },
     {
       $set: {

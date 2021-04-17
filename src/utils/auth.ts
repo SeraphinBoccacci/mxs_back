@@ -1,5 +1,4 @@
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 
 export const getHashedPassword = (password: string): Promise<string> => {
   return new Promise((resolve, reject) =>
@@ -23,15 +22,5 @@ export const verifyPassword = (
 
       resolve();
     })
-  );
-};
-
-export const generateJwt = (herotag: string): string => {
-  return jwt.sign(
-    {
-      herotag: herotag,
-    },
-    "Curtness24Radium89Honestly41Memo's83Casuals35cherishes09Sanctification97restarting42slot's28ephemerides",
-    { expiresIn: 60 * 60 * 4 }
   );
 };
