@@ -1,3 +1,5 @@
+/** @format */
+
 import { connectToDatabase } from "./services/mongoose";
 
 connectToDatabase();
@@ -21,17 +23,14 @@ server.listen(config.port, async () => {
 
   await setLastRestart();
   const lastRestartTimestamp = await getLastRestart();
-  logger.info(
-    `Server last restart at : ${lastRestartTimestamp} saved in Redis`
-  );
+  logger.info(`Server last restart at : ${lastRestartTimestamp} saved in Redis`);
 
   try {
     pollTransactionsToVerifyAccountStatuses();
   } catch (error) {
     logger.error({
       ...error,
-      error:
-        "An error occured while trying to pollTransactionsToVerifyAccountStatuses",
+      error: "An error occured while trying to pollTransactionsToVerifyAccountStatuses",
     });
 
     throw error;

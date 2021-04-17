@@ -1,4 +1,9 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
+/**
+ * /* eslint-disable @typescript-eslint/ban-ts-comment
+ *
+ * @format
+ */
+
 import { NextFunction, Request, Response } from "express";
 
 import logger from "../services/logger";
@@ -8,7 +13,7 @@ const errorMiddleware = (
   req: Request,
   res: Response,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   const error = typeof err === "string" ? new Error(err) : err;
 

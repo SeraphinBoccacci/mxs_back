@@ -1,3 +1,5 @@
+/** @format */
+
 jest.mock("fs");
 import { sub } from "date-fns";
 import mongoose from "mongoose";
@@ -12,12 +14,7 @@ import {
   Variation,
   VariationPositions,
 } from "../../types/streamElements";
-import {
-  createVariation,
-  deleteVariation,
-  getVariation,
-  updateVariation,
-} from ".";
+import { createVariation, deleteVariation, getVariation, updateVariation } from ".";
 
 const baseUser = {
   herotag: "serabocca06.elrond",
@@ -121,9 +118,7 @@ describe("Stream Elements integration test", () => {
         })
         .lean();
 
-      expect(
-        updatedUser?.integrations?.streamElements?.variations
-      ).toMatchObject([baseVariation]);
+      expect(updatedUser?.integrations?.streamElements?.variations).toMatchObject([baseVariation]);
     });
   });
 
@@ -198,9 +193,7 @@ describe("Stream Elements integration test", () => {
         })
         .lean();
 
-      expect(
-        updatedUser?.integrations?.streamElements?.variations
-      ).toMatchObject([
+      expect(updatedUser?.integrations?.streamElements?.variations).toMatchObject([
         baseVariation,
         {
           name: "variation test 2",
@@ -249,9 +242,7 @@ describe("Stream Elements integration test", () => {
         })
         .lean();
 
-      expect(
-        updatedUser?.integrations?.streamElements?.variations
-      ).toMatchObject([
+      expect(updatedUser?.integrations?.streamElements?.variations).toMatchObject([
         {
           name: "variation test 2",
           backgroundColor: "#666666",

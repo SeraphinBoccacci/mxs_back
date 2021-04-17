@@ -1,24 +1,16 @@
+/** @format */
+
 import fs from "fs";
 import mongoose from "mongoose";
 import { nanoid } from "nanoid";
 
 import User from "../../models/User";
 import logger from "../../services/logger";
-import {
-  TextAlignments,
-  TextPositions,
-  Variation,
-} from "../../types/streamElements";
+import { TextAlignments, TextPositions, Variation } from "../../types/streamElements";
 import { normalizeHerotag } from "../../utils/transactions";
 import { generateCss } from "./code-generators/css";
-import {
-  generatePreviewHtml,
-  generateSnippetHtml,
-} from "./code-generators/html";
-import {
-  formatVariationName,
-  generateJavascript,
-} from "./code-generators/javascript";
+import { generatePreviewHtml, generateSnippetHtml } from "./code-generators/html";
+import { formatVariationName, generateJavascript } from "./code-generators/javascript";
 
 const payloadToVariation = (payload: Variation) => {
   return {
@@ -54,8 +46,7 @@ const payloadToVariation = (payload: Variation) => {
     },
     text: {
       position: payload?.text?.position || TextPositions.top,
-      content:
-        payload?.text?.content || "You can display whatever you want here",
+      content: payload?.text?.content || "You can display whatever you want here",
       width: payload?.text?.width || 300,
       height: payload?.text?.height,
       size: payload?.text?.size || "50",
@@ -87,7 +78,7 @@ const payloadToVariation = (payload: Variation) => {
 
 export const createVariation = async (
   herotag: string,
-  payload: Variation
+  payload: Variation,
 ): Promise<{
   variations: Variation[];
   files: { html: string; css: string; javascript: string };
@@ -107,39 +98,30 @@ export const createVariation = async (
         "integrations.streamElements.variations": newVariation,
       },
     },
-    { new: true }
+    { new: true },
   );
 
   return {
     variations: updatedUser?.integrations?.streamElements?.variations || [],
-    files: getCodeSnippets(
-      updatedUser?.herotag as string,
-      updatedUser?.integrations?.streamElements?.variations || []
-    ),
+    files: getCodeSnippets(updatedUser?.herotag as string, updatedUser?.integrations?.streamElements?.variations || []),
   };
 };
 
-export const getVariation = async (
-  variationId: mongoose.Types.ObjectId
-): Promise<Variation> => {
+export const getVariation = async (variationId: mongoose.Types.ObjectId): Promise<Variation> => {
   const user = await User.findOne({
     "integrations.streamElements.variations._id": variationId,
   })
     .select({ "integrations.streamElements.variations": true })
     .lean();
 
-  const variation = user?.integrations?.streamElements?.variations.find(
-    ({ _id }) => String(_id) === String(variationId)
-  );
+  const variation = user?.integrations?.streamElements?.variations.find(({ _id }) => String(_id) === String(variationId));
 
   if (!variation) throw new Error("NO_VARIATION_FOUND");
 
   return variation;
 };
 
-export const getUserVariations = async (
-  herotag: string
-): Promise<Variation[]> => {
+export const getUserVariations = async (herotag: string): Promise<Variation[]> => {
   const user = await User.findOne({
     herotag: normalizeHerotag(herotag),
   })
@@ -149,9 +131,7 @@ export const getUserVariations = async (
   return user?.integrations?.streamElements?.variations || [];
 };
 
-const findHerotagByVariationId = async (
-  variationId: mongoose.Types.ObjectId
-): Promise<string> => {
+const findHerotagByVariationId = async (variationId: mongoose.Types.ObjectId): Promise<string> => {
   const user = await User.findOne({
     "integrations.streamElements.variations._id": variationId,
   })
@@ -162,11 +142,7 @@ const findHerotagByVariationId = async (
   return user.herotag as string;
 };
 
-const createVariationFiles = (
-  filepath: string,
-  herotag: string,
-  payload: Variation
-) => {
+const createVariationFiles = (filepath: string, herotag: string, payload: Variation) => {
   const [html, css, javascript]: [string, string, string] = [
     generatePreviewHtml(filepath),
     generateCss([payload]),
@@ -195,7 +171,7 @@ const deleteVariationFiles = (filepath?: string) => {
 
 export const getCodeSnippets = (
   herotag: string,
-  variations: Variation[]
+  variations: Variation[],
 ): {
   html: string;
   css: string;
@@ -216,7 +192,7 @@ export const getCodeSnippets = (
 
 export const updateVariation = async (
   variationId: mongoose.Types.ObjectId,
-  payload: Variation
+  payload: Variation,
 ): Promise<{
   variation: Variation;
   files: { html: string; css: string; javascript: string };
@@ -228,9 +204,7 @@ export const updateVariation = async (
 
   const variationFilesId = nanoid();
 
-  const baseFilename = `${herotag.replace(/\W/g, "_")}_${formatVariationName(
-    payload.name
-  )}_${variationFilesId}`;
+  const baseFilename = `${herotag.replace(/\W/g, "_")}_${formatVariationName(payload.name)}_${variationFilesId}`;
 
   const updates: Variation = payloadToVariation(payload);
 
@@ -247,18 +221,15 @@ export const updateVariation = async (
         },
       },
     },
-    { new: true }
+    { new: true },
   )
     .select({ "integrations.streamElements.variations": true })
     .lean();
 
   deleteVariationFiles(oldVariation?.filepath);
 
-  const variations =
-    updatedUser?.integrations?.streamElements?.variations || [];
-  const updatedVariation = variations.find(
-    ({ _id }) => String(_id) === String(variationId)
-  ) as Variation;
+  const variations = updatedUser?.integrations?.streamElements?.variations || [];
+  const updatedVariation = variations.find(({ _id }) => String(_id) === String(variationId)) as Variation;
 
   return {
     variation: updatedVariation,
@@ -267,7 +238,7 @@ export const updateVariation = async (
 };
 
 export const deleteVariation = async (
-  variationId: mongoose.Types.ObjectId
+  variationId: mongoose.Types.ObjectId,
 ): Promise<{
   variations: Variation[];
   files: { html: string; css: string; javascript: string };
@@ -281,15 +252,12 @@ export const deleteVariation = async (
         "integrations.streamElements.variations": { _id: variationId },
       },
     },
-    { new: true }
+    { new: true },
   );
 
   deleteVariationFiles(oldVariation?.filepath);
 
-  const files = getCodeSnippets(
-    updatedUser?.herotag as string,
-    updatedUser?.integrations?.streamElements?.variations || []
-  );
+  const files = getCodeSnippets(updatedUser?.herotag as string, updatedUser?.integrations?.streamElements?.variations || []);
 
   return {
     variations: updatedUser?.integrations?.streamElements?.variations || [],
@@ -298,11 +266,13 @@ export const deleteVariation = async (
 };
 
 export const getRowsStructure = async (
-  herotag: string
-): Promise<{
-  rows: string[];
-  rowsGroupName?: string | undefined;
-}[]> => {
+  herotag: string,
+): Promise<
+  {
+    rows: string[];
+    rowsGroupName?: string | undefined;
+  }[]
+> => {
   const user = await User.findOne({ herotag: normalizeHerotag(herotag) })
     .select({ "integrations.streamElements.rowsStructure": true })
     .lean();
@@ -319,20 +289,20 @@ export const updateRowsStructure = async (
   rowsStructure: {
     rows: string[];
     rowsGroupName?: string | undefined;
+  }[],
+): Promise<
+  {
+    rows: string[];
+    rowsGroupName?: string | undefined;
   }[]
-): Promise<{
-  rows: string[];
-  rowsGroupName?: string | undefined;
-}[]> => {
+> => {
   await User.updateOne(
     { herotag: normalizeHerotag(herotag) },
     {
       $set: {
-        "integrations.streamElements.rowsStructure": rowsStructure.filter(
-          ({ rows }) => !!rows.length
-        ),
+        "integrations.streamElements.rowsStructure": rowsStructure.filter(({ rows }) => !!rows.length),
       },
-    }
+    },
   );
 
   return rowsStructure;

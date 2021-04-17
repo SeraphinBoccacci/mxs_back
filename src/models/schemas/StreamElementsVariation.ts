@@ -1,3 +1,5 @@
+/** @format */
+
 import mongoose from "mongoose";
 
 import {
@@ -22,7 +24,7 @@ const AnimationSchema = new mongoose.Schema(
       offset: { type: Number, required: false },
     },
   },
-  { _id: false, timestamps: true }
+  { _id: false, timestamps: true },
 );
 
 export const VariationSchema = new mongoose.Schema({

@@ -1,3 +1,5 @@
+/** @format */
+
 import mongoose, { Schema } from "mongoose";
 
 import { VariationSchema } from "../models/schemas/StreamElementsVariation";
@@ -90,7 +92,7 @@ const UserSchema = new Schema(
     referralLink: { type: String, required: false },
     herotagQrCodePath: { type: String, required: false },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export type UserMongooseDocument = UserType & mongoose.Document;

@@ -1,21 +1,14 @@
+/** @format */
+
 import User, { UserMongooseDocument } from "../models/User";
 import { IftttConfig } from "../types";
 import { normalizeHerotag } from "../utils/transactions";
 
-export const toggleIftttParticle = async (
-  herotag: string,
-  activate: boolean
-): Promise<void> => {
-  await User.updateOne(
-    { herotag: normalizeHerotag(herotag) },
-    { $set: { "integrations.ifttt.isActive": activate } }
-  );
+export const toggleIftttParticle = async (herotag: string, activate: boolean): Promise<void> => {
+  await User.updateOne({ herotag: normalizeHerotag(herotag) }, { $set: { "integrations.ifttt.isActive": activate } });
 };
 
-export const updateIftttParticleData = async (
-  herotag: string,
-  data: IftttConfig
-): Promise<void> => {
+export const updateIftttParticleData = async (herotag: string, data: IftttConfig): Promise<void> => {
   await User.updateOne(
     { herotag: normalizeHerotag(herotag) },
     {
@@ -27,39 +20,26 @@ export const updateIftttParticleData = async (
           "integrations.ifttt.eventName": data.eventName,
         }),
       },
-    }
+    },
   );
 };
 
-export const toggleStreamElementsParticle = async (
-  herotag: string,
-  activate: boolean
-): Promise<void> => {
-  await User.updateOne(
-    { herotag: normalizeHerotag(herotag) },
-    { $set: { "integrations.streamElements.isActive": activate } }
-  );
+export const toggleStreamElementsParticle = async (herotag: string, activate: boolean): Promise<void> => {
+  await User.updateOne({ herotag: normalizeHerotag(herotag) }, { $set: { "integrations.streamElements.isActive": activate } });
 };
 
-export const updateMinimumRequiredAmount = async (
-  herotag: string,
-  minimumRequiredAmount: number
-): Promise<void> => {
+export const updateMinimumRequiredAmount = async (herotag: string, minimumRequiredAmount: number): Promise<void> => {
   await User.updateOne(
     { herotag: normalizeHerotag(herotag) },
     {
       $set: {
         "integrations.minimumRequiredAmount": minimumRequiredAmount,
       },
-    }
+    },
   );
 };
 
-export const updateViewerOnboardingData = async (
-  herotag: string,
-  referralLink: string,
-  herotagQrCodePath?: string
-): Promise<void> => {
+export const updateViewerOnboardingData = async (herotag: string, referralLink: string, herotagQrCodePath?: string): Promise<void> => {
   await User.updateOne(
     { herotag: normalizeHerotag(herotag) },
     {
@@ -67,22 +47,18 @@ export const updateViewerOnboardingData = async (
         referralLink: referralLink,
         herotagQrCodePath: herotagQrCodePath,
       },
-    }
+    },
   );
 };
 
-export const getViewerOnboardingData = async (
-  herotag: string
-): Promise<UserMongooseDocument | null> => {
+export const getViewerOnboardingData = async (herotag: string): Promise<UserMongooseDocument | null> => {
   return User.findOne({ herotag: normalizeHerotag(herotag) }).select({
     referralLink: true,
     herotagQrCodePath: true,
   });
 };
 
-export const getUserData = async (
-  herotag: string
-): Promise<UserMongooseDocument | undefined> => {
+export const getUserData = async (herotag: string): Promise<UserMongooseDocument | undefined> => {
   const user: UserMongooseDocument = await User.findOne({
     herotag: normalizeHerotag(herotag),
   }).lean();

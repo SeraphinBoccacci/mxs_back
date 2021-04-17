@@ -1,3 +1,5 @@
+/** @format */
+
 import logger from "../services/logger";
 import { connectToDatabase } from "../services/mongoose";
 import cleanUnverifiedUserAccount from "./cleanUnverifiedUsers";

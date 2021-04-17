@@ -1,3 +1,5 @@
+/** @format */
+
 import config from "../../../config/config";
 
 /* eslint-disable quotes */

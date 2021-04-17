@@ -1,3 +1,5 @@
+/** @format */
+
 import redis from "redis";
 
 import { ENV } from "../utils/env";
@@ -7,7 +9,7 @@ const createRedisClient = () => {
     host: `${ENV.REDIS_HOST}`,
     port: parseInt(`${ENV.REDIS_PORT}`),
   });
-}
+};
 
 export const subscriber = createRedisClient();
 export const publisher = createRedisClient();

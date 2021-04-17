@@ -1,12 +1,11 @@
+/** @format */
+
 import axios, { AxiosRequestConfig } from "axios";
 
 import { IftttParticleData } from "../../models/User";
 import { EventData } from "../../types";
 
-export const triggerIftttEvent = async (
-  eventData: EventData,
-  iftttParticleData: IftttParticleData
-): Promise<void> => {
+export const triggerIftttEvent = async (eventData: EventData, iftttParticleData: IftttParticleData): Promise<void> => {
   const config: AxiosRequestConfig = {
     headers: {
       "Content-Type": "application/json",
@@ -19,9 +18,5 @@ export const triggerIftttEvent = async (
     value3: eventData.data,
   };
 
-  await axios.post(
-    `https://maker.ifttt.com/trigger/${iftttParticleData.eventName}/with/key/${iftttParticleData.triggerKey}`,
-    data,
-    config
-  );
+  await axios.post(`https://maker.ifttt.com/trigger/${iftttParticleData.eventName}/with/key/${iftttParticleData.triggerKey}`, data, config);
 };

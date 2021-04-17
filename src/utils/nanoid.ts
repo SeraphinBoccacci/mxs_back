@@ -1,3 +1,5 @@
+/** @format */
+
 import { nanoid } from "nanoid";
 
 import User, { UserAccountStatus } from "../models/User";

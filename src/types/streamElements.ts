@@ -1,3 +1,5 @@
+/** @format */
+
 import mongoose from "mongoose";
 
 export enum VariationPositions {

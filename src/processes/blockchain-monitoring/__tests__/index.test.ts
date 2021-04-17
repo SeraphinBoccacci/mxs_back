@@ -1,4 +1,9 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
+/**
+ * /* eslint-disable @typescript-eslint/no-var-requires
+ *
+ * @format
+ */
+
 import { getTime, sub } from "date-fns";
 import mongoose from "mongoose";
 
@@ -24,15 +29,13 @@ const baseUser = {
   streamingStartDate: sub(new Date(), { hours: 4 }),
 };
 
-const targetErdAdress =
-  "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
+const targetErdAdress = "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
 
 const baseLastTxs: ElrondTransaction[] = [
   {
     hash: "bc0544d0d15f9be2fdbab0ee4234a07b72ad2bd4f2e8f2aa484f5d62c3f5971d",
     fee: "93500000000000",
-    miniBlockHash:
-      "a43aa259f098a9b872fe3343ec31a1134bc879db7016208c1222da6f2d62ee8a",
+    miniBlockHash: "a43aa259f098a9b872fe3343ec31a1134bc879db7016208c1222da6f2d62ee8a",
     nonce: 151866,
     round: 2880837,
     value: "454419163369324620",
@@ -53,8 +56,7 @@ const baseLastTxs: ElrondTransaction[] = [
   {
     hash: "488cc8b73b06c60574564e39217382be63325228ebe7f6133ca571ea8524f53f",
     fee: "87500000000000",
-    miniBlockHash:
-      "123bcf58ac1849f93e03d3bacf4231b7f14200f207771c059aa95602bf0a2bc6",
+    miniBlockHash: "123bcf58ac1849f93e03d3bacf4231b7f14200f207771c059aa95602bf0a2bc6",
     nonce: 28,
     round: 2876481,
     value: "1243000000000000",
@@ -75,8 +77,7 @@ const baseLastTxs: ElrondTransaction[] = [
   {
     hash: "a950110e448148fa84df1c3ed8fb4b41cb85df56ae0630ddde2fb72deacfc634",
     fee: "74000000000000",
-    miniBlockHash:
-      "e420aff535fa905caa7ec554d9333cb608a7bc16c010ad8ae990d4ae52ae6f2c",
+    miniBlockHash: "e420aff535fa905caa7ec554d9333cb608a7bc16c010ad8ae990d4ae52ae6f2c",
     nonce: 27,
     round: 2876465,
     value: "134253000000000",
@@ -97,8 +98,7 @@ const baseLastTxs: ElrondTransaction[] = [
   {
     hash: "b812b20e04c57e2ff225a31342fb76b0bdbdf5707157d90f6889bad6aab3472e",
     fee: "86000000000000",
-    miniBlockHash:
-      "05a08c44ebc9cf87f1cf5dcd6eb6571af3202bc94a4c48c5708157ec5f276e2c",
+    miniBlockHash: "05a08c44ebc9cf87f1cf5dcd6eb6571af3202bc94a4c48c5708157ec5f276e2c",
     nonce: 26,
     round: 2876438,
     value: "142530000000000",
@@ -129,10 +129,8 @@ describe("Blockchain monitoring unit testing", () => {
         describe("when receiver address does not match target address", () => {
           it("should not return tx", () => {
             const notMatchingTx = {
-              hash:
-                "bc0577f0d15f9be2fdbab0ee4234a07b72ad2bd4f2e8f2aa484f5d62c3f5971d",
-              receiver:
-                "erd1tdadwyyk3llcpj5mwsy4qej5vcv3yg95y2gv2pav7a6zv6r4lpfqmce9kv",
+              hash: "bc0577f0d15f9be2fdbab0ee4234a07b72ad2bd4f2e8f2aa484f5d62c3f5971d",
+              receiver: "erd1tdadwyyk3llcpj5mwsy4qej5vcv3yg95y2gv2pav7a6zv6r4lpfqmce9kv",
               timestamp: getTime(sub(new Date(), { hours: 1 })) * 0.001,
               status: "success",
             } as ElrondTransaction;
@@ -142,7 +140,7 @@ describe("Blockchain monitoring unit testing", () => {
               targetErdAdress,
               baseUser as UserType,
               hashes,
-              lastRestart
+              lastRestart,
             );
             expect(txs).toHaveLength(0);
           });
@@ -151,8 +149,7 @@ describe("Blockchain monitoring unit testing", () => {
         describe("when user hasn't streamingStartDate", () => {
           it("should not return tx", () => {
             const notMatchingTx = {
-              hash:
-                "bc0577f0d15f9be2fdbab0ee4234a07b72ad2bd4f2e8f2aa484f5d62c3f5971d",
+              hash: "bc0577f0d15f9be2fdbab0ee4234a07b72ad2bd4f2e8f2aa484f5d62c3f5971d",
               receiver: targetErdAdress,
               timestamp: getTime(sub(new Date(), { hours: 1 })) * 0.001,
               status: "success",
@@ -163,7 +160,7 @@ describe("Blockchain monitoring unit testing", () => {
               targetErdAdress,
               { ...(baseUser as UserType), streamingStartDate: null },
               hashes,
-              lastRestart
+              lastRestart,
             );
 
             expect(txs).toHaveLength(0);
@@ -173,8 +170,7 @@ describe("Blockchain monitoring unit testing", () => {
         describe("when tx timestamp is smaller than user streamingStartDate", () => {
           it("should not return tx", () => {
             const notMatchingTx = {
-              hash:
-                "bc0577f0d15f9be2fdbab0ee4234a07b72ad2bd4f2e8f2aa484f5d62c3f5971d",
+              hash: "bc0577f0d15f9be2fdbab0ee4234a07b72ad2bd4f2e8f2aa484f5d62c3f5971d",
               receiver: targetErdAdress,
               timestamp: getTime(sub(new Date(), { hours: 6 })) * 0.001,
               status: "success",
@@ -185,7 +181,7 @@ describe("Blockchain monitoring unit testing", () => {
               targetErdAdress,
               baseUser as UserType,
               hashes,
-              lastRestart
+              lastRestart,
             );
 
             expect(txs).toHaveLength(0);
@@ -206,7 +202,7 @@ describe("Blockchain monitoring unit testing", () => {
               targetErdAdress,
               baseUser as UserType,
               hashes,
-              lastRestart
+              lastRestart,
             );
 
             expect(txs).toHaveLength(0);
@@ -216,8 +212,7 @@ describe("Blockchain monitoring unit testing", () => {
         describe("when status is failed", () => {
           it("should not return tx", () => {
             const notMatchingTx = {
-              hash:
-                "bc0577f0d15f9be2fdbab0ee4234a07b72ad2bd4f2e8f2aa484f5d62c3f5971d",
+              hash: "bc0577f0d15f9be2fdbab0ee4234a07b72ad2bd4f2e8f2aa484f5d62c3f5971d",
               receiver: targetErdAdress,
               timestamp: getTime(sub(new Date(), { hours: 3 })) * 0.001,
               status: "failed",
@@ -228,7 +223,7 @@ describe("Blockchain monitoring unit testing", () => {
               targetErdAdress,
               baseUser as UserType,
               hashes,
-              lastRestart
+              lastRestart,
             );
 
             expect(txs).toHaveLength(0);
@@ -240,20 +235,13 @@ describe("Blockchain monitoring unit testing", () => {
         it("should return tx", () => {
           const timestamp = getTime(sub(new Date(), { hours: 3 })) * 0.001;
           const matchingTx = {
-            hash:
-              "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
+            hash: "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
             receiver: targetErdAdress,
             timestamp,
             status: "success",
           } as ElrondTransaction;
 
-          const txs = findNewIncomingTransactions(
-            [matchingTx, ...baseLastTxs],
-            targetErdAdress,
-            baseUser as UserType,
-            hashes,
-            lastRestart
-          );
+          const txs = findNewIncomingTransactions([matchingTx, ...baseLastTxs], targetErdAdress, baseUser as UserType, hashes, lastRestart);
 
           expect(txs).toHaveLength(1);
           expect(txs).toEqual([matchingTx]);
@@ -262,28 +250,24 @@ describe("Blockchain monitoring unit testing", () => {
 
       describe("when many txs match filters", () => {
         it("should return txs", () => {
-          const targetErdAdress =
-            "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
+          const targetErdAdress = "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
           const timestamp = getTime(sub(new Date(), { hours: 3 })) * 0.001;
           const timestamp2 = getTime(sub(new Date(), { hours: 2 })) * 0.001;
           const timestamp3 = getTime(sub(new Date(), { hours: 1 })) * 0.001;
           const matchingTx1 = {
-            hash:
-              "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc5e666",
+            hash: "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc5e666",
             receiver: targetErdAdress,
             timestamp,
             status: "success",
           } as ElrondTransaction;
           const matchingTx2 = {
-            hash:
-              "b7334dbf756d24fff81ee49eac98b1be7993345bc8932c7d6c7b914c123bc56666",
+            hash: "b7334dbf756d24fff81ee49eac98b1be7993345bc8932c7d6c7b914c123bc56666",
             receiver: targetErdAdress,
             timestamp: timestamp2,
             status: "success",
           } as ElrondTransaction;
           const matchingTx3 = {
-            hash:
-              "b7334dbf756d24fff81ee49eac98b1be7993345bc8932c7d6c7b914c123bc56766",
+            hash: "b7334dbf756d24fff81ee49eac98b1be7993345bc8932c7d6c7b914c123bc56766",
             receiver: targetErdAdress,
             timestamp: timestamp3,
             status: "success",
@@ -294,7 +278,7 @@ describe("Blockchain monitoring unit testing", () => {
             targetErdAdress,
             baseUser as UserType,
             hashes,
-            lastRestart
+            lastRestart,
           );
 
           expect(txs).toHaveLength(3);

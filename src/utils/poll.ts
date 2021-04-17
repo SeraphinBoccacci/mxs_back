@@ -1,3 +1,5 @@
+/** @format */
+
 type ShouldStopPollingFn = (() => boolean) | (() => Promise<boolean>);
 
 /**
@@ -9,7 +11,7 @@ export const poll = async (
   fn: (() => void) | null,
   delay: number,
   shouldStopPolling: ShouldStopPollingFn,
-  duration?: number
+  duration?: number,
 ): Promise<void> => {
   const compelledDelay = Math.max(1000, delay);
 
@@ -23,7 +25,7 @@ export const poll = async (
 
   do {
     if (fn) await fn();
-    await new Promise((resolve) => setTimeout(resolve, compelledDelay));
+    await new Promise(resolve => setTimeout(resolve, compelledDelay));
   } while (!(await shouldStop()));
 };
 export default poll;

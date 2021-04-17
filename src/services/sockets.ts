@@ -1,3 +1,5 @@
+/** @format */
+
 // https://soyuka.me/mieux-organiser-ses-sockets-avec-express-js/
 
 import { Server as HttpServer } from "http";
@@ -26,7 +28,7 @@ export const listen = (server: HttpServer): void => {
 
   subscriber.psubscribe("NEW_DONATION");
 
-  subscriber.on("pmessage", function(_, channel, stringifiedData) {
+  subscriber.on("pmessage", function (_, channel, stringifiedData) {
     try {
       const { room, ...parsedData } = JSON.parse(stringifiedData);
 

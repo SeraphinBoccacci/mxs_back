@@ -1,3 +1,5 @@
+/** @format */
+
 import mongoose from "mongoose";
 
 import { ENV } from "../utils/env";
@@ -14,7 +16,7 @@ export const connectToDatabase = async (): Promise<void> => {
     .then(async () => {
       logger.info(`Connected to database : ${getMongoUrlFromEnv(true)}`);
     })
-    .catch((error) => {
+    .catch(error => {
       logger.error({
         ...error,
         error: `Connection to database failed : ${getMongoUrlFromEnv(true)}`,
@@ -30,18 +32,11 @@ export const connectToDatabase = async (): Promise<void> => {
  * @returns {string} - The mongodb uri.
  */
 export const getMongoUrlFromEnv = (obfuscated = false): string => {
-  const {
-    NODE_ENV,
-    MONGODB_HOST,
-    MONGODB_PORT,
-    MONGODB_DBNAME,
-    MONGODB_USER,
-    MONGODB_PWD,
-  } = ENV;
+  const { NODE_ENV, MONGODB_HOST, MONGODB_PORT, MONGODB_DBNAME, MONGODB_USER, MONGODB_PWD } = ENV;
 
   // Prepare
   const prefix = "mongodb://";
-  const auth = (MONGODB_USER && MONGODB_PWD) ? obfuscated ? "****:***" : [MONGODB_USER, MONGODB_PWD].join(":") : undefined;
+  const auth = MONGODB_USER && MONGODB_PWD ? (obfuscated ? "****:***" : [MONGODB_USER, MONGODB_PWD].join(":")) : undefined;
 
   // Throw if environment is exposed and no auth has been set to the DB
   if (["poduction", "staging"].indexOf(`${NODE_ENV}`) >= 0 && (!MONGODB_USER || !MONGODB_PWD)) {
@@ -55,5 +50,4 @@ export const getMongoUrlFromEnv = (obfuscated = false): string => {
 
   // Build and returns the mondb uri
   return `${prefix}${auth ? `${auth}@` : ""}${MONGODB_HOST}:${MONGODB_PORT}/${MONGODB_DBNAME}`;
-
-}
+};

@@ -1,3 +1,5 @@
+/** @format */
+
 import { ENV } from "../utils/env";
 interface Config {
   url: string;
@@ -14,5 +16,5 @@ const config: Config = {
   uploadsUrl: `${ENV.ENTRYPOINT_UPLOAD_PATH}`,
   withConsoleTransport: ENV.ENABLE_CONSOLE_TRANSPORT === true,
   port: parseInt(`${ENV.ENTRYPOINT_API_PORT}`),
-}
+};
 export default config;

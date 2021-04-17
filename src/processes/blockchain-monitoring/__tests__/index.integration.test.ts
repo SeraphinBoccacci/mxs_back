@@ -1,3 +1,5 @@
+/** @format */
+
 import { getTime, sub } from "date-fns";
 import mongoose from "mongoose";
 
@@ -15,12 +17,7 @@ import * as poll from "../../../utils/poll";
 
 jest.mock("../../blockchain-interaction");
 import { connectToDatabase } from "../../../services/mongoose";
-import {
-  balanceHandler,
-  launchBlockchainMonitoring,
-  resumeBlockchainMonitoring,
-  toggleBlockchainMonitoring,
-} from "../";
+import { balanceHandler, launchBlockchainMonitoring, resumeBlockchainMonitoring, toggleBlockchainMonitoring } from "../";
 
 const baseUser = {
   _id: mongoose.Types.ObjectId(),
@@ -42,8 +39,7 @@ const baseUser = {
   streamingStartDate: sub(new Date(), { hours: 4 }),
 };
 
-const targetErdAdress =
-  "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
+const targetErdAdress = "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
 
 const baseLastTxs: ElrondTransaction[] = [
   {
@@ -416,9 +412,7 @@ describe("Maiar integration testing", () => {
         });
         mockedElrond.getUpdatedBalance.mockResolvedValue(updatedAmount);
 
-        mockedRedis.getAlreadyListennedTransactions.mockResolvedValue(
-          baseLastTxs.map(({ hash }) => hash)
-        );
+        mockedRedis.getAlreadyListennedTransactions.mockResolvedValue(baseLastTxs.map(({ hash }) => hash));
 
         mockedElrond.getLastTransactions.mockResolvedValue([newTransaction]);
       });
@@ -436,20 +430,13 @@ describe("Maiar integration testing", () => {
         await handleBalance();
 
         expect(mockedElrond.getUpdatedBalance).toHaveBeenCalledTimes(1);
-        expect(mockedElrond.getUpdatedBalance).toHaveBeenCalledWith(
-          targetErdAdress
-        );
+        expect(mockedElrond.getUpdatedBalance).toHaveBeenCalledWith(targetErdAdress);
 
         expect(mockedRedis.getLastBalanceSnapShot).toHaveBeenCalledTimes(1);
-        expect(mockedRedis.getLastBalanceSnapShot).toHaveBeenCalledWith(
-          targetErdAdress
-        );
+        expect(mockedRedis.getLastBalanceSnapShot).toHaveBeenCalledWith(targetErdAdress);
 
         expect(mockedRedis.setNewBalance).toHaveBeenCalledTimes(1);
-        expect(mockedRedis.setNewBalance).toHaveBeenCalledWith(
-          targetErdAdress,
-          updatedAmount
-        );
+        expect(mockedRedis.setNewBalance).toHaveBeenCalledWith(targetErdAdress, updatedAmount);
       });
     });
 
@@ -487,15 +474,9 @@ describe("Maiar integration testing", () => {
         });
         mockedElrond.getUpdatedBalance.mockResolvedValue(updatedAmount);
 
-        mockedRedis.getAlreadyListennedTransactions.mockResolvedValue(
-          baseLastTxs.map(({ hash }) => hash)
-        );
+        mockedRedis.getAlreadyListennedTransactions.mockResolvedValue(baseLastTxs.map(({ hash }) => hash));
 
-        mockedElrond.getLastTransactions.mockResolvedValue([
-          newTransaction1,
-          newTransaction2,
-          newTransaction3,
-        ]);
+        mockedElrond.getLastTransactions.mockResolvedValue([newTransaction1, newTransaction2, newTransaction3]);
       });
 
       afterAll(() => {
@@ -511,20 +492,13 @@ describe("Maiar integration testing", () => {
         await handleBalance();
 
         expect(mockedElrond.getUpdatedBalance).toHaveBeenCalledTimes(1);
-        expect(mockedElrond.getUpdatedBalance).toHaveBeenCalledWith(
-          targetErdAdress
-        );
+        expect(mockedElrond.getUpdatedBalance).toHaveBeenCalledWith(targetErdAdress);
 
         expect(mockedRedis.getLastBalanceSnapShot).toHaveBeenCalledTimes(1);
-        expect(mockedRedis.getLastBalanceSnapShot).toHaveBeenCalledWith(
-          targetErdAdress
-        );
+        expect(mockedRedis.getLastBalanceSnapShot).toHaveBeenCalledWith(targetErdAdress);
 
         expect(mockedRedis.setNewBalance).toHaveBeenCalledTimes(1);
-        expect(mockedRedis.setNewBalance).toHaveBeenCalledWith(
-          targetErdAdress,
-          updatedAmount
-        );
+        expect(mockedRedis.setNewBalance).toHaveBeenCalledWith(targetErdAdress, updatedAmount);
       });
     });
 
@@ -569,10 +543,7 @@ describe("Maiar integration testing", () => {
         });
         mockedElrond.getUpdatedBalance.mockResolvedValue(updatedAmount);
 
-        mockedElrond.getLastTransactions.mockResolvedValue([
-          ...oldTransactions,
-          newTransaction,
-        ]);
+        mockedElrond.getLastTransactions.mockResolvedValue([...oldTransactions, newTransaction]);
       });
 
       afterAll(() => {
@@ -588,20 +559,13 @@ describe("Maiar integration testing", () => {
         await handleBalance();
 
         expect(mockedElrond.getUpdatedBalance).toHaveBeenCalledTimes(1);
-        expect(mockedElrond.getUpdatedBalance).toHaveBeenCalledWith(
-          targetErdAdress
-        );
+        expect(mockedElrond.getUpdatedBalance).toHaveBeenCalledWith(targetErdAdress);
 
         expect(mockedRedis.getLastBalanceSnapShot).toHaveBeenCalledTimes(1);
-        expect(mockedRedis.getLastBalanceSnapShot).toHaveBeenCalledWith(
-          targetErdAdress
-        );
+        expect(mockedRedis.getLastBalanceSnapShot).toHaveBeenCalledWith(targetErdAdress);
 
         expect(mockedRedis.setNewBalance).toHaveBeenCalledTimes(1);
-        expect(mockedRedis.setNewBalance).toHaveBeenCalledWith(
-          targetErdAdress,
-          updatedAmount
-        );
+        expect(mockedRedis.setNewBalance).toHaveBeenCalledWith(targetErdAdress, updatedAmount);
       });
     });
   });
@@ -616,11 +580,7 @@ describe("Maiar integration testing", () => {
       await launchBlockchainMonitoring(baseUser.herotag, baseUser);
 
       expect(mockedPoll.poll).toHaveBeenCalledTimes(1);
-      expect(mockedPoll.poll).toHaveBeenCalledWith(
-        expect.any(Function),
-        2000,
-        expect.any(Function)
-      );
+      expect(mockedPoll.poll).toHaveBeenCalledWith(expect.any(Function), 2000, expect.any(Function));
     });
   });
 
@@ -656,10 +616,7 @@ describe("Maiar integration testing", () => {
       });
 
       it("should not start blockchain monitoring", async () => {
-        const result = await toggleBlockchainMonitoring(
-          baseUser.herotag,
-          false
-        );
+        const result = await toggleBlockchainMonitoring(baseUser.herotag, false);
 
         expect(result).toMatchObject({
           _id: createdUser._id,
@@ -695,11 +652,7 @@ describe("Maiar integration testing", () => {
         });
 
         expect(mockedPoll.poll).toHaveBeenCalledTimes(1);
-        expect(mockedPoll.poll).toHaveBeenCalledWith(
-          expect.any(Function),
-          2000,
-          expect.any(Function)
-        );
+        expect(mockedPoll.poll).toHaveBeenCalledWith(expect.any(Function), 2000, expect.any(Function));
       });
     });
   });
@@ -745,24 +698,13 @@ describe("Maiar integration testing", () => {
       it("should start blockchain monitoring", async () => {
         const results = await resumeBlockchainMonitoring();
 
-        expect(results.sort()).toEqual([
-          createdUser2.herotag,
-          createdUser1.herotag,
-        ]);
+        expect(results.sort()).toEqual([createdUser2.herotag, createdUser1.herotag]);
 
         expect(mockedPoll.poll).toHaveBeenCalledTimes(2);
 
-        expect(mockedPoll.poll).toHaveBeenCalledWith(
-          expect.any(Function),
-          2000,
-          expect.any(Function)
-        );
+        expect(mockedPoll.poll).toHaveBeenCalledWith(expect.any(Function), 2000, expect.any(Function));
 
-        expect(mockedPoll.poll).toHaveBeenCalledWith(
-          expect.any(Function),
-          2000,
-          expect.any(Function)
-        );
+        expect(mockedPoll.poll).toHaveBeenCalledWith(expect.any(Function), 2000, expect.any(Function));
       });
     });
   });

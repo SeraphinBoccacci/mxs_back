@@ -1,3 +1,5 @@
+/** @format */
+
 import jwt from "jsonwebtoken";
 
 import { ENV } from "../utils/env";
@@ -6,7 +8,7 @@ import { ENV } from "../utils/env";
  * Interface for JWT Payload.
  */
 export interface JwtDecoded {
-    herotag: string;
+  herotag: string;
 }
 
 /**
@@ -16,10 +18,10 @@ export interface JwtDecoded {
  * @returns {string} - The signed payload.
  */
 export const jwtSign = (herotag: string): string => {
-    if (!ENV.JWT_PASSPHRASE) {
-        throw new Error("JWT: No passphrase has been set for 'JWT_PASSPHRASE");
-    }
-    return jwt.sign({ herotag: herotag }, `${ENV.JWT_PASSPHRASE}`, { expiresIn: 60 * 60 * 4 });
+  if (!ENV.JWT_PASSPHRASE) {
+    throw new Error("JWT: No passphrase has been set for 'JWT_PASSPHRASE");
+  }
+  return jwt.sign({ herotag: herotag }, `${ENV.JWT_PASSPHRASE}`, { expiresIn: 60 * 60 * 4 });
 };
 
 /**
@@ -29,8 +31,8 @@ export const jwtSign = (herotag: string): string => {
  * @returns {string} - The decoded payload.
  */
 export const jwtPayload = (token: string): JwtDecoded => {
-    if (!ENV.JWT_PASSPHRASE) {
-        throw new Error("JWT: No passphrase has been set for 'JWT_PASSPHRASE");
-    }
-    return <JwtDecoded>jwt.verify(token, `${ENV.JWT_PASSPHRASE}`);
+  if (!ENV.JWT_PASSPHRASE) {
+    throw new Error("JWT: No passphrase has been set for 'JWT_PASSPHRASE");
+  }
+  return <JwtDecoded>jwt.verify(token, `${ENV.JWT_PASSPHRASE}`);
 };

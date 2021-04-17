@@ -1,3 +1,5 @@
+/** @format */
+
 import { createLogger, format, transports } from "winston";
 
 import config from "../config/config";
@@ -5,36 +7,21 @@ import { isObject } from "../utils/object";
 const { combine, timestamp, printf, colorize, errors } = format;
 
 const withTimestampFormat = printf(({ level, message, timestamp }) => {
-  const formattedMessage = isObject(message)
-    ? JSON.stringify(message, null, 4)
-    : message;
+  const formattedMessage = isObject(message) ? JSON.stringify(message, null, 4) : message;
   return `${timestamp} [${level}]: ${formattedMessage}`;
 });
 
 const logger = createLogger({
   level: "info",
-  format: combine(
-    colorize(),
-    errors({ stack: true }),
-    timestamp(),
-    withTimestampFormat
-  ),
-  transports: [
-    new transports.File({ filename: "error.log", level: "error" }),
-    new transports.File({ filename: "combined.log" }),
-  ],
+  format: combine(colorize(), errors({ stack: true }), timestamp(), withTimestampFormat),
+  transports: [new transports.File({ filename: "error.log", level: "error" }), new transports.File({ filename: "combined.log" })],
 });
 
 if (config.withConsoleTransport) {
   logger.add(
     new transports.Console({
-      format: combine(
-        colorize(),
-        errors({ stack: true }),
-        timestamp(),
-        withTimestampFormat
-      ),
-    })
+      format: combine(colorize(), errors({ stack: true }), timestamp(), withTimestampFormat),
+    }),
   );
 }
 

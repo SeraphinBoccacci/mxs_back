@@ -1,22 +1,14 @@
-import User, {
-  UserAccountStatus,
-  UserMongooseDocument,
-  UserType,
-} from "../../models/User";
+/** @format */
+
+import User, { UserAccountStatus, UserMongooseDocument, UserType } from "../../models/User";
 import { getLastTransactions } from "../../services/elrond";
 import { jwtSign } from "../../services/jwt";
 import logger from "../../services/logger";
 import { ElrondTransaction } from "../../types";
-import {
-  getHashedPassword,
-  verifyPassword,
-} from "../../utils/auth";
+import { getHashedPassword, verifyPassword } from "../../utils/auth";
 import { generateNewVerificationReference } from "../../utils/nanoid";
 import poll from "../../utils/poll";
-import {
-  getErdAddressFromHerotag,
-  normalizeHerotag,
-} from "../../utils/transactions";
+import { getErdAddressFromHerotag, normalizeHerotag } from "../../utils/transactions";
 import { decodeDataFromTx } from "../../utils/transactions";
 
 // eslint-disable-next-line no-unused-vars
@@ -33,18 +25,12 @@ interface UserAuthenticationData {
   password?: string;
 }
 
-export const validateAccountCreationData = async (
-  data?: UserAccountCreationData
-): Promise<void> => {
-  if (!data || !data.herotag || !data.password || !data.confirm)
-    throw new Error("MISSING_DATA_FOR_ACCOUNT_CREATION");
+export const validateAccountCreationData = async (data?: UserAccountCreationData): Promise<void> => {
+  if (!data || !data.herotag || !data.password || !data.confirm) throw new Error("MISSING_DATA_FOR_ACCOUNT_CREATION");
 
-  if (data.password !== data.confirm)
-    throw new Error("PASSWORD_AND_CONFIRM_NOT_MATCHING");
+  if (data.password !== data.confirm) throw new Error("PASSWORD_AND_CONFIRM_NOT_MATCHING");
 
-  const address = await getErdAddressFromHerotag(
-    normalizeHerotag(data.herotag as string)
-  );
+  const address = await getErdAddressFromHerotag(normalizeHerotag(data.herotag as string));
 
   if (!address) {
     throw new Error("COULD_NOT_FIND_HETOTAG_ON_DNS");
@@ -59,7 +45,7 @@ export const validateAccountCreationData = async (
 };
 
 export const createUserAccount = async (
-  data: UserAccountCreationData
+  data: UserAccountCreationData,
 ): Promise<{
   hasBeenSuccessfullyCreated: boolean;
   herotag: string | undefined;
@@ -81,15 +67,12 @@ export const createUserAccount = async (
   return { hasBeenSuccessfullyCreated: true, herotag: user.herotag };
 };
 
-export const validateAuthenticationData = (
-  data?: UserAccountCreationData
-): void => {
-  if (!data || !data.herotag || !data.password)
-    throw new Error("FORM_MISSING_DATA_FOR_AUTHENTICATION");
+export const validateAuthenticationData = (data?: UserAccountCreationData): void => {
+  if (!data || !data.herotag || !data.password) throw new Error("FORM_MISSING_DATA_FOR_AUTHENTICATION");
 };
 
 export const authenticateUser = async (
-  data: UserAuthenticationData
+  data: UserAuthenticationData,
 ): Promise<{
   user: UserMongooseDocument;
   token: string;
@@ -105,17 +88,14 @@ export const authenticateUser = async (
 
   await verifyPassword(data.password as string, user.password as string);
 
-  if (user.status !== UserAccountStatus.VERIFIED)
-    throw new Error("ACCOUNT_WITH_VERIFICATION_PENDING");
+  if (user.status !== UserAccountStatus.VERIFIED) throw new Error("ACCOUNT_WITH_VERIFICATION_PENDING");
 
   const token = jwtSign(user.herotag as string);
 
   return { user, token: token, expiresIn: 60 * 60 * 4 };
 };
 
-export const isProfileVerified = async (
-  herotag: string
-): Promise<{ isStatusVerified: boolean }> => {
+export const isProfileVerified = async (herotag: string): Promise<{ isStatusVerified: boolean }> => {
   const user = await User.findOne({ herotag: normalizeHerotag(herotag) })
     .select({ status: true })
     .lean();
@@ -126,7 +106,7 @@ export const isProfileVerified = async (
 };
 
 export const getVerificationReference = async (
-  herotag: string
+  herotag: string,
 ): Promise<{
   verificationReference: string | null;
   accountStatus: UserAccountStatus | null;
@@ -151,30 +131,22 @@ export const getVerificationReference = async (
   };
 };
 
-export const activateAccountIfTransactionHappened = async (
-  user: UserType
-): Promise<void> => {
+export const activateAccountIfTransactionHappened = async (user: UserType): Promise<void> => {
   try {
     if (!user.herotag) return;
 
     const erdAddress = await getErdAddressFromHerotag(user.herotag);
 
-    const transactions: ElrondTransaction[] = await getLastTransactions(
-      erdAddress
-    );
+    const transactions: ElrondTransaction[] = await getLastTransactions(erdAddress);
 
     const hasReferenceInTransactions = transactions.some(
-      (transaction) =>
+      transaction =>
         decodeDataFromTx(transaction) === user.verificationReference &&
-        transaction.receiver ===
-          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm"
+        transaction.receiver === "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm",
     );
 
     if (hasReferenceInTransactions) {
-      await User.updateOne(
-        { _id: user._id },
-        { $set: { status: UserAccountStatus.VERIFIED } }
-      );
+      await User.updateOne({ _id: user._id }, { $set: { status: UserAccountStatus.VERIFIED } });
     }
   } catch (error) {
     logger.error({
@@ -185,24 +157,18 @@ export const activateAccountIfTransactionHappened = async (
   }
 };
 
-export const savePasswordChangeIfTransactionHappened = async (
-  user: UserType
-): Promise<void> => {
+export const savePasswordChangeIfTransactionHappened = async (user: UserType): Promise<void> => {
   try {
     if (!user.herotag) return;
 
     const erdAddress = await getErdAddressFromHerotag(user.herotag);
 
-    const transactions: ElrondTransaction[] = await getLastTransactions(
-      erdAddress
-    );
+    const transactions: ElrondTransaction[] = await getLastTransactions(erdAddress);
 
     const hasReferenceInTransactions = transactions.some(
-      (transaction) =>
-        decodeDataFromTx(transaction) ===
-          user.passwordEditionVerificationReference &&
-        transaction.receiver ===
-          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm"
+      transaction =>
+        decodeDataFromTx(transaction) === user.passwordEditionVerificationReference &&
+        transaction.receiver === "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm",
     );
 
     if (hasReferenceInTransactions) {
@@ -214,11 +180,7 @@ export const savePasswordChangeIfTransactionHappened = async (
           },
         },
         {
-          $unset: [
-            "pendingPassword",
-            "passwordEditionVerificationReference",
-            "passwordEditionVerificationStartDate",
-          ],
+          $unset: ["pendingPassword", "passwordEditionVerificationReference", "passwordEditionVerificationStartDate"],
         },
       ]);
     }
@@ -257,9 +219,7 @@ export const pollTransactionsToVerifyAccountStatuses = async (): Promise<void> =
   await poll(verifyStatuses, 20000, () => false);
 };
 
-export const isHerotagValid = async (
-  herotag: string
-): Promise<{ herotag: string }> => {
+export const isHerotagValid = async (herotag: string): Promise<{ herotag: string }> => {
   const doesAccountExist = await User.exists({
     herotag: normalizeHerotag(herotag),
   });
@@ -269,14 +229,10 @@ export const isHerotagValid = async (
   return { herotag };
 };
 
-export const validatePasswordEditionData = async (
-  data?: UserAccountCreationData
-): Promise<void> => {
-  if (!data || !data.herotag || !data.password || !data.confirm)
-    throw new Error("MISSING_DATA_FOR_ACCOUNT_CREATION");
+export const validatePasswordEditionData = async (data?: UserAccountCreationData): Promise<void> => {
+  if (!data || !data.herotag || !data.password || !data.confirm) throw new Error("MISSING_DATA_FOR_ACCOUNT_CREATION");
 
-  if (data.password !== data.confirm)
-    throw new Error("PASSWORD_AND_CONFIRM_NOT_MATCHING");
+  if (data.password !== data.confirm) throw new Error("PASSWORD_AND_CONFIRM_NOT_MATCHING");
 
   const doesAccountExist = await User.exists({
     herotag: normalizeHerotag(data.herotag as string),
@@ -285,9 +241,7 @@ export const validatePasswordEditionData = async (
   if (!doesAccountExist) throw new Error("NO_REGISTERED_HEROTAG");
 };
 
-export const editPassword = async (
-  data: UserAccountCreationData
-): Promise<void> => {
+export const editPassword = async (data: UserAccountCreationData): Promise<void> => {
   await validatePasswordEditionData(data);
 
   const passwordEditionVerificationReference = await generateNewVerificationReference();
@@ -301,6 +255,6 @@ export const editPassword = async (
       passwordEditionVerificationReference,
       passwordEditionVerificationStartDate: new Date().toISOString(),
       status: UserAccountStatus.PENDING_EDIT_PASSWORD_VERIFICATION,
-    }
+    },
   );
 };

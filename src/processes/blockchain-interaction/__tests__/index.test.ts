@@ -1,3 +1,5 @@
+/** @format */
+
 import { sub } from "date-fns";
 import mongoose from "mongoose";
 
@@ -46,18 +48,12 @@ const baseUser = {
 
 describe("Blockchain interaction unit testing", () => {
   describe("reactToNewTransaction", () => {
-    const mockedUtilTransactions = utilTransactions as jest.Mocked<
-      typeof utilTransactions
-    >;
+    const mockedUtilTransactions = utilTransactions as jest.Mocked<typeof utilTransactions>;
     const mockedIfttt = ifttt as jest.Mocked<typeof ifttt>;
-    const mockedStreamElements = streamElements as jest.Mocked<
-      typeof streamElements
-    >;
+    const mockedStreamElements = streamElements as jest.Mocked<typeof streamElements>;
 
     beforeAll(() => {
-      mockedUtilTransactions.getHerotagFromErdAddress.mockResolvedValue(
-        "remdem"
-      );
+      mockedUtilTransactions.getHerotagFromErdAddress.mockResolvedValue("remdem");
     });
 
     afterAll(() => {
@@ -71,8 +67,7 @@ describe("Blockchain interaction unit testing", () => {
 
     describe("when user has no ifttt particle data and no SE data", () => {
       const transaction = {
-        hash:
-          "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
+        hash: "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
         status: "success",
         value: "1000000000000000000",
       } as ElrondTransaction;
@@ -91,16 +86,13 @@ describe("Blockchain interaction unit testing", () => {
 
         expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledTimes(0);
 
-        expect(
-          mockedStreamElements.triggerStreamElementsEvent
-        ).toHaveBeenCalledTimes(0);
+        expect(mockedStreamElements.triggerStreamElementsEvent).toHaveBeenCalledTimes(0);
       });
     });
 
     describe("when user has ifttt integration data but not SE", () => {
       const transaction = {
-        hash:
-          "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
+        hash: "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
         status: "success",
         value: "1000000000000000000",
       } as ElrondTransaction;
@@ -117,21 +109,15 @@ describe("Blockchain interaction unit testing", () => {
         await reactToNewTransaction(transaction, user);
 
         expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledTimes(1);
-        expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledWith(
-          { amount: "1", data: "", herotag: "remdem" },
-          user.integrations.ifttt
-        );
+        expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledWith({ amount: "1", data: "", herotag: "remdem" }, user.integrations.ifttt);
 
-        expect(
-          mockedStreamElements.triggerStreamElementsEvent
-        ).toHaveBeenCalledTimes(0);
+        expect(mockedStreamElements.triggerStreamElementsEvent).toHaveBeenCalledTimes(0);
       });
     });
 
     describe("when user has SE integration data but not ifttt", () => {
       const transaction = {
-        hash:
-          "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
+        hash: "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
         status: "success",
         value: "1000000000000000000",
       } as ElrondTransaction;
@@ -149,22 +135,14 @@ describe("Blockchain interaction unit testing", () => {
 
         expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledTimes(0);
 
-        expect(
-          mockedStreamElements.triggerStreamElementsEvent
-        ).toHaveBeenCalledTimes(1);
-        expect(
-          mockedStreamElements.triggerStreamElementsEvent
-        ).toHaveBeenCalledWith(
-          { amount: "1", data: "", herotag: "remdem" },
-          user
-        );
+        expect(mockedStreamElements.triggerStreamElementsEvent).toHaveBeenCalledTimes(1);
+        expect(mockedStreamElements.triggerStreamElementsEvent).toHaveBeenCalledWith({ amount: "1", data: "", herotag: "remdem" }, user);
       });
     });
 
     describe("when user has ifttt integration data and SE particle data", () => {
       const transaction = {
-        hash:
-          "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
+        hash: "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
         status: "success",
         value: "1000000000000000000",
       } as ElrondTransaction;
@@ -175,17 +153,13 @@ describe("Blockchain interaction unit testing", () => {
         expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledTimes(1);
         expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledWith(
           { amount: "1", data: "", herotag: "remdem" },
-          baseUser?.integrations?.ifttt as IftttParticleData
+          baseUser?.integrations?.ifttt as IftttParticleData,
         );
 
-        expect(
-          mockedStreamElements.triggerStreamElementsEvent
-        ).toHaveBeenCalledTimes(1);
-        expect(
-          mockedStreamElements.triggerStreamElementsEvent
-        ).toHaveBeenCalledWith(
+        expect(mockedStreamElements.triggerStreamElementsEvent).toHaveBeenCalledTimes(1);
+        expect(mockedStreamElements.triggerStreamElementsEvent).toHaveBeenCalledWith(
           { amount: "1", data: "", herotag: "remdem" },
-          baseUser
+          baseUser,
         );
       });
     });

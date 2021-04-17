@@ -1,3 +1,5 @@
+/** @format */
+
 import axios from "axios";
 import { Dns, ProxyProvider } from "elrondjs";
 
@@ -8,9 +10,7 @@ import logger from "./logger";
 export const proxy = new ProxyProvider(`${ENV.ELROND_GATEWAY_URL}`);
 export const dns = new Dns({ provider: proxy });
 
-export const getUpdatedBalance = async (
-  erdAddress: string
-): Promise<string | null> => {
+export const getUpdatedBalance = async (erdAddress: string): Promise<string | null> => {
   interface Response {
     data: {
       data: {
@@ -20,9 +20,7 @@ export const getUpdatedBalance = async (
   }
 
   try {
-    const { data }: Response = await axios.get(
-      `${ENV.ELROND_API_URL}/address/${erdAddress}/balance`
-    );
+    const { data }: Response = await axios.get(`${ENV.ELROND_API_URL}/address/${erdAddress}/balance`);
 
     return data?.data?.balance || "";
   } catch (error) {
@@ -31,17 +29,13 @@ export const getUpdatedBalance = async (
   }
 };
 
-export const getLastTransactions = async (
-  erdAddress: string
-): Promise<ElrondTransaction[]> => {
+export const getLastTransactions = async (erdAddress: string): Promise<ElrondTransaction[]> => {
   interface Response {
     data: { data: { transactions: ElrondTransaction[] } };
   }
 
   try {
-    const { data }: Response = await axios.get(
-      `${ENV.ELROND_API_URL}/address/${erdAddress}/transactions`
-    );
+    const { data }: Response = await axios.get(`${ENV.ELROND_API_URL}/address/${erdAddress}/transactions`);
 
     return data?.data?.transactions || [];
   } catch (error) {
@@ -50,17 +44,13 @@ export const getLastTransactions = async (
   }
 };
 
-export const getTransactionByHash = async (
-  hash: string
-): Promise<ElrondTransaction | null> => {
+export const getTransactionByHash = async (hash: string): Promise<ElrondTransaction | null> => {
   interface Response {
     data: { data: { transaction: ElrondTransaction } };
   }
 
   try {
-    const { data }: Response = await axios.get(
-      `${ENV.ELROND_API_URL}/transaction/${hash}`
-    );
+    const { data }: Response = await axios.get(`${ENV.ELROND_API_URL}/transaction/${hash}`);
 
     return data?.data?.transaction;
   } catch (error) {

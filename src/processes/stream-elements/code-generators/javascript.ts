@@ -1,9 +1,13 @@
-/* eslint-disable quotes */
+/**
+ * /* eslint-disable quotes
+ *
+ * @format
+ */
+
 import config from "../../../config/config";
 import { Image, Sound, Text, Variation } from "../../../types/streamElements";
 
-export const formatVariationName = (variationName: string): string =>
-  variationName.replace(/[\s-'"`]/g, "_");
+export const formatVariationName = (variationName: string): string => variationName.replace(/[\s-'"`]/g, "_");
 
 const stringifyStringInterpolation = (variableString: string): string => {
   return "${" + variableString + "}";
@@ -47,10 +51,10 @@ const appendElementAndRemoveLines = () => [
   "  element,",
   "  parentId,",
   "  alertDuration = 10,",
-  '  enterAnimation = "",',
+  "  enterAnimation = \"\",",
   "  enterAnimDuration = 0,",
   "  delay = 0,",
-  '  exitAnimation = "",',
+  "  exitAnimation = \"\",",
   "  exitAnimDuration = 0,",
   "  offset = 0",
   ") => {",
@@ -78,12 +82,8 @@ const appendElementAndRemoveLines = () => [
 const appendTextLines = (name: string, text: Text, duration = 10) => [
   "  appendElementAndRemove(",
   "    `text_${currentIndex}`,",
-  '    ` <div id="text_${currentIndex}" class="p-container-' +
-    formatVariationName(name) +
-    '">',
-  `        <p>${addHtmlBreaklines(
-    messageToStringInterpolation(text.content as string)
-  )}</p>`,
+  "    ` <div id=\"text_${currentIndex}\" class=\"p-container-" + formatVariationName(name) + "\">",
+  `        <p>${addHtmlBreaklines(messageToStringInterpolation(text.content as string))}</p>`,
   "      </div>`,",
   "    `widget-container-${currentIndex}`,",
   `    ${secondsToMilliseconds(duration)},`,
@@ -99,10 +99,8 @@ const appendTextLines = (name: string, text: Text, duration = 10) => [
 const appendImageLines = (name: string, image: Image, duration = 10) => [
   "  appendElementAndRemove(",
   "    `image_${currentIndex}`,",
-  '    ` <div class="image-container-' +
-    formatVariationName(name) +
-    '" id="image_${currentIndex}">',
-  '        <img class="logo"',
+  "    ` <div class=\"image-container-" + formatVariationName(name) + "\" id=\"image_${currentIndex}\">",
+  "        <img class=\"logo\"",
   `        src="${config.url}/images/${`${image.imagePath}${"?ts=${now}"}`}"/>`,
   "      </div>`,",
   "    `widget-container-${currentIndex}`,",
@@ -119,24 +117,22 @@ const appendImageLines = (name: string, image: Image, duration = 10) => [
 const appendAudioLines = (sound: Sound, duration = 10) => [
   "  appendElementAndRemove(",
   "    `audio_${currentIndex}`,",
-  '    ` <audio id="audio_${currentIndex}" autoplay ',
+  "    ` <audio id=\"audio_${currentIndex}\" autoplay ",
   `        src="${config.url}/audios/${`${sound.soundPath}${"?ts=${now}"}`}">`,
   "      </audio>`,",
   "    `widget-container-${currentIndex}`,",
   `    ${secondsToMilliseconds(duration)},`,
-  '    "",',
+  "    \"\",",
   "    0,",
   `    ${secondsToMilliseconds(sound.soundDelay)},`,
-  '    "",',
+  "    \"\",",
   "    0,",
   `    ${secondsToMilliseconds(sound.soundOffset)},`,
   "  );",
 ];
 
 const appendAnimationLines = (variation: Variation) => [
-  `const appendAnimation_${formatVariationName(
-    variation.name
-  )} = (herotag, amount, message) => {`,
+  `const appendAnimation_${formatVariationName(variation.name)} = (herotag, amount, message) => {`,
   "  containerIndex++;",
   "",
   "  const currentIndex = containerIndex;",
@@ -145,20 +141,14 @@ const appendAnimationLines = (variation: Variation) => [
   "",
   "  $(`<div ",
   `      class="widget-container-${formatVariationName(variation.name)}" `,
-  '      id=${`widget-container-${currentIndex}`} class="container">',
+  "      id=${`widget-container-${currentIndex}`} class=\"container\">",
   "    </div>`).appendTo(document.body);",
   "",
-  ...(variation?.text?.content
-    ? appendTextLines(variation?.name, variation?.text, variation.duration)
-    : []),
+  ...(variation?.text?.content ? appendTextLines(variation?.name, variation?.text, variation.duration) : []),
   "",
-  ...(variation?.image?.imagePath
-    ? appendImageLines(variation?.name, variation?.image, variation.duration)
-    : []),
+  ...(variation?.image?.imagePath ? appendImageLines(variation?.name, variation?.image, variation.duration) : []),
   "",
-  ...(variation?.sound?.soundPath
-    ? appendAudioLines(variation?.sound, variation.duration)
-    : []),
+  ...(variation?.sound?.soundPath ? appendAudioLines(variation?.sound, variation.duration) : []),
   "",
   "  setTimeout(() => {",
   "    $(`#widget-container-${currentIndex}`).remove();",
@@ -172,12 +162,11 @@ const variationsMapperLines = (variations: Variation[]) => {
     ...variations.reduce(
       (acc: string[], cur) => [
         ...acc,
-        `    {appendAnimation: appendAnimation_${formatVariationName(
-          cur.name
-        )}, chances: ${cur.chances ||
-          0}, requiredAmount: ${cur.requiredAmount || 0}},`,
+        `    {appendAnimation: appendAnimation_${formatVariationName(cur.name)}, chances: ${cur.chances || 0}, requiredAmount: ${
+          cur.requiredAmount || 0
+        }},`,
       ],
-      []
+      [],
     ),
     "]",
   ];
@@ -232,7 +221,7 @@ const socketLines = (herotag: string) => [
   "  },",
   "});",
   "",
-  'socket.on("newDonation", (data) => {',
+  "socket.on(\"newDonation\", (data) => {",
   "  const variation = findVariation(data.amount)",
   "",
   "  variation.appendAnimation(data.herotag, data.amount, data.message);",
@@ -245,7 +234,7 @@ const manualTriggerLines = (
     herotag: "TestHerotag",
     amount: "X.XXX",
     message: "TEST MESSAGE TEST MESSAGE",
-  }
+  },
 ) => [
   `appendAnimation_${formatVariationName(variationName)}(`,
   `  "${mockedData.herotag}",`,
@@ -257,13 +246,10 @@ const manualTriggerLines = (
 export const generateJavascript = (
   herotag: string,
   variations: Variation[],
-  {
-    triggerMode,
-    targetVariation,
-  }: { triggerMode?: string; targetVariation: string } = {
+  { triggerMode, targetVariation }: { triggerMode?: string; targetVariation: string } = {
     targetVariation: "",
     triggerMode: "socket",
-  }
+  },
 ): string => {
   return [
     "var containerIndex = 0;",
@@ -272,14 +258,12 @@ export const generateJavascript = (
     "",
     ...appendElementAndRemoveLines(),
     "",
-    ...variations.flatMap((variation) => appendAnimationLines(variation)),
+    ...variations.flatMap(variation => appendAnimationLines(variation)),
     "",
     ...variationsMapperLines(variations),
     "",
     ...findVariationLines(),
     "",
-    ...(triggerMode === "manual"
-      ? manualTriggerLines(targetVariation)
-      : socketLines(herotag)),
+    ...(triggerMode === "manual" ? manualTriggerLines(targetVariation) : socketLines(herotag)),
   ].join("\n");
 };

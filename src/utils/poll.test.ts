@@ -1,3 +1,5 @@
+/** @format */
+
 import poll from "./poll";
 
 describe("Poll unit testing", () => {

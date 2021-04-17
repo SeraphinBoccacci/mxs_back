@@ -1,3 +1,5 @@
+/** @format */
+
 import { computeSentAmount, normalizeHerotag } from "./transactions";
 
 describe("Maiar utils unit testing", () => {

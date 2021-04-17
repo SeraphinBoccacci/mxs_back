@@ -1,3 +1,5 @@
+/** @format */
+
 export interface MockedElrondTransaction {
   isMockedTransaction: true;
   herotag: string;
@@ -6,9 +8,8 @@ export interface MockedElrondTransaction {
 }
 
 export const isMockedElrondTransaction = (
-  transaction: ElrondTransaction | MockedElrondTransaction
-): transaction is MockedElrondTransaction =>
-  !!(transaction as MockedElrondTransaction).isMockedTransaction;
+  transaction: ElrondTransaction | MockedElrondTransaction,
+): transaction is MockedElrondTransaction => !!(transaction as MockedElrondTransaction).isMockedTransaction;
 
 export interface ElrondTransaction {
   hash: string;

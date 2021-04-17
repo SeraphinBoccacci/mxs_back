@@ -1,11 +1,10 @@
-/* eslint-disable quotes */
-import {
-  Text,
-  TextPositions,
-  TextStyles,
-  Variation,
-  VariationPositions,
-} from "../../../types/streamElements";
+/**
+ * /* eslint-disable quotes
+ *
+ * @format
+ */
+
+import { Text, TextPositions, TextStyles, Variation, VariationPositions } from "../../../types/streamElements";
 import { formatVariationName } from "./javascript";
 
 export const x = "";
@@ -199,33 +198,13 @@ const baseCss = [
 
 const positionMapper = (position?: VariationPositions) => {
   const mapper = {
-    [VariationPositions.BottomCenter]: [
-      "  bottom: 1rem;",
-      "  left: 50%;",
-      "  transform: translateX(-50%);",
-    ],
+    [VariationPositions.BottomCenter]: ["  bottom: 1rem;", "  left: 50%;", "  transform: translateX(-50%);"],
     [VariationPositions.BottomLeft]: ["  bottom: 1rem;", "  left: 1rem;"],
     [VariationPositions.BottomRight]: ["  bottom: 1rem;", "  right: 1rem;"],
-    [VariationPositions.CenterCenter]: [
-      "  top: 50%;",
-      "  left: 50%;",
-      "  transform: translateX(-50%) translateY(-50%);",
-    ],
-    [VariationPositions.CenterLeft]: [
-      "  top: 50%;",
-      "  left: 1rem;",
-      "  transform: translateY(-50%);",
-    ],
-    [VariationPositions.CenterRight]: [
-      "  top: 50%;",
-      "  right: 1rem;",
-      "  transform: translateY(-50%);",
-    ],
-    [VariationPositions.TopCenter]: [
-      "  top: 1rem;",
-      "  left: 50%;",
-      "  transform: translateX(-50%);",
-    ],
+    [VariationPositions.CenterCenter]: ["  top: 50%;", "  left: 50%;", "  transform: translateX(-50%) translateY(-50%);"],
+    [VariationPositions.CenterLeft]: ["  top: 50%;", "  left: 1rem;", "  transform: translateY(-50%);"],
+    [VariationPositions.CenterRight]: ["  top: 50%;", "  right: 1rem;", "  transform: translateY(-50%);"],
+    [VariationPositions.TopCenter]: ["  top: 1rem;", "  left: 50%;", "  transform: translateX(-50%);"],
     [VariationPositions.TopLeft]: ["  top: 1rem;", "  left: 1rem;"],
     [VariationPositions.TopRight]: ["  top: 1rem;", "  right: 1rem;"],
   };
@@ -235,36 +214,11 @@ const positionMapper = (position?: VariationPositions) => {
 
 const displayMapper = (position?: TextPositions) => {
   const mapper = {
-    [TextPositions.over]: [
-      "display: flex;",
-      "flex-direction: column;",
-      "justify-content: center;",
-      "align-items: center;",
-    ],
-    [TextPositions.bottom]: [
-      "display: flex;",
-      "flex-direction: column-reverse;",
-      "justify-content: center;",
-      "align-items: center;",
-    ],
-    [TextPositions.top]: [
-      "display: flex;",
-      "flex-direction: column;",
-      "justify-content: center;",
-      "align-items: center;",
-    ],
-    [TextPositions.left]: [
-      "display: flex;",
-      "flex-direction: row;",
-      "justify-content: center;",
-      "align-items: center;",
-    ],
-    [TextPositions.right]: [
-      "display: flex;",
-      "flex-direction: row-reverse;",
-      "justify-content: center;",
-      "align-items: center;",
-    ],
+    [TextPositions.over]: ["display: flex;", "flex-direction: column;", "justify-content: center;", "align-items: center;"],
+    [TextPositions.bottom]: ["display: flex;", "flex-direction: column-reverse;", "justify-content: center;", "align-items: center;"],
+    [TextPositions.top]: ["display: flex;", "flex-direction: column;", "justify-content: center;", "align-items: center;"],
+    [TextPositions.left]: ["display: flex;", "flex-direction: row;", "justify-content: center;", "align-items: center;"],
+    [TextPositions.right]: ["display: flex;", "flex-direction: row-reverse;", "justify-content: center;", "align-items: center;"],
   };
 
   return mapper[position || TextPositions.bottom];
@@ -275,7 +229,7 @@ const widgetContainer = (
   variationPosition?: VariationPositions,
   variationWidth?: number,
   variationHeight?: number,
-  textPosition?: TextPositions
+  textPosition?: TextPositions,
 ) => [
   `.widget-container-${formatVariationName(name)} {`,
   "  position: absolute;",
@@ -301,43 +255,23 @@ const imageContainer = (name: string, width = 0, height = 0) => [
 ];
 
 const paragraph = (name: string, text?: Text) => {
-  const strokeColor = text?.stroke?.color?.startsWith("#")
-    ? text?.stroke?.color
-    : `#${text?.stroke?.color}`;
+  const strokeColor = text?.stroke?.color?.startsWith("#") ? text?.stroke?.color : `#${text?.stroke?.color}`;
   const strokeWidth = text?.stroke?.width;
 
   return [
     `.p-container-${formatVariationName(name)} > p {`,
     "  width: 100%;",
     "  height: max-content;",
-    ...(strokeColor && strokeWidth
-      ? [`  -webkit-text-stroke: ${strokeWidth}px ${strokeColor};`]
-      : []),
+    ...(strokeColor && strokeWidth ? [`  -webkit-text-stroke: ${strokeWidth}px ${strokeColor};`] : []),
     `  font-size: ${text?.size ? `${text.size}px` : "normal"};`,
     `  color: ${text?.color || "normal"};`,
     `  line-height: ${text?.lineHeight ? `${text.lineHeight}px` : "normal"};`,
-    `  letter-spacing: ${
-      text?.letterSpacing ? `${text.letterSpacing}px` : "normal"
-    };`,
-    `  word-spacing: ${
-      text?.wordSpacing ? `${text.wordSpacing}px` : "normal"
-    };`,
+    `  letter-spacing: ${text?.letterSpacing ? `${text.letterSpacing}px` : "normal"};`,
+    `  word-spacing: ${text?.wordSpacing ? `${text.wordSpacing}px` : "normal"};`,
     `  text-align: ${text?.textAlign || "normal"};`,
-    `  font-weight: ${
-      text?.textStyle?.some((style) => style === TextStyles.bold)
-        ? "800"
-        : "normal"
-    };`,
-    `  text-decoration: ${
-      text?.textStyle?.some((style) => style === TextStyles.underline)
-        ? "underline"
-        : "normal"
-    };`,
-    `  font-style: ${
-      text?.textStyle?.some((style) => style === TextStyles.italic)
-        ? "italic"
-        : "normal"
-    };`,
+    `  font-weight: ${text?.textStyle?.some(style => style === TextStyles.bold) ? "800" : "normal"};`,
+    `  text-decoration: ${text?.textStyle?.some(style => style === TextStyles.underline) ? "underline" : "normal"};`,
+    `  font-style: ${text?.textStyle?.some(style => style === TextStyles.italic) ? "italic" : "normal"};`,
     "}",
   ];
 };
@@ -355,7 +289,7 @@ const pContainer = (name: string, width = 0, height = 0) => [
 const generateCssForVariation = (variation: Variation) => {
   return [
     "* {",
-    ' font-family: "Noto Sans JP", sans-serif; ',
+    " font-family: \"Noto Sans JP\", sans-serif; ",
     "}",
     "",
     ...widgetContainer(
@@ -363,27 +297,17 @@ const generateCssForVariation = (variation: Variation) => {
       variation.position,
       variation.width,
       variation.heigth,
-      variation.text?.position
+      variation.text?.position,
     ),
     "",
-    ...imageContainer(
-      formatVariationName(variation.name),
-      variation?.image?.width,
-      variation?.image?.height
-    ),
+    ...imageContainer(formatVariationName(variation.name), variation?.image?.width, variation?.image?.height),
     "",
-    ...pContainer(
-      formatVariationName(variation.name),
-      variation.text?.width,
-      variation.text?.height
-    ),
+    ...pContainer(formatVariationName(variation.name), variation.text?.width, variation.text?.height),
     "",
     ...paragraph(formatVariationName(variation.name), variation.text),
   ];
 };
 
 export const generateCss = (variations: Variation[]): string => {
-  return [...baseCss, ...variations.flatMap(generateCssForVariation)].join(
-    "\n"
-  );
+  return [...baseCss, ...variations.flatMap(generateCssForVariation)].join("\n");
 };
