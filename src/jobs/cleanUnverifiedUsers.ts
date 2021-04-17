@@ -10,7 +10,7 @@ export const cleanUnverifiedUserAccount = async (): Promise<void> => {
     status: UserAccountStatus.PENDING_VERIFICATION,
     $or: [
       {
-        verificationStartDate: { $lt: sub(new Date(), { minutes: 10 }) },
+        verificationStartDate: { $lt: sub(new Date(), { minutes: 10 }).toISOString() },
       },
       {
         verificationStartDate: { $exists: true },
