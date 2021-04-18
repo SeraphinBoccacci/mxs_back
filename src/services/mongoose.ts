@@ -44,7 +44,7 @@ export const getMongoUrlFromEnv = (obfuscated = false): string => {
   const auth = (MONGODB_USER && MONGODB_PWD) ? obfuscated ? "****:***" : [MONGODB_USER, MONGODB_PWD].join(":") : undefined;
 
   // Throw if environment is exposed and no auth has been set to the DB
-  if (["poduction", "staging"].indexOf(`${NODE_ENV}`) >= 0 && (!MONGODB_USER || !MONGODB_PWD)) {
+  if (["production", "staging"].indexOf(`${NODE_ENV}`) >= 0 && (!MONGODB_USER || !MONGODB_PWD)) {
     throw new Error("MONGODB: In production or staging, your DB must have a 'MONGODB_USER' and a 'MONGODB_PWD'");
   }
 
