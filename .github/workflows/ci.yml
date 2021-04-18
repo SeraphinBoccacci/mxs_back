@@ -6,13 +6,20 @@ name: Node.js CI
 on:
   - push
 
+env:
+  JWT_PASSPHRASE: 4CNbgin1cB0IaTFE!txhBGpJmv^pAPuw$%Fkice^GR!K1q%eP@pj$OSladA5gcyy
+  MONGODB_DBNAME: stream_particles_test
+  URL_FRONT: http://localhost:4000
+  URL_API: http://localhost:4000/api
+  URL_UPLOAD_PATH: http://localhost:4000/uploads
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [12.x]
+        node-version: [14.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
