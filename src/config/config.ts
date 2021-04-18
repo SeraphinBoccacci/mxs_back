@@ -8,6 +8,9 @@ interface Config {
 }
 
 // eslint-disable-next-line no-console
+console.log(ENV);
+
+// eslint-disable-next-line no-console
 const config: Config = {
   url: `${ENV.ENTRYPOINT_FRONT_URL}`,
   apiUrl: `${ENV.ENTRYPOINT_API_URL}`,
