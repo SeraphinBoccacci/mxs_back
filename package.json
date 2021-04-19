@@ -11,7 +11,7 @@
     "start:staging": "NODE_ENV=staging node dist/index.js",
     "dev": "NODE_ENV=development nodemon --config nodemon.json src/index.ts",
     "dev:debug": "NODE_ENV=development nodemon --config nodemon.json --inspect-brk src/index.ts",
-    "test": "NODE_ENV=test npx jest --detectOpenHandles --forceExit",
+    "test": "export $(cat .env.test) && npx jest --detectOpenHandles --forceExit",
     "lint": "eslint src --ext .ts"
   },
   "keywords": [],
