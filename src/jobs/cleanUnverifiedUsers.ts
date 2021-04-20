@@ -10,7 +10,7 @@ export const cleanUnverifiedUserAccount = async (): Promise<void> => {
     status: UserAccountStatus.PENDING_VERIFICATION,
     $or: [
       {
-        verificationStartDate: { $lt: sub(new Date(), { minutes: 10 }) },
+        verificationStartDate: { $lt: sub(new Date(), { minutes: 10 }).toISOString() },
       },
       {
         verificationStartDate: { $exists: true },
@@ -21,6 +21,7 @@ export const cleanUnverifiedUserAccount = async (): Promise<void> => {
   logger.info({ data: "Unverified user accounts cleaned", ...result });
 };
 
+// TODO : be fault tolerant by running a child process instead of main job
 const main = (): void => {
   setInterval(async () => {
     await cleanUnverifiedUserAccount();

@@ -2,6 +2,7 @@ import { Decimal } from "decimal.js";
 
 import { dns, proxy } from "../services/elrond";
 import { ElrondTransaction } from "../types";
+import { ENV } from "./env";
 
 export const getErdAddressFromHerotag = async (
   herotag: string
@@ -20,7 +21,7 @@ export const getHerotagFromErdAddress = async (
 };
 
 export const normalizeHerotag = (herotag: string): string => {
-  return herotag.endsWith(".elrond")
+  return herotag.endsWith(`${ENV.ELROND_HEROTAG_DOMAIN}`)
     ? herotag.replace("@", "")
     : `${herotag}.elrond`.replace("@", "");
 };
