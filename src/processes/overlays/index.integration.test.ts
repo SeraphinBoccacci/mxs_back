@@ -5,13 +5,13 @@ import mongoose from "mongoose";
 import User, { UserType } from "../../models/User";
 import { connectToDatabase } from "../../services/mongoose";
 import {
+  AlertPositions,
+  AlertVariation,
   EnterAnimationTypes,
   ExitAnimationTypes,
   TextAlignments,
   TextStyles,
-  Variation,
-  VariationPositions,
-} from "../../types/streamElements";
+} from "../../types/alerts";
 import {
   createVariation,
   deleteVariation,
@@ -36,7 +36,7 @@ const baseUser = {
   streamingStartDate: sub(new Date(), { hours: 4 }),
 };
 
-const baseVariation: Variation = {
+const baseVariation: AlertVariation = {
   name: "variation test",
   duration: 10,
   chances: 40,
@@ -44,7 +44,7 @@ const baseVariation: Variation = {
   backgroundColor: "#ffffff",
   width: 300,
   heigth: 200,
-  position: VariationPositions.BottomCenter,
+  position: AlertPositions.BottomCenter,
   sound: {
     soundPath: "/audios_0003.mp3",
     soundDelay: "10",

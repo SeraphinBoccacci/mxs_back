@@ -11,7 +11,7 @@ import {
 } from "../../utils/transactions";
 import { decodeDataFromTx } from "../../utils/transactions";
 import { triggerIftttEvent } from "./ifttt";
-import { triggerStreamElementsEvent } from "./streamElements";
+import { triggerOverlaysEvent } from "./overlays";
 
 export const reactToManyTransactions = async (
   transactions: ElrondTransaction[],
@@ -55,9 +55,5 @@ export const reactToNewTransaction = async (
   if (user?.integrations?.ifttt && user?.integrations?.ifttt.isActive)
     await triggerIftttEvent(eventData, user?.integrations?.ifttt);
 
-  if (
-    user?.integrations?.streamElements &&
-    user?.integrations?.streamElements.isActive
-  )
-    await triggerStreamElementsEvent(eventData, user);
+  await triggerOverlaysEvent(eventData, user);
 };

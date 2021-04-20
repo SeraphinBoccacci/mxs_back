@@ -1,6 +1,6 @@
 /* eslint-disable quotes */
 import config from "../../../config/config";
-import { Image, Sound, Text, Variation } from "../../../types/streamElements";
+import { AlertVariation, Image, Sound, Text } from "../../../types/alerts";
 
 export const formatVariationName = (variationName: string): string =>
   variationName.replace(/[\s-'"`]/g, "_");
@@ -133,7 +133,7 @@ const appendAudioLines = (sound: Sound, duration = 10) => [
   "  );",
 ];
 
-const appendAnimationLines = (variation: Variation) => [
+const appendAnimationLines = (variation: AlertVariation) => [
   `const appendAnimation_${formatVariationName(
     variation.name
   )} = (herotag, amount, message) => {`,
@@ -166,7 +166,7 @@ const appendAnimationLines = (variation: Variation) => [
   "};",
 ];
 
-const variationsMapperLines = (variations: Variation[]) => {
+const variationsMapperLines = (variations: AlertVariation[]) => {
   return [
     "const variations = [",
     ...variations.reduce(
@@ -256,7 +256,7 @@ const manualTriggerLines = (
 
 export const generateJavascript = (
   herotag: string,
-  variations: Variation[],
+  variations: AlertVariation[],
   {
     triggerMode,
     targetVariation,

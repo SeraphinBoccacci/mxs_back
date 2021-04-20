@@ -2,13 +2,17 @@ import fs from "fs";
 import mongoose from "mongoose";
 import { nanoid } from "nanoid";
 
+import {
+  VariationGroup,
+  VariationGroupKinds,
+} from "../../models/schemas/VariationGroup";
 import User from "../../models/User";
 import logger from "../../services/logger";
 import {
+  AlertVariation,
   TextAlignments,
   TextPositions,
-  Variation,
-} from "../../types/streamElements";
+} from "../../types/alerts";
 import { normalizeHerotag } from "../../utils/transactions";
 import { generateCss } from "./code-generators/css";
 import {
@@ -20,7 +24,7 @@ import {
   generateJavascript,
 } from "./code-generators/javascript";
 
-const payloadToVariation = (payload: Variation) => {
+const payloadToVariation = (payload: AlertVariation) => {
   return {
     name: payload.name,
     duration: payload.duration || 10,
@@ -87,9 +91,10 @@ const payloadToVariation = (payload: Variation) => {
 
 export const createVariation = async (
   herotag: string,
-  payload: Variation
+  overlayId: string,
+  payload: AlertVariation
 ): Promise<{
-  variations: Variation[];
+  variations: AlertVariation[];
   files: { html: string; css: string; javascript: string };
 }> => {
   const variationData = payloadToVariation(payload);
@@ -100,11 +105,46 @@ export const createVariation = async (
     ...variationData,
   };
 
+  const user = await User.findOne({
+    herotag: normalizeHerotag(herotag),
+    "integrations.overlays._id": overlayId,
+  })
+    .select({ "integrations.overlays": true })
+    .lean();
+
+  const overlayToUpdate = user?.integrations?.overlays?.find(
+    ({ _id }) => String(_id) === String(overlayId)
+  );
+
+  const groups = overlayToUpdate?.alerts.groups || [];
+
+  const defaultGroupIndex = groups.findIndex(
+    ({ kind }) => kind === VariationGroupKinds.DEFAULT
+  );
+
+  const updatedAlerts = {
+    variations: [...(overlayToUpdate?.alerts.variations || []), newVariation],
+    groups: [
+      ...groups.slice(0, defaultGroupIndex),
+      {
+        ...groups[defaultGroupIndex],
+        variationsIds: [
+          ...groups[defaultGroupIndex].variationsIds,
+          variationId,
+        ],
+      },
+      ...groups.slice(defaultGroupIndex + 1, groups.length),
+    ],
+  };
+
   const updatedUser = await User.findOneAndUpdate(
-    { herotag: normalizeHerotag(herotag) },
     {
-      $push: {
-        "integrations.streamElements.variations": newVariation,
+      herotag: normalizeHerotag(herotag),
+      "integrations.overlays._id": overlayId,
+    },
+    {
+      $set: {
+        "integrations.overlays.$.alerts": updatedAlerts,
       },
     },
     { new: true }
@@ -121,7 +161,7 @@ export const createVariation = async (
 
 export const getVariation = async (
   variationId: mongoose.Types.ObjectId
-): Promise<Variation> => {
+): Promise<AlertVariation> => {
   const user = await User.findOne({
     "integrations.streamElements.variations._id": variationId,
   })
@@ -139,7 +179,7 @@ export const getVariation = async (
 
 export const getUserVariations = async (
   herotag: string
-): Promise<Variation[]> => {
+): Promise<AlertVariation[]> => {
   const user = await User.findOne({
     herotag: normalizeHerotag(herotag),
   })
@@ -165,7 +205,7 @@ const findHerotagByVariationId = async (
 const createVariationFiles = (
   filepath: string,
   herotag: string,
-  payload: Variation
+  payload: AlertVariation
 ) => {
   const [html, css, javascript]: [string, string, string] = [
     generatePreviewHtml(filepath),
@@ -195,7 +235,7 @@ const deleteVariationFiles = (filepath?: string) => {
 
 export const getCodeSnippets = (
   herotag: string,
-  variations: Variation[]
+  variations: AlertVariation[]
 ): {
   html: string;
   css: string;
@@ -216,9 +256,9 @@ export const getCodeSnippets = (
 
 export const updateVariation = async (
   variationId: mongoose.Types.ObjectId,
-  payload: Variation
+  payload: AlertVariation
 ): Promise<{
-  variation: Variation;
+  variation: AlertVariation;
   files: { html: string; css: string; javascript: string };
 }> => {
   const herotag = await findHerotagByVariationId(variationId);
@@ -232,7 +272,7 @@ export const updateVariation = async (
     payload.name
   )}_${variationFilesId}`;
 
-  const updates: Variation = payloadToVariation(payload);
+  const updates: AlertVariation = payloadToVariation(payload);
 
   createVariationFiles(baseFilename, herotag, updates);
 
@@ -258,7 +298,7 @@ export const updateVariation = async (
     updatedUser?.integrations?.streamElements?.variations || [];
   const updatedVariation = variations.find(
     ({ _id }) => String(_id) === String(variationId)
-  ) as Variation;
+  ) as AlertVariation;
 
   return {
     variation: updatedVariation,
@@ -267,34 +307,49 @@ export const updateVariation = async (
 };
 
 export const deleteVariation = async (
+  herotag: string,
+  overlayId: mongoose.Types.ObjectId,
   variationId: mongoose.Types.ObjectId
-): Promise<{
-  variations: Variation[];
-  files: { html: string; css: string; javascript: string };
-}> => {
-  const oldVariation = await getVariation(variationId);
+): Promise<void> => {
+  const user = await User.findOne({ herotag: normalizeHerotag(herotag) })
+    .select({ "integrations.overlays": true })
+    .lean();
 
-  const updatedUser = await User.findOneAndUpdate(
-    { "integrations.streamElements.variations._id": variationId },
-    {
-      $pull: {
-        "integrations.streamElements.variations": { _id: variationId },
-      },
+  const overlayToUpdate = user?.integrations?.overlays?.find(
+    ({ _id }) => String(_id) === String(overlayId)
+  );
+
+  if (!overlayToUpdate) throw new Error("OVERLAY_NOT_FOUND");
+
+  const updatedOverlay = {
+    ...overlayToUpdate,
+    alerts: {
+      ...overlayToUpdate?.alerts,
+      variations: overlayToUpdate.alerts.variations.filter(
+        ({ _id }) => String(_id) !== String(variationId)
+      ),
+      groups: overlayToUpdate.alerts.groups.map(
+        ({ variationsIds, ...group }) => ({
+          ...group,
+          variationsIds: variationsIds.filter(
+            (id) => String(id) !== String(variationId)
+          ),
+        })
+      ),
     },
-    { new: true }
-  );
-
-  deleteVariationFiles(oldVariation?.filepath);
-
-  const files = getCodeSnippets(
-    updatedUser?.herotag as string,
-    updatedUser?.integrations?.streamElements?.variations || []
-  );
-
-  return {
-    variations: updatedUser?.integrations?.streamElements?.variations || [],
-    files,
   };
+
+  await User.updateOne(
+    {
+      herotag: normalizeHerotag(herotag),
+      "integrations.overlays._id": overlayId,
+    },
+    {
+      $set: {
+        "integrations.overlays.$": updatedOverlay,
+      },
+    }
+  );
 };
 
 export const getRowsStructure = async (
@@ -336,4 +391,51 @@ export const updateRowsStructure = async (
   );
 
   return rowsStructure;
+};
+
+export const createAlertsGroup = async (
+  herotag: string,
+  overlayId: string
+): Promise<void> => {
+  await User.updateOne(
+    {
+      herotag: normalizeHerotag(herotag),
+      "integrations.overlays._id": overlayId,
+    },
+    {
+      $push: {
+        "integrations.overlays.$.alerts.groups": {
+          title: "Unnamed group",
+          variationIds: [],
+          kind: VariationGroupKinds.CUSTOM,
+        },
+      },
+    }
+  );
+};
+
+export const updateAlertsGroup = async (
+  herotag: string,
+  overlayId: string,
+  updatedGroups: VariationGroup[]
+): Promise<void> => {
+  // Sanitize data
+  const groups: VariationGroup[] = updatedGroups.map((group) => ({
+    _id: group._id,
+    title: group.title,
+    variationsIds: group.variationsIds,
+    kind: group.kind,
+  }));
+
+  await User.updateOne(
+    {
+      herotag: normalizeHerotag(herotag),
+      "integrations.overlays._id": overlayId,
+    },
+    {
+      $set: {
+        "integrations.overlays.$.alerts.groups": groups,
+      },
+    }
+  );
 };

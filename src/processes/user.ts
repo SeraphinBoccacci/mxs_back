@@ -37,7 +37,7 @@ export const toggleStreamElementsParticle = async (
 ): Promise<void> => {
   await User.updateOne(
     { herotag: normalizeHerotag(herotag) },
-    { $set: { "integrations.streamElements.isActive": activate } }
+    { $set: { "integrations.overlays.isActive": activate } }
   );
 };
 

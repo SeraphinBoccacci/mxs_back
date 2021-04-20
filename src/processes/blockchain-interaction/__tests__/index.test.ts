@@ -17,9 +17,9 @@ import * as utilTransactions from "../../../utils/transactions";
 jest.mock("../ifttt");
 import * as ifttt from "../ifttt";
 
-jest.mock("../streamElements");
+jest.mock("../overlays");
 import { IftttParticleData, UserType } from "../../../models/User";
-import * as streamElements from "../streamElements";
+import * as overlays from "../overlays";
 
 const baseUser = {
   _id: mongoose.Types.ObjectId("6025884242b45cd7572870b3"),
@@ -34,11 +34,12 @@ const baseUser = {
       triggerKey: "x2qQHAJF89ljX-IwFjNdjZ8raTicSvQpLQcdxggWooJ7",
       isActive: true,
     },
-    streamElements: {
-      variations: [],
-      rowsStructure: [],
-      isActive: true,
-    },
+    overlays: [
+      {
+        alerts: { variations: [] },
+        generatedLink: "hello",
+      },
+    ],
   },
   isStreaming: true,
   streamingStartDate: sub(new Date(), { hours: 4 }),
@@ -50,9 +51,7 @@ describe("Blockchain interaction unit testing", () => {
       typeof utilTransactions
     >;
     const mockedIfttt = ifttt as jest.Mocked<typeof ifttt>;
-    const mockedStreamElements = streamElements as jest.Mocked<
-      typeof streamElements
-    >;
+    const mockedStreamElements = overlays as jest.Mocked<typeof overlays>;
 
     beforeAll(() => {
       mockedUtilTransactions.getHerotagFromErdAddress.mockResolvedValue(
@@ -65,7 +64,7 @@ describe("Blockchain interaction unit testing", () => {
     });
 
     beforeEach(() => {
-      mockedStreamElements.triggerStreamElementsEvent.mockClear();
+      mockedStreamElements.triggerOverlaysEvent.mockClear();
       mockedIfttt.triggerIftttEvent.mockClear();
     });
 
@@ -82,7 +81,7 @@ describe("Blockchain interaction unit testing", () => {
         integrations: {
           ...baseUser.integrations,
           ifttt: undefined,
-          streamElements: undefined,
+          overlays: undefined,
         },
       };
 
@@ -91,9 +90,9 @@ describe("Blockchain interaction unit testing", () => {
 
         expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledTimes(0);
 
-        expect(
-          mockedStreamElements.triggerStreamElementsEvent
-        ).toHaveBeenCalledTimes(0);
+        expect(mockedStreamElements.triggerOverlaysEvent).toHaveBeenCalledTimes(
+          0
+        );
       });
     });
 
@@ -109,7 +108,7 @@ describe("Blockchain interaction unit testing", () => {
         ...baseUser,
         integrations: {
           ...baseUser.integrations,
-          streamElements: undefined,
+          overlays: undefined,
         },
       };
 
@@ -122,9 +121,9 @@ describe("Blockchain interaction unit testing", () => {
           user.integrations.ifttt
         );
 
-        expect(
-          mockedStreamElements.triggerStreamElementsEvent
-        ).toHaveBeenCalledTimes(0);
+        expect(mockedStreamElements.triggerOverlaysEvent).toHaveBeenCalledTimes(
+          0
+        );
       });
     });
 
@@ -149,12 +148,10 @@ describe("Blockchain interaction unit testing", () => {
 
         expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledTimes(0);
 
-        expect(
-          mockedStreamElements.triggerStreamElementsEvent
-        ).toHaveBeenCalledTimes(1);
-        expect(
-          mockedStreamElements.triggerStreamElementsEvent
-        ).toHaveBeenCalledWith(
+        expect(mockedStreamElements.triggerOverlaysEvent).toHaveBeenCalledTimes(
+          1
+        );
+        expect(mockedStreamElements.triggerOverlaysEvent).toHaveBeenCalledWith(
           { amount: "1", data: "", herotag: "remdem" },
           user
         );
@@ -178,12 +175,10 @@ describe("Blockchain interaction unit testing", () => {
           baseUser?.integrations?.ifttt as IftttParticleData
         );
 
-        expect(
-          mockedStreamElements.triggerStreamElementsEvent
-        ).toHaveBeenCalledTimes(1);
-        expect(
-          mockedStreamElements.triggerStreamElementsEvent
-        ).toHaveBeenCalledWith(
+        expect(mockedStreamElements.triggerOverlaysEvent).toHaveBeenCalledTimes(
+          1
+        );
+        expect(mockedStreamElements.triggerOverlaysEvent).toHaveBeenCalledWith(
           { amount: "1", data: "", herotag: "remdem" },
           baseUser
         );

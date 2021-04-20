@@ -1,11 +1,11 @@
 /* eslint-disable quotes */
 import {
+  AlertPositions,
+  AlertVariation,
   Text,
   TextPositions,
   TextStyles,
-  Variation,
-  VariationPositions,
-} from "../../../types/streamElements";
+} from "../../../types/alerts";
 import { formatVariationName } from "./javascript";
 
 export const x = "";
@@ -197,40 +197,40 @@ const baseCss = [
   "}",
 ];
 
-const positionMapper = (position?: VariationPositions) => {
+const positionMapper = (position?: AlertPositions) => {
   const mapper = {
-    [VariationPositions.BottomCenter]: [
+    [AlertPositions.BottomCenter]: [
       "  bottom: 1rem;",
       "  left: 50%;",
       "  transform: translateX(-50%);",
     ],
-    [VariationPositions.BottomLeft]: ["  bottom: 1rem;", "  left: 1rem;"],
-    [VariationPositions.BottomRight]: ["  bottom: 1rem;", "  right: 1rem;"],
-    [VariationPositions.CenterCenter]: [
+    [AlertPositions.BottomLeft]: ["  bottom: 1rem;", "  left: 1rem;"],
+    [AlertPositions.BottomRight]: ["  bottom: 1rem;", "  right: 1rem;"],
+    [AlertPositions.CenterCenter]: [
       "  top: 50%;",
       "  left: 50%;",
       "  transform: translateX(-50%) translateY(-50%);",
     ],
-    [VariationPositions.CenterLeft]: [
+    [AlertPositions.CenterLeft]: [
       "  top: 50%;",
       "  left: 1rem;",
       "  transform: translateY(-50%);",
     ],
-    [VariationPositions.CenterRight]: [
+    [AlertPositions.CenterRight]: [
       "  top: 50%;",
       "  right: 1rem;",
       "  transform: translateY(-50%);",
     ],
-    [VariationPositions.TopCenter]: [
+    [AlertPositions.TopCenter]: [
       "  top: 1rem;",
       "  left: 50%;",
       "  transform: translateX(-50%);",
     ],
-    [VariationPositions.TopLeft]: ["  top: 1rem;", "  left: 1rem;"],
-    [VariationPositions.TopRight]: ["  top: 1rem;", "  right: 1rem;"],
+    [AlertPositions.TopLeft]: ["  top: 1rem;", "  left: 1rem;"],
+    [AlertPositions.TopRight]: ["  top: 1rem;", "  right: 1rem;"],
   };
 
-  return mapper[position || VariationPositions.BottomRight];
+  return mapper[position || AlertPositions.BottomRight];
 };
 
 const displayMapper = (position?: TextPositions) => {
@@ -272,7 +272,7 @@ const displayMapper = (position?: TextPositions) => {
 
 const widgetContainer = (
   name: string,
-  variationPosition?: VariationPositions,
+  variationPosition?: AlertPositions,
   variationWidth?: number,
   variationHeight?: number,
   textPosition?: TextPositions
@@ -352,7 +352,7 @@ const pContainer = (name: string, width = 0, height = 0) => [
   "}",
 ];
 
-const generateCssForVariation = (variation: Variation) => {
+const generateCssForVariation = (variation: AlertVariation) => {
   return [
     "* {",
     ' font-family: "Noto Sans JP", sans-serif; ',
@@ -382,7 +382,7 @@ const generateCssForVariation = (variation: Variation) => {
   ];
 };
 
-export const generateCss = (variations: Variation[]): string => {
+export const generateCss = (variations: AlertVariation[]): string => {
   return [...baseCss, ...variations.flatMap(generateCssForVariation)].join(
     "\n"
   );
