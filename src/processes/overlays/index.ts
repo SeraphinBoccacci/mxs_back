@@ -1,31 +1,20 @@
-import fs from "fs";
 import mongoose from "mongoose";
-import { nanoid } from "nanoid";
 
 import {
   VariationGroup,
   VariationGroupKinds,
 } from "../../models/schemas/VariationGroup";
 import User from "../../models/User";
-import logger from "../../services/logger";
 import {
   AlertVariation,
   TextAlignments,
   TextPositions,
 } from "../../types/alerts";
 import { normalizeHerotag } from "../../utils/transactions";
-import { generateCss } from "./code-generators/css";
-import {
-  generatePreviewHtml,
-  generateSnippetHtml,
-} from "./code-generators/html";
-import {
-  formatVariationName,
-  generateJavascript,
-} from "./code-generators/javascript";
 
 const payloadToVariation = (payload: AlertVariation) => {
   return {
+    _id: payload._id,
     name: payload.name,
     duration: payload.duration || 10,
     chances: payload.chances || 100,
@@ -93,16 +82,13 @@ export const createVariation = async (
   herotag: string,
   overlayId: string,
   payload: AlertVariation
-): Promise<{
-  variations: AlertVariation[];
-  files: { html: string; css: string; javascript: string };
-}> => {
+): Promise<void> => {
   const variationData = payloadToVariation(payload);
   const variationId = mongoose.Types.ObjectId();
 
   const newVariation = {
-    _id: variationId,
     ...variationData,
+    _id: variationId,
   };
 
   const user = await User.findOne({
@@ -137,7 +123,7 @@ export const createVariation = async (
     ],
   };
 
-  const updatedUser = await User.findOneAndUpdate(
+  await User.updateOne(
     {
       herotag: normalizeHerotag(herotag),
       "integrations.overlays._id": overlayId,
@@ -149,170 +135,70 @@ export const createVariation = async (
     },
     { new: true }
   );
-
-  return {
-    variations: updatedUser?.integrations?.streamElements?.variations || [],
-    files: getCodeSnippets(
-      updatedUser?.herotag as string,
-      updatedUser?.integrations?.streamElements?.variations || []
-    ),
-  };
 };
 
-export const getVariation = async (
-  variationId: mongoose.Types.ObjectId
-): Promise<AlertVariation> => {
-  const user = await User.findOne({
-    "integrations.streamElements.variations._id": variationId,
-  })
-    .select({ "integrations.streamElements.variations": true })
-    .lean();
-
-  const variation = user?.integrations?.streamElements?.variations.find(
-    ({ _id }) => String(_id) === String(variationId)
+const findVariationAndReplace = (
+  variations: AlertVariation[],
+  updatedVariation: AlertVariation
+) => {
+  const updatedVariationIndex = variations.findIndex(
+    ({ _id }) => String(updatedVariation._id) === String(_id)
   );
 
-  if (!variation) throw new Error("NO_VARIATION_FOUND");
+  const before = variations.slice(0, updatedVariationIndex);
+  const after = variations.slice(updatedVariationIndex + 1, variations.length);
 
-  return variation;
-};
-
-export const getUserVariations = async (
-  herotag: string
-): Promise<AlertVariation[]> => {
-  const user = await User.findOne({
-    herotag: normalizeHerotag(herotag),
-  })
-    .select({ "integrations.streamElements.variations": true })
-    .lean();
-
-  return user?.integrations?.streamElements?.variations || [];
-};
-
-const findHerotagByVariationId = async (
-  variationId: mongoose.Types.ObjectId
-): Promise<string> => {
-  const user = await User.findOne({
-    "integrations.streamElements.variations._id": variationId,
-  })
-    .select({ herotag: true })
-    .orFail(new Error("NO_USER_FOUND"))
-    .lean();
-
-  return user.herotag as string;
-};
-
-const createVariationFiles = (
-  filepath: string,
-  herotag: string,
-  payload: AlertVariation
-) => {
-  const [html, css, javascript]: [string, string, string] = [
-    generatePreviewHtml(filepath),
-    generateCss([payload]),
-    generateJavascript(herotag, [payload], {
-      triggerMode: "manual",
-      targetVariation: payload.name,
-    }),
-  ];
-
-  fs.writeFileSync(`../medias/files/${filepath}.html`, html);
-  fs.writeFileSync(`../medias/files/${filepath}.css`, css);
-  fs.writeFileSync(`../medias/files/${filepath}.js`, javascript);
-};
-
-const deleteVariationFiles = (filepath?: string) => {
-  if (filepath) {
-    try {
-      fs.unlinkSync(`../medias/files/${filepath}.html`);
-      fs.unlinkSync(`../medias/files/${filepath}.css`);
-      fs.unlinkSync(`../medias/files/${filepath}.js`);
-    } catch (error) {
-      logger.error("failed to delete files", { error });
-    }
-  }
-};
-
-export const getCodeSnippets = (
-  herotag: string,
-  variations: AlertVariation[]
-): {
-  html: string;
-  css: string;
-  javascript: string;
-} => {
-  const [html, css, javascript]: [string, string, string] = [
-    generateSnippetHtml(),
-    generateCss(variations),
-    generateJavascript(herotag, variations),
-  ];
-
-  return {
-    html,
-    css,
-    javascript,
-  };
+  return [...before, updatedVariation, ...after];
 };
 
 export const updateVariation = async (
-  variationId: mongoose.Types.ObjectId,
+  herotag: string,
+  overlayId: string,
   payload: AlertVariation
-): Promise<{
-  variation: AlertVariation;
-  files: { html: string; css: string; javascript: string };
-}> => {
-  const herotag = await findHerotagByVariationId(variationId);
-  const oldVariation = await getVariation(variationId);
+): Promise<void> => {
+  const user = await User.findOne({ herotag: normalizeHerotag(herotag) })
+    .select({ "integrations.overlays": true })
+    .orFail(new Error("USER_NOT_FOUND"))
+    .lean();
 
-  if (!oldVariation) throw new Error("VARIATION_NOT_FOUND");
+  const overlayToUpdate = user?.integrations?.overlays?.find(
+    ({ _id }) => String(_id) === String(overlayId)
+  );
 
-  const variationFilesId = nanoid();
+  if (!overlayToUpdate) throw new Error("OVERLAY_NOT_FOUND");
 
-  const baseFilename = `${herotag.replace(/\W/g, "_")}_${formatVariationName(
-    payload.name
-  )}_${variationFilesId}`;
+  const updatedVariation: AlertVariation = payloadToVariation(payload);
 
-  const updates: AlertVariation = payloadToVariation(payload);
+  const updatedOverlay = {
+    ...overlayToUpdate,
+    alerts: {
+      ...overlayToUpdate?.alerts,
+      variations: findVariationAndReplace(
+        overlayToUpdate.alerts.variations,
+        updatedVariation
+      ),
+    },
+  };
 
-  createVariationFiles(baseFilename, herotag, updates);
-
-  const updatedUser = await User.findOneAndUpdate(
-    { "integrations.streamElements.variations._id": variationId },
+  await User.updateOne(
+    { "integrations.overlays._id": overlayId },
     {
       $set: {
-        "integrations.streamElements.variations.$": {
-          _id: variationId,
-          filepath: baseFilename,
-          ...updates,
-        },
+        "integrations.overlays.$": updatedOverlay,
       },
     },
     { new: true }
-  )
-    .select({ "integrations.streamElements.variations": true })
-    .lean();
-
-  deleteVariationFiles(oldVariation?.filepath);
-
-  const variations =
-    updatedUser?.integrations?.streamElements?.variations || [];
-  const updatedVariation = variations.find(
-    ({ _id }) => String(_id) === String(variationId)
-  ) as AlertVariation;
-
-  return {
-    variation: updatedVariation,
-    files: getCodeSnippets(herotag, variations),
-  };
+  ).lean();
 };
 
 export const deleteVariation = async (
   herotag: string,
-  overlayId: mongoose.Types.ObjectId,
-  variationId: mongoose.Types.ObjectId
+  overlayId: string,
+  variationId: string
 ): Promise<void> => {
   const user = await User.findOne({ herotag: normalizeHerotag(herotag) })
     .select({ "integrations.overlays": true })
+    .orFail(new Error("USER_NOT_FOUND"))
     .lean();
 
   const overlayToUpdate = user?.integrations?.overlays?.find(
@@ -350,47 +236,6 @@ export const deleteVariation = async (
       },
     }
   );
-};
-
-export const getRowsStructure = async (
-  herotag: string
-): Promise<{
-  rows: string[];
-  rowsGroupName?: string | undefined;
-}[]> => {
-  const user = await User.findOne({ herotag: normalizeHerotag(herotag) })
-    .select({ "integrations.streamElements.rowsStructure": true })
-    .lean();
-
-  const rowsStructure = user?.integrations?.streamElements?.rowsStructure;
-
-  if (!rowsStructure) return [];
-
-  return rowsStructure;
-};
-
-export const updateRowsStructure = async (
-  herotag: string,
-  rowsStructure: {
-    rows: string[];
-    rowsGroupName?: string | undefined;
-  }[]
-): Promise<{
-  rows: string[];
-  rowsGroupName?: string | undefined;
-}[]> => {
-  await User.updateOne(
-    { herotag: normalizeHerotag(herotag) },
-    {
-      $set: {
-        "integrations.streamElements.rowsStructure": rowsStructure.filter(
-          ({ rows }) => !!rows.length
-        ),
-      },
-    }
-  );
-
-  return rowsStructure;
 };
 
 export const createAlertsGroup = async (

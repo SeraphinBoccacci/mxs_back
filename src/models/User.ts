@@ -64,7 +64,6 @@ export interface UserType {
   passwordEditionVerificationStartDate?: string;
   integrations?: {
     ifttt?: IftttParticleData;
-    streamElements?: StreamElementData;
     overlays?: OverlayData[];
     minimumRequiredAmount?: number;
   };
