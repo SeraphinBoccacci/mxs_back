@@ -1,10 +1,10 @@
 import fs from "fs";
 import path from "path";
 
-import User, { UserType } from "../src/models/User";
-import logger from "../src/services/logger";
-import { connectToDatabase } from "../src/services/mongoose";
-import { AlertVariation } from "../src/types/alerts";
+import User, { UserType } from "../models/User";
+import logger from "../services/logger";
+import { connectToDatabase } from "../services/mongoose";
+import { AlertVariation } from "../types/alerts";
 
 const cleanMediasFolder = async () => {
   const audios = fs
@@ -23,8 +23,8 @@ const cleanMediasFolder = async () => {
 
   audios.forEach((fileName) => {
     const isUsed = users.some((user: UserType) =>
-      user?.integrations?.overlays?.some(({ variations }) =>
-        variations.some(
+      user?.integrations?.overlays?.some(({ alerts }) =>
+        alerts.variations.some(
           (variation: AlertVariation) => variation.sound?.soundPath === fileName
         )
       )
@@ -38,8 +38,8 @@ const cleanMediasFolder = async () => {
 
   images.forEach((fileName) => {
     const isUsed = users.some((user: UserType) =>
-      user?.integrations?.overlays?.some(({ variations }) =>
-        variations.some(
+      user?.integrations?.overlays?.some(({ alerts }) =>
+        alerts.variations.some(
           (variation: AlertVariation) => variation.image?.imagePath === fileName
         )
       )
@@ -53,8 +53,8 @@ const cleanMediasFolder = async () => {
 
   files.forEach((fileName) => {
     const isUsed = users.some((user: UserType) =>
-      user?.integrations?.overlays?.some(({ variations }) =>
-        variations.some(
+      user?.integrations?.overlays?.some(({ alerts }) =>
+        alerts.variations.some(
           (variation: AlertVariation) =>
             variation.filepath && fileName.includes(variation.filepath)
         )

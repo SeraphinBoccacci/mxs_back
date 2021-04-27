@@ -2,7 +2,8 @@ jest.mock("fs");
 import { sub } from "date-fns";
 import mongoose from "mongoose";
 
-import User, { UserType } from "../../models/User";
+import { VariationGroupKinds } from "../../models/schemas/VariationGroup";
+import User, { OverlayData, UserType } from "../../models/User";
 import { connectToDatabase } from "../../services/mongoose";
 import {
   AlertPositions,
@@ -12,12 +13,7 @@ import {
   TextAlignments,
   TextStyles,
 } from "../../types/alerts";
-import {
-  createVariation,
-  deleteVariation,
-  getVariation,
-  updateVariation,
-} from ".";
+import { createVariation, deleteVariation, updateVariation } from ".";
 
 const baseUser = {
   herotag: "serabocca06.elrond",
@@ -103,84 +99,107 @@ describe("Stream Elements integration test", () => {
   });
 
   describe("createVariation", () => {
-    let user: UserType;
-    beforeAll(async () => {
-      user = await User.create(baseUser);
-    });
+    describe("When overlay has no alert variation yet", () => {
+      let user: UserType;
+      const overlayId = mongoose.Types.ObjectId();
 
-    afterAll(async () => {
-      await User.deleteMany();
-    });
-
-    test("it should create a variation", async () => {
-      await createVariation(user.herotag as string, baseVariation);
-
-      const updatedUser = await User.findOne({ herotag: user.herotag })
-        .select({
-          "integrations.streamElements.variations": true,
-        })
-        .lean();
-
-      expect(
-        updatedUser?.integrations?.streamElements?.variations
-      ).toMatchObject([baseVariation]);
-    });
-  });
-
-  describe("getVariation", () => {
-    const variationId = mongoose.Types.ObjectId();
-
-    beforeAll(async () => {
-      await User.create({
-        ...baseUser,
-        integrations: {
-          ...baseUser.integrations,
-          streamElements: {
-            variations: [
-              { _id: variationId, ...baseVariation },
+      beforeAll(async () => {
+        user = await User.create({
+          ...baseUser,
+          integrations: {
+            ...baseUser.integrations,
+            overlays: [
               {
-                name: "variation test 2",
-                backgroundColor: "#666666",
+                _id: overlayId,
+                alerts: {
+                  variations: [],
+                  groups: [
+                    {
+                      kind: VariationGroupKinds.DEFAULT,
+                      variationsIds: [],
+                      title: "Unclassed Variations",
+                    },
+                  ],
+                },
               },
             ],
           },
-        },
+        });
       });
-    });
 
-    afterAll(async () => {
-      await User.deleteMany();
-    });
+      afterAll(async () => {
+        await User.deleteMany();
+      });
 
-    test("it should return the wanted variation", async () => {
-      const variation = await getVariation(variationId);
+      test("it should create an alert variation and add it in default group", async () => {
+        await createVariation(
+          user.herotag as string,
+          String(overlayId),
+          baseVariation
+        );
 
-      expect(variation).toMatchObject(baseVariation);
+        const updatedUser = await User.findOne({ herotag: user.herotag })
+          .select({
+            "integrations.overlays": true,
+          })
+          .lean();
+
+        expect((updatedUser as UserType).integrations?.overlays).toHaveLength(
+          1
+        );
+
+        const [overlay] = (updatedUser as UserType).integrations
+          ?.overlays as OverlayData[];
+
+        expect(overlay.alerts.variations).toMatchObject([baseVariation]);
+        expect(overlay.alerts.groups).toMatchObject([
+          {
+            title: "Unclassed Variations",
+            variationsIds: [String(overlay.alerts.variations[0]._id)],
+            kind: VariationGroupKinds.DEFAULT,
+          },
+        ]);
+      });
     });
   });
 
   describe("updateVariation", () => {
     let user: UserType;
+    const overlayId = mongoose.Types.ObjectId();
     const variationId = mongoose.Types.ObjectId();
+    const variation2Id = mongoose.Types.ObjectId();
 
     beforeAll(async () => {
       user = await User.create({
         ...baseUser,
         integrations: {
           ...baseUser.integrations,
-          streamElements: {
-            variations: [
-              {
-                _id: variationId,
-                name: "variation test 1",
-                backgroundColor: "#123123",
+          overlays: [
+            {
+              _id: overlayId,
+              alerts: {
+                variations: [
+                  {
+                    _id: variationId,
+                    name: "variation test 1",
+                    backgroundColor: "#123123",
+                  },
+                  {
+                    _id: variation2Id,
+                    name: "variation test 2",
+                    backgroundColor: "#666666",
+                  },
+                ],
+                groups: [
+                  {
+                    kind: VariationGroupKinds.DEFAULT,
+                    variationsIds: [String(variationId), String(variation2Id)],
+                    title: "Unclassed Variations",
+                  },
+                ],
               },
-              {
-                name: "variation test 2",
-                backgroundColor: "#666666",
-              },
-            ],
-          },
+            },
+          ],
         },
       });
     });
@@ -190,21 +209,36 @@ describe("Stream Elements integration test", () => {
     });
 
     test("it should update the wanted variation", async () => {
-      await updateVariation(variationId, baseVariation);
+      await updateVariation(user.herotag as string, String(overlayId), {
+        ...baseVariation,
+        _id: variationId,
+      });
 
       const updatedUser = await User.findOne({ herotag: user.herotag })
         .select({
-          "integrations.streamElements.variations": true,
+          "integrations.overlays": true,
         })
         .lean();
 
-      expect(
-        updatedUser?.integrations?.streamElements?.variations
-      ).toMatchObject([
+      expect((updatedUser as UserType).integrations?.overlays).toHaveLength(1);
+
+      const [overlay] = (updatedUser as UserType).integrations
+        ?.overlays as OverlayData[];
+
+      expect(overlay.alerts.variations).toMatchObject([
         baseVariation,
         {
+          _id: variation2Id,
           name: "variation test 2",
           backgroundColor: "#666666",
+        },
+      ]);
+
+      expect(overlay.alerts.groups).toMatchObject([
+        {
+          title: "Unclassed Variations",
+          variationsIds: [String(variationId), String(variation2Id)],
+          kind: VariationGroupKinds.DEFAULT,
         },
       ]);
     });
@@ -212,26 +246,41 @@ describe("Stream Elements integration test", () => {
 
   describe("deleteVariation", () => {
     let user: UserType;
+    const overlayId = mongoose.Types.ObjectId();
     const variationId = mongoose.Types.ObjectId();
+    const variation2Id = mongoose.Types.ObjectId();
 
     beforeAll(async () => {
       user = await User.create({
         ...baseUser,
         integrations: {
           ...baseUser.integrations,
-          streamElements: {
-            variations: [
-              {
-                _id: variationId,
-                name: "variation test 1",
-                backgroundColor: "#123123",
+          overlays: [
+            {
+              _id: overlayId,
+              alerts: {
+                variations: [
+                  {
+                    _id: variationId,
+                    name: "variation test 1",
+                    backgroundColor: "#123123",
+                  },
+                  {
+                    _id: variation2Id,
+                    name: "variation test 2",
+                    backgroundColor: "#666666",
+                  },
+                ],
+                groups: [
+                  {
+                    kind: VariationGroupKinds.DEFAULT,
+                    variationsIds: [String(variationId), String(variation2Id)],
+                    title: "Unclassed Variations",
+                  },
+                ],
               },
-              {
-                name: "variation test 2",
-                backgroundColor: "#666666",
-              },
-            ],
-          },
+            },
+          ],
         },
       });
     });
@@ -241,20 +290,36 @@ describe("Stream Elements integration test", () => {
     });
 
     test("it should delete the wanted variation", async () => {
-      await deleteVariation(variationId);
+      await deleteVariation(
+        user.herotag as string,
+        String(overlayId),
+        String(variationId)
+      );
 
       const updatedUser = await User.findOne({ herotag: user.herotag })
         .select({
-          "integrations.streamElements.variations": true,
+          "integrations.overlays": true,
         })
         .lean();
 
-      expect(
-        updatedUser?.integrations?.streamElements?.variations
-      ).toMatchObject([
+      expect((updatedUser as UserType).integrations?.overlays).toHaveLength(1);
+
+      const [overlay] = (updatedUser as UserType).integrations
+        ?.overlays as OverlayData[];
+
+      expect(overlay.alerts.variations).toMatchObject([
         {
+          _id: variation2Id,
           name: "variation test 2",
           backgroundColor: "#666666",
+        },
+      ]);
+
+      expect(overlay.alerts.groups).toMatchObject([
+        {
+          title: "Unclassed Variations",
+          variationsIds: [String(variation2Id)],
+          kind: VariationGroupKinds.DEFAULT,
         },
       ]);
     });

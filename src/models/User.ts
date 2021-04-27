@@ -21,34 +21,18 @@ export interface IftttParticleData {
   isActive: boolean;
 }
 
-export interface StreamElementData {
-  variations: AlertVariation[];
-  rowsStructure: {
-    rows: string[];
-    rowsGroupName?: string | undefined;
-  }[];
-  isActive: boolean;
-}
-
 export interface OverlayData {
   _id: string;
+  isActive: boolean;
   rowsStructure?: {
     rows: string[];
     rowsGroupName?: string | undefined;
   }[];
-
   generatedLink: string;
   alerts: {
     variations: AlertVariation[];
     groups: VariationGroup[];
-    // structure: { type: String, required: false },
   };
-  // donationBar: { type: String, required: false },
-  // particlesFalls: {
-  //   variations: { type: String, required: false },
-  //   structure: { type: String, required: false },
-  // },
-  // topDonators: { type: String, required: false },
 }
 
 export interface UserType {
@@ -95,6 +79,7 @@ const AlertSchema = new Schema(
 const OverlaysSchema = new Schema({
   generatedLink: { type: String, required: false },
   alerts: { type: AlertSchema, required: false },
+  isActive: { type: Boolean, required: false },
   // donationBar: { type: String, required: false },
   // particlesFalls: {
   //   variations: { type: String, required: false },

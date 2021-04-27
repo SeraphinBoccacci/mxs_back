@@ -69,7 +69,7 @@ const addAlerts = (herotag: string, overlayId: string) => {
             {
               kind: VariationGroupKinds.DEFAULT,
               variationsIds: [],
-              title: "Unclassed Variation",
+              title: "Unclassed Variations",
             },
           ],
         },

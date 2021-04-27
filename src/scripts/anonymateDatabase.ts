@@ -1,7 +1,7 @@
-import User, { UserType } from "../src/models/User";
-import logger from "../src/services/logger";
-import { connectToDatabase } from "../src/services/mongoose";
-import { getHashedPassword } from "../src/utils/auth";
+import User, { UserType } from "../models/User";
+import logger from "../services/logger";
+import { connectToDatabase } from "../services/mongoose";
+import { getHashedPassword } from "../utils/auth";
 
 const generateRandomString = (length = 8) => {
   const chars =

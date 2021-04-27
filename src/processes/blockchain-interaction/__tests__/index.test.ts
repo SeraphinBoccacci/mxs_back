@@ -18,7 +18,7 @@ jest.mock("../ifttt");
 import * as ifttt from "../ifttt";
 
 jest.mock("../overlays");
-import { IftttParticleData, UserType } from "../../../models/User";
+import { UserType } from "../../../models/User";
 import * as overlays from "../overlays";
 
 const baseUser = {
@@ -34,12 +34,7 @@ const baseUser = {
       triggerKey: "x2qQHAJF89ljX-IwFjNdjZ8raTicSvQpLQcdxggWooJ7",
       isActive: true,
     },
-    overlays: [
-      {
-        alerts: { variations: [] },
-        generatedLink: "hello",
-      },
-    ],
+    overlays: [],
   },
   isStreaming: true,
   streamingStartDate: sub(new Date(), { hours: 4 }),
@@ -81,7 +76,6 @@ describe("Blockchain interaction unit testing", () => {
         integrations: {
           ...baseUser.integrations,
           ifttt: undefined,
-          overlays: undefined,
         },
       };
 
@@ -89,14 +83,10 @@ describe("Blockchain interaction unit testing", () => {
         await reactToNewTransaction(transaction, user);
 
         expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledTimes(0);
-
-        expect(mockedStreamElements.triggerOverlaysEvent).toHaveBeenCalledTimes(
-          0
-        );
       });
     });
 
-    describe("when user has ifttt integration data but not SE", () => {
+    describe("when user has ifttt activated", () => {
       const transaction = {
         hash:
           "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
@@ -104,30 +94,18 @@ describe("Blockchain interaction unit testing", () => {
         value: "1000000000000000000",
       } as ElrondTransaction;
 
-      const user = {
-        ...baseUser,
-        integrations: {
-          ...baseUser.integrations,
-          overlays: undefined,
-        },
-      };
-
       it("should call only trigger ifttt", async () => {
-        await reactToNewTransaction(transaction, user);
+        await reactToNewTransaction(transaction, baseUser);
 
         expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledTimes(1);
         expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledWith(
           { amount: "1", data: "", herotag: "remdem" },
-          user.integrations.ifttt
-        );
-
-        expect(mockedStreamElements.triggerOverlaysEvent).toHaveBeenCalledTimes(
-          0
+          baseUser.integrations?.ifttt
         );
       });
     });
 
-    describe("when user has SE integration data but not ifttt", () => {
+    describe("when user has not ifttt activated", () => {
       const transaction = {
         hash:
           "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
@@ -154,33 +132,6 @@ describe("Blockchain interaction unit testing", () => {
         expect(mockedStreamElements.triggerOverlaysEvent).toHaveBeenCalledWith(
           { amount: "1", data: "", herotag: "remdem" },
           user
-        );
-      });
-    });
-
-    describe("when user has ifttt integration data and SE particle data", () => {
-      const transaction = {
-        hash:
-          "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
-        status: "success",
-        value: "1000000000000000000",
-      } as ElrondTransaction;
-
-      it("should call trigger ifttt & SE", async () => {
-        await reactToNewTransaction(transaction, baseUser);
-
-        expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledTimes(1);
-        expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledWith(
-          { amount: "1", data: "", herotag: "remdem" },
-          baseUser?.integrations?.ifttt as IftttParticleData
-        );
-
-        expect(mockedStreamElements.triggerOverlaysEvent).toHaveBeenCalledTimes(
-          1
-        );
-        expect(mockedStreamElements.triggerOverlaysEvent).toHaveBeenCalledWith(
-          { amount: "1", data: "", herotag: "remdem" },
-          baseUser
         );
       });
     });
