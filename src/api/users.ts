@@ -2,7 +2,7 @@ import axios from "axios";
 import express from "express";
 
 import { authenticateMiddleware } from "../middlewares/authMiddleware";
-import { reactToNewTransaction } from "../processes/blockchain-interaction";
+import { triggerFakeEvent } from "../processes/blockchain-interaction";
 import { toggleBlockchainMonitoring } from "../processes/blockchain-monitoring";
 import {
   getUserData,
@@ -12,7 +12,6 @@ import {
   updateMinimumRequiredAmount,
   updateViewerOnboardingData,
 } from "../processes/user";
-import { EventData, MockedElrondTransaction } from "../types";
 import { RequestWithHerotag } from "../types/express";
 
 const Router = express.Router();
@@ -56,24 +55,10 @@ Router.route("/user/ifttt/is-active/:herotag").post(
   }
 );
 
-const defaultMockedEventData: EventData = {
-  herotag: "test_herotag",
-  amount: "0.001",
-  data: "test message",
-};
-
 Router.route("/user/trigger-event").post(
   authenticateMiddleware,
   async (req, res) => {
-    const user = await getUserData(req.body.herotag);
-
-    const mockedTransaction: MockedElrondTransaction = {
-      isMockedTransaction: true,
-      ...defaultMockedEventData,
-      ...req.body.data,
-    };
-
-    if (user) await reactToNewTransaction(mockedTransaction, user);
+    await triggerFakeEvent(req.body.herotag, req.body.data);
 
     res.sendStatus(204);
   }
