@@ -5,28 +5,15 @@ import {
   isMockedElrondTransaction,
   MockedElrondTransaction,
 } from "../../types";
+import { temporizeFn } from "../../utils/temporize";
 import {
   computeSentAmount,
   getHerotagFromErdAddress,
 } from "../../utils/transactions";
 import { decodeDataFromTx } from "../../utils/transactions";
+import { getUserData } from "../user";
 import { triggerIftttEvent } from "./ifttt";
 import { triggerOverlaysEvent } from "./overlays";
-
-export const reactToManyTransactions = async (
-  transactions: ElrondTransaction[],
-  user: UserType,
-  delay = 20000
-): Promise<void> => {
-  transactions.reduce(
-    (prevPromise, transaction) =>
-      prevPromise.then(async () => {
-        await reactToNewTransaction(transaction, user);
-        await new Promise((resolve) => setTimeout(resolve, delay));
-      }),
-    Promise.resolve()
-  );
-};
 
 export const reactToNewTransaction = async (
   transaction: ElrondTransaction | MockedElrondTransaction,
@@ -56,4 +43,67 @@ export const reactToNewTransaction = async (
     await triggerIftttEvent(eventData, user?.integrations?.ifttt);
 
   await triggerOverlaysEvent(eventData, user);
+};
+
+export const temporisedReactToNewTransaction = temporizeFn(
+  reactToNewTransaction
+);
+
+const resolveDelay = (user: UserType) => {
+  const delays = [
+    10,
+    ...(user.integrations?.overlays?.flatMap(({ alerts }) =>
+      alerts.variations.flatMap(({ duration }) => duration || 0)
+    ) || []),
+  ];
+
+  const maxDelaySecond = Math.max(...delays);
+  const delayMs = maxDelaySecond * 1000;
+
+  return delayMs + 2000;
+};
+
+export const reactToManyTransactions = async (
+  transactions: ElrondTransaction[],
+  user: UserType
+): Promise<void> => {
+  const delay = resolveDelay(user);
+  for (const transaction in transactions) {
+    await temporisedReactToNewTransaction(
+      user.herotag as string,
+      delay,
+      transaction,
+      user
+    );
+  }
+};
+
+const defaultMockedEventData: EventData = {
+  herotag: "test_herotag",
+  amount: "0.001",
+  data: "test message",
+};
+
+export const triggerFakeEvent = async (
+  herotag: string,
+  data: EventData
+): Promise<void> => {
+  const user = await getUserData(herotag);
+
+  const mockedTransaction: MockedElrondTransaction = {
+    isMockedTransaction: true,
+    ...defaultMockedEventData,
+    ...data,
+  };
+
+  if (user) {
+    const delay = resolveDelay(user);
+
+    await temporisedReactToNewTransaction(
+      user.herotag as string,
+      delay,
+      mockedTransaction,
+      user
+    );
+  }
 };
