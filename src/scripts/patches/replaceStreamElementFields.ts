@@ -18,12 +18,14 @@ const replaceStreamElementFields = async () => {
 
   await Promise.all(
     users.map(async (user: UserType) => {
-      const alertsVariations = (user as any).integrations?.streamElements?.variations.map(
-        (variation: AlertVariation) => ({
-          ...variation,
-          _id: mongoose.Types.ObjectId(),
-        })
-      );
+      const alertsVariations =
+        (user as any).integrations?.streamElements?.variations?.map(
+          (variation: AlertVariation) => ({
+            ...variation,
+            _id: mongoose.Types.ObjectId(),
+          })
+        ) || [];
+
       const variationsIds: AlertVariation[] = alertsVariations.map(
         ({ _id }: AlertVariation) => _id
       );
@@ -31,25 +33,29 @@ const replaceStreamElementFields = async () => {
       await User.updateOne(
         { _id: user._id },
         {
-          $set: {
-            "integrations.overlays": [
-              {
-                alerts: {
-                  variations: alertsVariations,
-                  groups: [
-                    {
-                      kind: VariationGroupKinds.DEFAULT,
-                      variationsIds: variationsIds,
-                      title: "Unclassed Variations",
-                    },
-                  ],
-                },
+          ...(alertsVariations && {
+            $set: {
+              "integrations.overlays": [
+                {
+                  alerts: {
+                    variations: alertsVariations,
+                    groups: [
+                      {
+                        kind: VariationGroupKinds.DEFAULT,
+                        variationsIds: variationsIds,
+                        title: "Unclassed Variations",
+                      },
+                    ],
+                  },
 
-                generatedLink: nanoid(50),
-              },
-            ],
-          },
-        }
+                  generatedLink: nanoid(50),
+                },
+              ],
+            },
+          }),
+          $unset: { "integrations.streamElements": "" },
+        },
+        { strict: false }
       );
     })
   );
