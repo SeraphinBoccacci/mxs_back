@@ -1,8 +1,13 @@
 import mongoose, { Schema } from "mongoose";
 
-import { VariationSchema } from "../models/schemas/StreamElementsVariation";
-import { Variation } from "../types/streamElements";
+import { AlertVariation } from "../types/alerts";
 import { ENV } from "../utils/env";
+import { VariationSchema } from "./schemas/AlertVariation";
+import {
+  VariationGroup,
+  VariationGroupKinds,
+  VariationGroupSchema,
+} from "./schemas/VariationGroup";
 
 export enum UserAccountStatus {
   PENDING_VERIFICATION = 0,
@@ -16,13 +21,18 @@ export interface IftttParticleData {
   isActive: boolean;
 }
 
-export interface StreamElementData {
-  variations: Variation[];
-  rowsStructure: {
+export interface OverlayData {
+  _id: string;
+  isActive: boolean;
+  rowsStructure?: {
     rows: string[];
     rowsGroupName?: string | undefined;
   }[];
-  isActive: boolean;
+  generatedLink: string;
+  alerts: {
+    variations: AlertVariation[];
+    groups: VariationGroup[];
+  };
 }
 
 export interface UserType {
@@ -38,7 +48,7 @@ export interface UserType {
   passwordEditionVerificationStartDate?: string;
   integrations?: {
     ifttt?: IftttParticleData;
-    streamElements?: StreamElementData;
+    overlays?: OverlayData[];
     minimumRequiredAmount?: number;
   };
   isStreaming?: boolean;
@@ -48,6 +58,36 @@ export interface UserType {
   herotagQrCodePath?: string;
 }
 
+const AlertSchema = new Schema(
+  {
+    variations: { type: [VariationSchema], required: false },
+    groups: {
+      type: [VariationGroupSchema],
+      required: false,
+      validate: {
+        validator: function(groups: VariationGroup[]) {
+          groups.filter(({ kind }) => kind === VariationGroupKinds.DEFAULT)
+            .length === 1;
+        },
+        message: "There should be exactly one default variations group",
+      },
+    },
+  },
+  { _id: false }
+);
+
+const OverlaysSchema = new Schema({
+  generatedLink: { type: String, required: false },
+  alerts: { type: AlertSchema, required: false },
+  isActive: { type: Boolean, required: false },
+  // donationBar: { type: String, required: false },
+  // particlesFalls: {
+  //   variations: { type: String, required: false },
+  //   structure: { type: String, required: false },
+  // },
+  // topDonators: { type: String, required: false },
+});
+
 const UserSchema = new Schema(
   {
     password: { type: String, required: true },
@@ -55,7 +95,8 @@ const UserSchema = new Schema(
     herotag: {
       type: String,
       required: true,
-      validate: (herotag: string) => herotag.endsWith(`${ENV.ELROND_HEROTAG_DOMAIN}`),
+      validate: (herotag: string) =>
+        herotag.endsWith(`${ENV.ELROND_HEROTAG_DOMAIN}`),
     },
     erdAddress: { type: String, required: false },
     status: { type: UserAccountStatus, required: true },
@@ -69,19 +110,7 @@ const UserSchema = new Schema(
         triggerKey: { type: String, required: false },
         isActive: { type: Boolean, required: false },
       },
-      streamElements: {
-        variations: { type: [VariationSchema], required: false },
-        rowsStructure: {
-          type: [
-            {
-              rowsGroupName: { type: String, required: false },
-              rows: { type: [String], required: false },
-            },
-          ],
-          required: false,
-        },
-        isActive: { type: Boolean, required: false },
-      },
+      overlays: [OverlaysSchema],
       minimumRequiredAmount: { type: Number, required: false },
     },
     isStreaming: { type: Boolean, required: false },

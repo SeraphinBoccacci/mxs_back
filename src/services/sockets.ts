@@ -19,6 +19,7 @@ export const listen = (server: HttpServer): void => {
 
   io.sockets.on("connection", (socket: Socket) => {
     const room = socket?.handshake?.query?.streamerHerotag;
+
     if (room) {
       socket.join(normalizeHerotag(room as string));
     }

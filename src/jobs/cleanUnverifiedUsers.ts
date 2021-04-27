@@ -8,14 +8,9 @@ export const cleanUnverifiedUserAccount = async (): Promise<void> => {
 
   const result = await User.deleteMany({
     status: UserAccountStatus.PENDING_VERIFICATION,
-    $or: [
-      {
-        verificationStartDate: { $lt: sub(new Date(), { minutes: 10 }).toISOString() },
-      },
-      {
-        verificationStartDate: { $exists: true },
-      },
-    ],
+    verificationStartDate: {
+      $lt: sub(new Date(), { minutes: 10 }).toISOString(),
+    },
   });
 
   logger.info({ data: "Unverified user accounts cleaned", ...result });

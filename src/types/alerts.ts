@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-export enum VariationPositions {
+export enum AlertPositions {
   TopLeft = "TopLeft",
   TopCenter = "TopCenter",
   TopRight = "TopRight",
@@ -10,22 +10,6 @@ export enum VariationPositions {
   CenterLeft = "CenterLeft",
   CenterCenter = "CenterCenter",
   CenterRight = "CenterRight",
-}
-
-export interface Variation {
-  _id?: mongoose.Types.ObjectId;
-  name: string;
-  backgroundColor: string;
-  duration?: number;
-  chances?: number;
-  requiredAmount?: number;
-  width?: number;
-  heigth?: number;
-  position?: VariationPositions;
-  sound?: Sound;
-  image?: Image;
-  text?: Text;
-  filepath?: string;
 }
 
 export interface Sound {
@@ -60,7 +44,23 @@ export interface Text {
   };
 }
 
-export enum VariationLenses {
+export interface AlertVariation {
+  _id?: mongoose.Types.ObjectId;
+  name: string;
+  backgroundColor: string;
+  duration?: number;
+  chances?: number;
+  requiredAmount?: number;
+  width?: number;
+  heigth?: number;
+  position?: AlertPositions;
+  sound?: Sound;
+  image?: Image;
+  text?: Text;
+  filepath?: string;
+}
+
+export enum AlertVariationLenses {
   "name" = "name",
   "duration" = "duration",
   "chances" = "chances",

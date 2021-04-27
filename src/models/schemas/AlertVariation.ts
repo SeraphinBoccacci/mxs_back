@@ -1,13 +1,13 @@
 import mongoose from "mongoose";
 
 import {
+  AlertPositions,
   EnterAnimationTypes,
   ExitAnimationTypes,
   TextAlignments,
   TextPositions,
   TextStyles,
-  VariationPositions,
-} from "../../types/streamElements";
+} from "../../types/alerts";
 
 const AnimationSchema = new mongoose.Schema(
   {
@@ -27,7 +27,7 @@ const AnimationSchema = new mongoose.Schema(
 
 export const VariationSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  position: { type: String, enum: VariationPositions },
+  position: { type: String, enum: AlertPositions },
   backgroundColor: { type: String, required: true },
   duration: { type: Number, required: false, default: 10 },
   chances: { type: Number, required: false, default: 100 },

@@ -19,9 +19,13 @@ export const triggerIftttEvent = async (
     value3: eventData.data,
   };
 
-  await axios.post(
-    `https://maker.ifttt.com/trigger/${iftttParticleData.eventName}/with/key/${iftttParticleData.triggerKey}`,
-    data,
-    config
-  );
+  try {
+    await axios.post(
+      `https://maker.ifttt.com/trigger/${iftttParticleData.eventName}/with/key/${iftttParticleData.triggerKey}`,
+      data,
+      config
+    );
+  } catch (error) {
+    throw new Error("INVALID_IFTTT_CONFIGURATION");
+  }
 };

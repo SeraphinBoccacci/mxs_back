@@ -1,31 +1,20 @@
 import axios from "axios";
 import express from "express";
-import mongoose from "mongoose";
 
 import { authenticateMiddleware } from "../middlewares/authMiddleware";
 import { reactToNewTransaction } from "../processes/blockchain-interaction";
 import { toggleBlockchainMonitoring } from "../processes/blockchain-monitoring";
 import {
-  createVariation,
-  deleteVariation,
-  getCodeSnippets,
-  getRowsStructure,
-  getUserVariations,
-  getVariation,
-  updateRowsStructure,
-  updateVariation,
-} from "../processes/stream-elements";
-import {
   getUserData,
   getViewerOnboardingData,
   toggleIftttParticle,
-  toggleStreamElementsParticle,
   updateIftttParticleData,
   updateMinimumRequiredAmount,
   updateViewerOnboardingData,
 } from "../processes/user";
 import { EventData, MockedElrondTransaction } from "../types";
 import { RequestWithHerotag } from "../types/express";
+
 const Router = express.Router();
 
 Router.route("/user/herotag").get(
@@ -62,75 +51,6 @@ Router.route("/user/ifttt/is-active/:herotag").post(
   authenticateMiddleware,
   async (req, res) => {
     await toggleIftttParticle(req.params.herotag, req.body.isActive);
-
-    res.sendStatus(204);
-  }
-);
-
-Router.route("/user/stream-elements/variation")
-  .post(authenticateMiddleware, async (req, res) => {
-    const result = await createVariation(req.body.herotag, req.body.variation);
-
-    res.send(result);
-  })
-  .put(authenticateMiddleware, async (req, res) => {
-    const result = await updateVariation(
-      mongoose.Types.ObjectId(req.body.variationId),
-      req.body.variation
-    );
-
-    res.send(result);
-  });
-
-Router.route("/user/stream-elements/variation/:variationId")
-  .get(authenticateMiddleware, async (req, res) => {
-    const variation = await getVariation(
-      mongoose.Types.ObjectId(req.params.variationId)
-    );
-
-    res.send(variation);
-  })
-  .delete(authenticateMiddleware, async (req, res) => {
-    const result = await deleteVariation(
-      mongoose.Types.ObjectId(req.params.variationId)
-    );
-
-    res.send(result);
-  });
-
-Router.route("/user/stream-elements/variations/:herotag").get(
-  authenticateMiddleware,
-  async (req, res) => {
-    const variations = await getUserVariations(req.params.herotag);
-
-    const files = getCodeSnippets(req.params.herotag, variations);
-
-    res.send({ variations, files });
-  }
-);
-
-Router.route("/user/stream-elements/rows-structure/:herotag").get(
-  authenticateMiddleware,
-  async (req, res) => {
-    const rowsStructure = await getRowsStructure(req.params.herotag);
-
-    res.send(rowsStructure);
-  }
-);
-
-Router.route("/user/stream-elements/rows-structure").post(
-  authenticateMiddleware,
-  async (req, res) => {
-    await updateRowsStructure(req.body.herotag, req.body.rowsStructure);
-
-    res.sendStatus(204);
-  }
-);
-
-Router.route("/user/streamElements/is-active/:herotag").post(
-  authenticateMiddleware,
-  async (req, res) => {
-    await toggleStreamElementsParticle(req.params.herotag, req.body.isActive);
 
     res.sendStatus(204);
   }
