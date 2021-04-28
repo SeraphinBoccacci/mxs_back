@@ -68,7 +68,7 @@ export const reactToManyTransactions = async (
   user: UserType
 ): Promise<void> => {
   const delay = resolveDelay(user);
-  for (const transaction in transactions) {
+  for (const transaction of transactions) {
     await temporisedReactToNewTransaction(
       user.herotag as string,
       delay,

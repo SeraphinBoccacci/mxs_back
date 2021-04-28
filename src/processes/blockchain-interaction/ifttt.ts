@@ -1,6 +1,7 @@
 import axios, { AxiosRequestConfig } from "axios";
 
 import { IftttParticleData } from "../../models/User";
+import logger from "../../services/logger";
 import { EventData } from "../../types";
 
 export const triggerIftttEvent = async (
@@ -26,6 +27,6 @@ export const triggerIftttEvent = async (
       config
     );
   } catch (error) {
-    throw new Error("INVALID_IFTTT_CONFIGURATION");
+    logger.error("INVALID_IFTTT_CONFIGURATION");
   }
 };

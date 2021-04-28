@@ -31,16 +31,6 @@ export const updateIftttParticleData = async (
   );
 };
 
-export const toggleStreamElementsParticle = async (
-  herotag: string,
-  activate: boolean
-): Promise<void> => {
-  await User.updateOne(
-    { herotag: normalizeHerotag(herotag) },
-    { $set: { "integrations.overlays.isActive": activate } }
-  );
-};
-
 export const updateMinimumRequiredAmount = async (
   herotag: string,
   minimumRequiredAmount: number

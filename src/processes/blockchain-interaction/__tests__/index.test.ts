@@ -46,7 +46,7 @@ describe("Blockchain interaction unit testing", () => {
       typeof utilTransactions
     >;
     const mockedIfttt = ifttt as jest.Mocked<typeof ifttt>;
-    const mockedStreamElements = overlays as jest.Mocked<typeof overlays>;
+    const mockedOverlays = overlays as jest.Mocked<typeof overlays>;
 
     beforeAll(() => {
       mockedUtilTransactions.getHerotagFromErdAddress.mockResolvedValue(
@@ -59,7 +59,7 @@ describe("Blockchain interaction unit testing", () => {
     });
 
     beforeEach(() => {
-      mockedStreamElements.triggerOverlaysEvent.mockClear();
+      mockedOverlays.triggerOverlaysEvent.mockClear();
       mockedIfttt.triggerIftttEvent.mockClear();
     });
 
@@ -126,10 +126,8 @@ describe("Blockchain interaction unit testing", () => {
 
         expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledTimes(0);
 
-        expect(mockedStreamElements.triggerOverlaysEvent).toHaveBeenCalledTimes(
-          1
-        );
-        expect(mockedStreamElements.triggerOverlaysEvent).toHaveBeenCalledWith(
+        expect(mockedOverlays.triggerOverlaysEvent).toHaveBeenCalledTimes(1);
+        expect(mockedOverlays.triggerOverlaysEvent).toHaveBeenCalledWith(
           { amount: "1", data: "", herotag: "remdem" },
           user
         );
