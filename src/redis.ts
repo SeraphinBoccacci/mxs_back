@@ -19,6 +19,8 @@ export const getLastBalanceSnapShot = (
             redisData: data,
           });
         }
+
+        return;
       }
 
       resolve(null);
@@ -39,8 +41,11 @@ export const setNewBalance = (
     redisClient.set(`BALANCE_${erdAddress}`, JSON.stringify(balance), (err) => {
       if (!err) {
         resolve(true);
+
+        return;
       }
 
+      logger.error(err);
       resolve(false);
     });
   });
@@ -66,8 +71,11 @@ export const setAlreadyListennedTransactions = async (
       (err) => {
         if (!err) {
           resolve(true);
+
+          return;
         }
 
+        logger.error(err);
         resolve(false);
       }
     );
@@ -92,6 +100,8 @@ export const getAlreadyListennedTransactions = (
           });
           resolve([]);
         }
+
+        return;
       }
 
       resolve([]);
@@ -108,8 +118,11 @@ export const setLastRestart = async (
     redisClient.set("LAST_RESTART", ts, (err) => {
       if (!err) {
         resolve(true);
+
+        return;
       }
 
+      logger.error(err);
       resolve(false);
     });
   });
@@ -132,6 +145,8 @@ export const getLastRestart = async (): Promise<number> => {
 
           resolve(Date.now());
         }
+
+        return;
       }
 
       resolve(Date.now());
