@@ -3,6 +3,7 @@ import express from "express";
 import {
   createAlertsGroup,
   createVariation,
+  deleteAlertsGroup,
   deleteVariation,
   updateAlertsGroup,
   updateVariation,
@@ -22,5 +23,9 @@ Router.route(
 Router.route("/alerts/group")
   .post(authenticateMiddleware, createAlertsGroup)
   .put(authenticateMiddleware, updateAlertsGroup);
+
+Router.route(
+  "/alerts/group/herotag/:herotag/overlay/:overlayId/group/:groupId"
+).delete(authenticateMiddleware, deleteAlertsGroup);
 
 export default Router;

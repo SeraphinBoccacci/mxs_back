@@ -1,6 +1,6 @@
-import { UserType } from "../../models/User";
 import { publisher } from "../../services/redis";
-import { EventData } from "../../types";
+import { EventData } from "../../types/ifttt";
+import { UserType } from "../../types/user";
 
 export const triggerOverlaysEvent = async (
   eventData: EventData,

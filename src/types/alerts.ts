@@ -1,17 +1,5 @@
 import mongoose from "mongoose";
 
-export enum AlertPositions {
-  TopLeft = "TopLeft",
-  TopCenter = "TopCenter",
-  TopRight = "TopRight",
-  BottomLeft = "BottomLeft",
-  BottomCenter = "BottomCenter",
-  BottomRight = "BottomRight",
-  CenterLeft = "CenterLeft",
-  CenterCenter = "CenterCenter",
-  CenterRight = "CenterRight",
-}
-
 export interface Sound {
   soundPath?: string;
   soundDelay?: string;
@@ -45,7 +33,7 @@ export interface Text {
 }
 
 export interface AlertVariation {
-  _id?: mongoose.Types.ObjectId;
+  _id: mongoose.Types.ObjectId;
   name: string;
   backgroundColor: string;
   duration?: number;
@@ -53,7 +41,8 @@ export interface AlertVariation {
   requiredAmount?: number;
   width?: number;
   heigth?: number;
-  position?: AlertPositions;
+  offsetTop?: number;
+  offsetLeft?: number;
   sound?: Sound;
   image?: Image;
   text?: Text;

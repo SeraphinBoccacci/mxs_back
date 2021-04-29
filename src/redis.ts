@@ -1,6 +1,6 @@
 import logger from "./services/logger";
 import { redisClient } from "./services/redis";
-import { LastSnapshotBalance } from "./types";
+import { LastSnapshotBalance } from "./types/elrond";
 
 export const getLastBalanceSnapShot = (
   erdAddress: string

@@ -1,7 +1,7 @@
 import { Decimal } from "decimal.js";
 
 import { dns, proxy } from "../services/elrond";
-import { ElrondTransaction } from "../types";
+import { ElrondTransaction } from "../types/elrond";
 import { ENV } from "./env";
 
 export const getErdAddressFromHerotag = async (

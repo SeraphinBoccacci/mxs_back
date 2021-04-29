@@ -1,8 +1,7 @@
 import axios, { AxiosRequestConfig } from "axios";
 
-import { IftttParticleData } from "../../models/User";
 import logger from "../../services/logger";
-import { EventData } from "../../types";
+import { EventData, IftttParticleData } from "../../types/ifttt";
 
 export const triggerIftttEvent = async (
   eventData: EventData,

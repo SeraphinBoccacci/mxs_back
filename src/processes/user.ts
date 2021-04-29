@@ -1,5 +1,5 @@
 import User, { UserMongooseDocument } from "../models/User";
-import { IftttConfig } from "../types";
+import { IftttConfig } from "../types/ifttt";
 import { normalizeHerotag } from "../utils/transactions";
 
 export const toggleIftttParticle = async (

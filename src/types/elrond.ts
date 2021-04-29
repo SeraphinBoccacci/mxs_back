@@ -35,20 +35,3 @@ export interface LastSnapshotBalance {
   amount: string;
   timestamp: number;
 }
-
-export interface IftttConfig {
-  eventName: string;
-  triggerKey: string;
-}
-
-export interface EventData {
-  herotag: string;
-  amount: string;
-  data: string;
-}
-
-export interface IftttWebhookData {
-  value1: string;
-  value2: string;
-  value3: string;
-}

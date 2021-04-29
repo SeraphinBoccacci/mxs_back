@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { nanoid } from "nanoid";
 
-import { VariationGroupKinds } from "../models/schemas/VariationGroup";
 import User from "../models/User";
+import { VariationGroupKinds } from "../types/overlays";
 import { normalizeHerotag } from "../utils/transactions";
 
 export const getOverlay = async (

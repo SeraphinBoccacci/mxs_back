@@ -65,3 +65,16 @@ export const updateAlertsGroup = async (
 
   res.sendStatus(204);
 };
+
+export const deleteAlertsGroup = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  await overlayProcesses.deleteAlertsGroup(
+    req.params.herotag,
+    req.params.overlayId,
+    req.params.groupId
+  );
+
+  res.sendStatus(204);
+};

@@ -5,11 +5,12 @@
 import mongoose from "mongoose";
 import { nanoid } from "nanoid";
 
-import { VariationGroupKinds } from "../../models/schemas/VariationGroup";
-import User, { UserType } from "../../models/User";
+import User from "../../models/User";
 import logger from "../../services/logger";
 import { connectToDatabase } from "../../services/mongoose";
 import { AlertVariation } from "../../types/alerts";
+import { VariationGroupKinds } from "../../types/overlays";
+import { UserType } from "../../types/user";
 
 const replaceStreamElementFields = async () => {
   const users = await User.find()

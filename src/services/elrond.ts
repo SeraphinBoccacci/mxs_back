@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Dns, ProxyProvider } from "elrondjs";
 
-import { ElrondTransaction } from "../types";
+import { ElrondTransaction } from "../types/elrond";
 import { ENV } from "../utils/env";
 import logger from "./logger";
 

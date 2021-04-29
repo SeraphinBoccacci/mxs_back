@@ -1,6 +1,7 @@
-import User, { UserType } from "../models/User";
+import User from "../models/User";
 import logger from "../services/logger";
 import { connectToDatabase } from "../services/mongoose";
+import { UserType } from "../types/user";
 import { getHashedPassword } from "../utils/auth";
 
 const generateRandomString = (length = 8) => {

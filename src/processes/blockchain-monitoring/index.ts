@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import User, { UserMongooseDocument, UserType } from "../../models/User";
+import User, { UserMongooseDocument } from "../../models/User";
 import {
   getAlreadyListennedTransactions,
   getLastBalanceSnapShot,
@@ -9,7 +9,8 @@ import {
   setNewBalance,
 } from "../../redis";
 import { getLastTransactions, getUpdatedBalance } from "../../services/elrond";
-import { ElrondTransaction, LastSnapshotBalance } from "../../types";
+import { ElrondTransaction, LastSnapshotBalance } from "../../types/elrond";
+import { UserType } from "../../types/user";
 import poll from "../../utils/poll";
 import {
   computeSentAmount,
