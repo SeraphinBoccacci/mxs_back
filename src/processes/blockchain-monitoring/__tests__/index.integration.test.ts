@@ -1,11 +1,11 @@
 import { getTime, sub } from "date-fns";
 import mongoose from "mongoose";
 
-import User, { UserType } from "../../../models/User";
+import User from "../../../models/User";
 
 jest.mock("../../../services/elrond");
 import * as elrond from "../../../services/elrond";
-import { ElrondTransaction } from "../../../types";
+import { ElrondTransaction } from "../../../types/elrond";
 
 jest.mock("../../../redis");
 import * as redis from "../../../redis";
@@ -15,6 +15,7 @@ import * as poll from "../../../utils/poll";
 
 jest.mock("../../blockchain-interaction");
 import { connectToDatabase } from "../../../services/mongoose";
+import { UserType } from "../../../types/user";
 import {
   balanceHandler,
   launchBlockchainMonitoring,

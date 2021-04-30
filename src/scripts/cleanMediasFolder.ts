@@ -1,10 +1,11 @@
 import fs from "fs";
 import path from "path";
 
-import User, { UserType } from "../models/User";
+import User from "../models/User";
 import logger from "../services/logger";
 import { connectToDatabase } from "../services/mongoose";
 import { AlertVariation } from "../types/alerts";
+import { UserType } from "../types/user";
 
 const cleanMediasFolder = async () => {
   const audios = fs

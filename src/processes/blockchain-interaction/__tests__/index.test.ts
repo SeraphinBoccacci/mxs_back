@@ -1,7 +1,7 @@
 import { sub } from "date-fns";
 import mongoose from "mongoose";
 
-import { ElrondTransaction } from "../../../types";
+import { ElrondTransaction } from "../../../types/elrond";
 import { reactToNewTransaction } from "../";
 
 jest.mock("../../../utils/transactions", () => {
@@ -18,7 +18,8 @@ jest.mock("../ifttt");
 import * as ifttt from "../ifttt";
 
 jest.mock("../overlays");
-import { UserType } from "../../../models/User";
+
+import { UserType } from "../../../types/user";
 import * as overlays from "../overlays";
 
 const baseUser = {

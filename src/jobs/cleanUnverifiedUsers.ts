@@ -1,7 +1,8 @@
 import sub from "date-fns/sub";
 
-import User, { UserAccountStatus } from "../models/User";
+import User from "../models/User";
 import logger from "../services/logger";
+import { UserAccountStatus } from "../types/user";
 
 export const cleanUnverifiedUserAccount = async (): Promise<void> => {
   logger.info({ data: "Start cleaning unverified accounts" });

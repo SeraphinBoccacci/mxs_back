@@ -1,18 +1,19 @@
 jest.mock("fs");
 import { sub } from "date-fns";
+import { omit } from "lodash";
 import mongoose from "mongoose";
 
-import { VariationGroupKinds } from "../../models/schemas/VariationGroup";
-import User, { OverlayData, UserType } from "../../models/User";
+import User from "../../models/User";
 import { connectToDatabase } from "../../services/mongoose";
 import {
-  AlertPositions,
   AlertVariation,
   EnterAnimationTypes,
   ExitAnimationTypes,
   TextAlignments,
   TextStyles,
 } from "../../types/alerts";
+import { OverlayData, VariationGroupKinds } from "../../types/overlays";
+import { UserType } from "../../types/user";
 import { createVariation, deleteVariation, updateVariation } from ".";
 
 const baseUser = {
@@ -33,6 +34,7 @@ const baseUser = {
 };
 
 const baseVariation: AlertVariation = {
+  _id: mongoose.Types.ObjectId(),
   name: "variation test",
   duration: 10,
   chances: 40,
@@ -40,7 +42,6 @@ const baseVariation: AlertVariation = {
   backgroundColor: "#ffffff",
   width: 300,
   heigth: 200,
-  position: AlertPositions.BottomCenter,
   sound: {
     soundPath: "/audios_0003.mp3",
     soundDelay: "10",
@@ -151,7 +152,9 @@ describe("Stream Elements integration test", () => {
         const [overlay] = (updatedUser as UserType).integrations
           ?.overlays as OverlayData[];
 
-        expect(overlay.alerts.variations).toMatchObject([baseVariation]);
+        expect(overlay.alerts.variations).toMatchObject([
+          omit(baseVariation, "_id"),
+        ]);
         expect(overlay.alerts.groups).toMatchObject([
           {
             title: "Unclassed Variations",
@@ -226,7 +229,10 @@ describe("Stream Elements integration test", () => {
         ?.overlays as OverlayData[];
 
       expect(overlay.alerts.variations).toMatchObject([
-        baseVariation,
+        {
+          ...baseVariation,
+          _id: variationId,
+        },
         {
           _id: variation2Id,
           name: "variation test 2",
