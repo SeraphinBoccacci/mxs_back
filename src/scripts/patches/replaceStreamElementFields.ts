@@ -2,6 +2,7 @@
  * THIS PATCHES AIMS TO REPLACE user.integrations.streamElements by user.integration.overlays, which will be more generic
  */
 
+import { ObjectId } from "bson";
 import mongoose from "mongoose";
 import { nanoid } from "nanoid";
 
@@ -19,15 +20,17 @@ const replaceStreamElementFields = async () => {
 
   await Promise.all(
     users.map(async (user: UserType) => {
-      const alertsVariations =
+      const alertsVariations: AlertVariation[] =
         (user as any).integrations?.streamElements?.variations?.map(
           (variation: AlertVariation) => ({
             ...variation,
             _id: mongoose.Types.ObjectId(),
+            offsetTop: 0,
+            offsetLeft: 0,
           })
         ) || [];
 
-      const variationsIds: AlertVariation[] = alertsVariations.map(
+      const variationsIds: ObjectId[] = alertsVariations.map(
         ({ _id }: AlertVariation) => _id
       );
 
