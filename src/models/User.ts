@@ -1,62 +1,10 @@
 import mongoose, { Schema } from "mongoose";
 
-import { AlertVariation } from "../types/alerts";
+import { VariationGroup, VariationGroupKinds } from "../types/overlays";
+import { UserAccountStatus, UserType } from "../types/user";
 import { ENV } from "../utils/env";
 import { VariationSchema } from "./schemas/AlertVariation";
-import {
-  VariationGroup,
-  VariationGroupKinds,
-  VariationGroupSchema,
-} from "./schemas/VariationGroup";
-
-export enum UserAccountStatus {
-  PENDING_VERIFICATION = 0,
-  VERIFIED,
-  PENDING_EDIT_PASSWORD_VERIFICATION,
-}
-
-export interface IftttParticleData {
-  eventName: string;
-  triggerKey: string;
-  isActive: boolean;
-}
-
-export interface OverlayData {
-  _id: string;
-  isActive: boolean;
-  rowsStructure?: {
-    rows: string[];
-    rowsGroupName?: string | undefined;
-  }[];
-  generatedLink: string;
-  alerts: {
-    variations: AlertVariation[];
-    groups: VariationGroup[];
-  };
-}
-
-export interface UserType {
-  _id?: mongoose.Types.ObjectId;
-  password?: string;
-  pendingPassword?: string;
-  herotag?: string;
-  erdAddress?: string;
-  status: UserAccountStatus;
-  verificationReference?: string;
-  passwordEditionVerificationReference?: string;
-  verificationStartDate?: string;
-  passwordEditionVerificationStartDate?: string;
-  integrations?: {
-    ifttt?: IftttParticleData;
-    overlays?: OverlayData[];
-    minimumRequiredAmount?: number;
-  };
-  isStreaming?: boolean;
-  streamingStartDate?: Date | null;
-
-  referralLink?: string;
-  herotagQrCodePath?: string;
-}
+import { VariationGroupSchema } from "./schemas/VariationGroup";
 
 const AlertSchema = new Schema(
   {

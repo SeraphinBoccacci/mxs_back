@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 
 import {
-  AlertPositions,
   EnterAnimationTypes,
   ExitAnimationTypes,
   TextAlignments,
@@ -27,7 +26,8 @@ const AnimationSchema = new mongoose.Schema(
 
 export const VariationSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  position: { type: String, enum: AlertPositions },
+  offsetTop: { type: Number, default: 0 },
+  offsetLeft: { type: Number, default: 0 },
   backgroundColor: { type: String, required: true },
   duration: { type: Number, required: false, default: 10 },
   chances: { type: Number, required: false, default: 100 },

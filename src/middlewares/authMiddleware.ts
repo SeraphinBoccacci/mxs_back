@@ -1,8 +1,9 @@
 import { NextFunction, Response } from "express";
 
-import User, { UserAccountStatus } from "../models/User";
+import User from "../models/User";
 import { jwtPayload } from "../services/jwt";
 import { RequestWithHerotag } from "../types/express";
+import { UserAccountStatus } from "../types/user";
 import { normalizeHerotag } from "../utils/transactions";
 
 export const authenticateMiddleware = async (

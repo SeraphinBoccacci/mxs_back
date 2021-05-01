@@ -1,16 +1,10 @@
-import User, {
-  UserAccountStatus,
-  UserMongooseDocument,
-  UserType,
-} from "../../models/User";
+import User, { UserMongooseDocument } from "../../models/User";
 import { getLastTransactions } from "../../services/elrond";
 import { jwtSign } from "../../services/jwt";
 import logger from "../../services/logger";
-import { ElrondTransaction } from "../../types";
-import {
-  getHashedPassword,
-  verifyPassword,
-} from "../../utils/auth";
+import { ElrondTransaction } from "../../types/elrond";
+import { UserAccountStatus, UserType } from "../../types/user";
+import { getHashedPassword, verifyPassword } from "../../utils/auth";
 import { generateNewVerificationReference } from "../../utils/nanoid";
 import poll from "../../utils/poll";
 import {

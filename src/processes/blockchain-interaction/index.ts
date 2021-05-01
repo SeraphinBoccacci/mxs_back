@@ -1,10 +1,10 @@
-import { UserType } from "../../models/User";
 import {
   ElrondTransaction,
-  EventData,
   isMockedElrondTransaction,
   MockedElrondTransaction,
-} from "../../types";
+} from "../../types/elrond";
+import { EventData } from "../../types/ifttt";
+import { UserType } from "../../types/user";
 import { temporizeFn } from "../../utils/temporize";
 import {
   computeSentAmount,
@@ -68,7 +68,7 @@ export const reactToManyTransactions = async (
   user: UserType
 ): Promise<void> => {
   const delay = resolveDelay(user);
-  for (const transaction in transactions) {
+  for (const transaction of transactions) {
     await temporisedReactToNewTransaction(
       user.herotag as string,
       delay,
@@ -99,7 +99,7 @@ export const triggerFakeEvent = async (
   if (user) {
     const delay = resolveDelay(user);
 
-    await temporisedReactToNewTransaction(
+    temporisedReactToNewTransaction(
       user.herotag as string,
       delay,
       mockedTransaction,

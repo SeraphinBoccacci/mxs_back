@@ -1,6 +1,7 @@
 import { nanoid } from "nanoid";
 
-import User, { UserAccountStatus } from "../models/User";
+import User from "../models/User";
+import { UserAccountStatus } from "../types/user";
 
 export const generateNewVerificationReference = async (): Promise<string> => {
   const reference = nanoid(10);

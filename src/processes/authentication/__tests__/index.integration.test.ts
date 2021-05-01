@@ -1,12 +1,12 @@
 import { getTime, sub } from "date-fns";
 import mongoose from "mongoose";
 
-import User, { UserAccountStatus, UserType } from "../../../models/User";
+import User from "../../../models/User";
 import { connectToDatabase } from "../../../services/mongoose";
 
 jest.mock("../../../services/elrond");
 import * as elrond from "../../../services/elrond";
-import { ElrondTransaction } from "../../../types";
+import { ElrondTransaction } from "../../../types/elrond";
 
 jest.mock("../../../utils/transactions", () => {
   const module = jest.requireActual("../../../utils/transactions");
@@ -17,6 +17,7 @@ jest.mock("../../../utils/transactions", () => {
     normalizeHerotag: jest.fn(),
   };
 });
+import { UserAccountStatus, UserType } from "../../../types/user";
 import * as transactions from "../../../utils/transactions";
 import {
   activateAccountIfTransactionHappened,

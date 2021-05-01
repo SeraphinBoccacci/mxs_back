@@ -1,119 +1,56 @@
-import axios from "axios";
 import express from "express";
 
-import { authenticateMiddleware } from "../middlewares/authMiddleware";
-import { triggerFakeEvent } from "../processes/blockchain-interaction";
-import { toggleBlockchainMonitoring } from "../processes/blockchain-monitoring";
 import {
+  getEgldPrice,
   getUserData,
   getViewerOnboardingData,
+  toggleBlockchainMonitoring,
   toggleIftttParticle,
+  triggerFakeEvent,
   updateIftttParticleData,
   updateMinimumRequiredAmount,
   updateViewerOnboardingData,
-} from "../processes/user";
-import { RequestWithHerotag } from "../types/express";
+} from "../controllers/users";
+import { authenticateMiddleware } from "../middlewares/authMiddleware";
 
 const Router = express.Router();
 
-Router.route("/user/herotag").get(
-  authenticateMiddleware,
-  async (req: RequestWithHerotag, res) => {
-    if (!req?.herotag) return res.sendStatus(403);
-
-    const user = await getUserData(req?.herotag);
-
-    res.send(user);
-  }
-);
+Router.route("/user/herotag").get(authenticateMiddleware, getUserData);
 
 Router.route("/user/poll-maiar/:herotag").post(
   authenticateMiddleware,
-  async (req, res) => {
-    await toggleBlockchainMonitoring(req.params.herotag, req.body.isStreaming);
-
-    res.sendStatus(204);
-  }
+  toggleBlockchainMonitoring
 );
 
-// define the home page route
 Router.route("/user/ifttt/:herotag").post(
   authenticateMiddleware,
-  async (req, res) => {
-    await updateIftttParticleData(req.params.herotag, req.body.ifttt);
-
-    res.sendStatus(204);
-  }
+  updateIftttParticleData
 );
 
 Router.route("/user/ifttt/is-active/:herotag").post(
   authenticateMiddleware,
-  async (req, res) => {
-    await toggleIftttParticle(req.params.herotag, req.body.isActive);
-
-    res.sendStatus(204);
-  }
+  toggleIftttParticle
 );
 
 Router.route("/user/trigger-event").post(
   authenticateMiddleware,
-  async (req, res) => {
-    await triggerFakeEvent(req.body.herotag, req.body.data);
-
-    res.sendStatus(204);
-  }
+  triggerFakeEvent
 );
 
 Router.route("/user/minimum-required-amount").post(
   authenticateMiddleware,
-  async (req, res) => {
-    await updateMinimumRequiredAmount(
-      req.body.herotag,
-      req.body.minimumRequiredAmount
-    );
-
-    res.sendStatus(204);
-  }
+  updateMinimumRequiredAmount
 );
 
 Router.route("/user/viewers-onboarding-data").post(
   authenticateMiddleware,
-  async (req, res) => {
-    await updateViewerOnboardingData(
-      req.body.herotag,
-      req.body.referralLink,
-      req.body.herotagQrCodePath
-    );
-
-    res.sendStatus(204);
-  }
+  updateViewerOnboardingData
 );
 
 Router.route("/user/viewers-onboarding-data/herotag/:herotag").get(
-  async (req, res) => {
-    const user = await getViewerOnboardingData(req.params.herotag);
-
-    res.send({
-      referralLink: user?.referralLink,
-      herotagQrCodePath: user?.herotagQrCodePath,
-    });
-  }
+  getViewerOnboardingData
 );
 
-Router.route("/egld-price").get(async (req, res) => {
-  const response = await axios.get(
-    "https://api.coingecko.com/api/v3/simple/price?ids=elrond-erd-2&vs_currencies=usd"
-  );
-
-  if (!response) {
-    res.sendStatus(200);
-
-    return;
-  }
-
-  const price = response.data["elrond-erd-2"].usd;
-
-  res.send({ price });
-});
+Router.route("/egld-price").get(getEgldPrice);
 
 export default Router;

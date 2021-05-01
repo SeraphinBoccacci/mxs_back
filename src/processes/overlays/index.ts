@@ -1,15 +1,12 @@
 import mongoose from "mongoose";
 
-import {
-  VariationGroup,
-  VariationGroupKinds,
-} from "../../models/schemas/VariationGroup";
 import User from "../../models/User";
 import {
   AlertVariation,
   TextAlignments,
   TextPositions,
 } from "../../types/alerts";
+import { VariationGroup, VariationGroupKinds } from "../../types/overlays";
 import { normalizeHerotag } from "../../utils/transactions";
 
 const payloadToVariation = (payload: AlertVariation) => {
@@ -22,7 +19,8 @@ const payloadToVariation = (payload: AlertVariation) => {
     backgroundColor: payload.backgroundColor,
     width: payload.width,
     heigth: payload.heigth,
-    position: payload.position,
+    offsetTop: payload.offsetTop,
+    offsetLeft: payload.offsetLeft,
     sound: {
       soundPath: payload?.sound?.soundPath,
       soundDelay: payload?.sound?.soundDelay,
@@ -271,6 +269,64 @@ export const updateAlertsGroup = async (
     variationsIds: group.variationsIds,
     kind: group.kind,
   }));
+
+  await User.updateOne(
+    {
+      herotag: normalizeHerotag(herotag),
+      "integrations.overlays._id": overlayId,
+    },
+    {
+      $set: {
+        "integrations.overlays.$.alerts.groups": groups,
+      },
+    }
+  );
+};
+
+export const deleteAlertsGroup = async (
+  herotag: string,
+  overlayId: string,
+  groupId: string
+): Promise<void> => {
+  const user = await User.findOne({
+    herotag: normalizeHerotag(herotag),
+    "integrations.overlays._id": overlayId,
+  })
+    .select({ "integrations.overlays": true })
+    .lean();
+
+  const overlayToUpdate = user?.integrations?.overlays?.find(
+    ({ _id }) => String(_id) === String(overlayId)
+  );
+
+  const groupToDelete = overlayToUpdate?.alerts.groups.find(
+    ({ _id }) => String(_id) === String(groupId)
+  );
+
+  if (groupToDelete?.kind === VariationGroupKinds.DEFAULT)
+    throw new Error("CANT_DELETE_DEFAULT_GROUP");
+
+  const groups: VariationGroup[] =
+    overlayToUpdate?.alerts.groups
+      .filter(
+        ({ _id, kind }) =>
+          String(_id) !== String(groupId) ||
+          kind === VariationGroupKinds.DEFAULT
+      )
+      .map((group) => {
+        return {
+          _id: group._id,
+          title: group.title,
+          variationsIds:
+            group.kind === VariationGroupKinds.DEFAULT
+              ? [
+                  ...group.variationsIds,
+                  ...(groupToDelete?.variationsIds || []),
+                ]
+              : group.variationsIds,
+          kind: group.kind,
+        };
+      }) || [];
 
   await User.updateOne(
     {

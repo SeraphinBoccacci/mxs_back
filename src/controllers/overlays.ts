@@ -1,13 +1,16 @@
+import { Request, Response } from "express";
 import { nanoid } from "nanoid";
 
-import { VariationGroupKinds } from "../models/schemas/VariationGroup";
-import User, { OverlayData } from "../models/User";
+import User from "../models/User";
+import { VariationGroupKinds } from "../types/overlays";
 import { normalizeHerotag } from "../utils/transactions";
 
 export const getOverlay = async (
-  herotag: string,
-  overlayId: string
-): Promise<OverlayData | null> => {
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { herotag, overlayId } = req.params;
+
   const user = await User.findOne({
     herotag: normalizeHerotag(herotag),
   })
@@ -18,34 +21,46 @@ export const getOverlay = async (
     return overlayId === generatedLink;
   });
 
-  return overlay || null;
+  res.send(overlay || null);
 };
 
 export const getUserOverlays = async (
-  herotag: string
-): Promise<OverlayData[]> => {
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { herotag } = req.params;
+
   const user = await User.findOne({
     herotag: normalizeHerotag(herotag),
   })
     .select({ "integrations.overlays": true })
     .lean();
 
-  return user?.integrations?.overlays || [];
+  res.send(user?.integrations?.overlays || []);
 };
 
-export const createOneOverlay = async (herotag: string): Promise<void> => {
+export const createOneOverlay = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { herotag } = req.params;
+
   await User.updateOne(
     {
       herotag: normalizeHerotag(herotag),
     },
     { $push: { "integrations.overlays": { generatedLink: nanoid(50) } } }
   );
+
+  res.sendStatus(204);
 };
 
 export const deleteOneOverlay = async (
-  herotag: string,
-  overlayId: string
+  req: Request,
+  res: Response
 ): Promise<void> => {
+  const { herotag, overlayId } = req.params;
+
   await User.updateOne(
     {
       herotag: normalizeHerotag(herotag),
@@ -53,6 +68,8 @@ export const deleteOneOverlay = async (
     },
     { $pull: { "integrations.overlays": { _id: overlayId } } }
   );
+
+  res.sendStatus(204);
 };
 
 const addAlerts = (herotag: string, overlayId: string) => {
@@ -83,13 +100,14 @@ enum WidgetsKinds {
 }
 
 export const addWidgetToOverlay = async (
-  herotag: string,
-  overlayId: string,
-  widget: WidgetsKinds
+  req: Request,
+  res: Response
 ): Promise<void> => {
+  const { herotag, overlayId, widget } = req.body;
   if (widget === WidgetsKinds.ALERTS) {
     await addAlerts(herotag, overlayId);
 
+    res.sendStatus(204);
     return;
   }
 };
