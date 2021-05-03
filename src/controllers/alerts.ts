@@ -15,6 +15,19 @@ export const createVariation = async (
   res.send(result);
 };
 
+export const getVariation = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const result = await overlayProcesses.getVariation(
+    req.params.herotag,
+    req.params.overlayId,
+    req.params.variationId
+  );
+
+  res.send(result);
+};
+
 export const updateVariation = async (
   req: Request,
   res: Response
