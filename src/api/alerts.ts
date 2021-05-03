@@ -5,6 +5,7 @@ import {
   createVariation,
   deleteAlertsGroup,
   deleteVariation,
+  getVariation,
   updateAlertsGroup,
   updateVariation,
 } from "../controllers/alerts";
@@ -18,7 +19,9 @@ Router.route("/alerts/variation")
 
 Router.route(
   "/alerts/herotag/:herotag/overlay/:overlayId/variation/:variationId"
-).delete(authenticateMiddleware, deleteVariation);
+)
+  .get(authenticateMiddleware, getVariation)
+  .delete(authenticateMiddleware, deleteVariation);
 
 Router.route("/alerts/group")
   .post(authenticateMiddleware, createAlertsGroup)

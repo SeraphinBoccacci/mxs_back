@@ -135,6 +135,29 @@ export const createVariation = async (
   );
 };
 
+export const getVariation = async (
+  herotag: string,
+  overlayId: string,
+  variationId: string
+): Promise<AlertVariation | null> => {
+  const user = await User.findOne({
+    herotag: normalizeHerotag(herotag),
+    "integrations.overlays._id": overlayId,
+  })
+    .select({ "integrations.overlays": true })
+    .lean();
+
+  const overlay = user?.integrations?.overlays?.find(
+    ({ _id }) => String(_id) === String(overlayId)
+  );
+
+  return (
+    overlay?.alerts.variations.find(
+      ({ _id }) => String(_id) === String(variationId)
+    ) || null
+  );
+};
+
 const findVariationAndReplace = (
   variations: AlertVariation[],
   updatedVariation: AlertVariation
