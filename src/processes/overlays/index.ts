@@ -1,15 +1,15 @@
 import mongoose from "mongoose";
 
 import User from "../../models/User";
+import { AlertVariation, TextPositions } from "../../types/alerts";
 import {
-  AlertVariation,
-  TextAlignments,
-  TextPositions,
-} from "../../types/alerts";
-import { VariationGroup, VariationGroupKinds } from "../../types/overlays";
+  VariationGroup,
+  VariationGroupKinds,
+  WidgetsKinds,
+} from "../../types/overlays";
 import { normalizeHerotag } from "../../utils/transactions";
 
-const payloadToVariation = (payload: AlertVariation) => {
+const payloadToAlertVariation = (payload: AlertVariation): AlertVariation => {
   return {
     _id: payload._id,
     name: payload.name,
@@ -54,7 +54,7 @@ const payloadToVariation = (payload: AlertVariation) => {
       lineHeight: payload?.text?.lineHeight || "50",
       letterSpacing: payload?.text?.letterSpacing,
       wordSpacing: payload?.text?.wordSpacing,
-      textAlign: payload?.text?.textAlign || TextAlignments.left,
+      textAlign: payload?.text?.textAlign || "left",
       stroke: {
         width: payload.text?.stroke?.width || 1,
         color: payload.text?.stroke?.color || "#000000",
@@ -81,7 +81,7 @@ export const createVariation = async (
   overlayId: string,
   payload: AlertVariation
 ): Promise<void> => {
-  const variationData = payloadToVariation(payload);
+  const variationData = payloadToAlertVariation(payload);
   const variationId = mongoose.Types.ObjectId();
 
   const newVariation = {
@@ -188,7 +188,7 @@ export const updateVariation = async (
 
   if (!overlayToUpdate) throw new Error("OVERLAY_NOT_FOUND");
 
-  const updatedVariation: AlertVariation = payloadToVariation(payload);
+  const updatedVariation: AlertVariation = payloadToAlertVariation(payload);
 
   const updatedOverlay = {
     ...overlayToUpdate,
@@ -362,4 +362,68 @@ export const deleteAlertsGroup = async (
       },
     }
   );
+};
+
+const addAlerts = (herotag: string, overlayId: string) => {
+  return User.updateOne(
+    {
+      herotag: normalizeHerotag(herotag),
+      "integrations.overlays._id": overlayId,
+    },
+    {
+      $set: {
+        "integrations.overlays.$.alerts": {
+          variations: [],
+          groups: [
+            {
+              kind: VariationGroupKinds.DEFAULT,
+              variationsIds: [],
+              title: "Unclassed Variations",
+            },
+          ],
+        },
+      },
+    }
+  );
+};
+
+const addDonationBar = (herotag: string, overlayId: string) => {
+  return User.updateOne(
+    {
+      herotag: normalizeHerotag(herotag),
+      "integrations.overlays._id": overlayId,
+    },
+    {
+      $set: {
+        "integrations.overlays.$.donationBar": {
+          variations: [],
+          groups: [
+            {
+              kind: VariationGroupKinds.DEFAULT,
+              variationsIds: [],
+              title: "Unclassed Variations",
+            },
+          ],
+        },
+      },
+    }
+  );
+};
+
+export const addWidgetToOverlay = async (
+  herotag: string,
+  overlayId: string,
+  widget: WidgetsKinds
+): Promise<void> => {
+  if (widget === WidgetsKinds.ALERTS) {
+    await addAlerts(herotag, overlayId);
+
+    return;
+  }
+
+  if (widget === WidgetsKinds.DONATION_BAR) {
+    await addDonationBar(herotag, overlayId);
+
+    return;
+  }
 };

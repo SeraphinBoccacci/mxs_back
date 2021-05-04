@@ -1,12 +1,11 @@
 import mongoose from "mongoose";
 
+import { TextPositions } from "../../types/alerts";
 import {
   EnterAnimationTypes,
   ExitAnimationTypes,
-  TextAlignments,
-  TextPositions,
   TextStyles,
-} from "../../types/alerts";
+} from "../../types/style";
 
 const AnimationSchema = new mongoose.Schema(
   {
@@ -74,7 +73,7 @@ export const VariationSchema = new mongoose.Schema({
       textAlign: {
         type: String,
         required: false,
-        default: TextAlignments.left,
+        default: "left",
       },
       textStyle: {
         type: [{ type: String, enum: TextStyles }],

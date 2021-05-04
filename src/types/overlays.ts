@@ -1,6 +1,12 @@
 import mongoose from "mongoose";
 
 import { AlertVariation } from "./alerts";
+
+export enum WidgetsKinds {
+  "ALERTS" = "ALERTS",
+  "DONATION_BAR" = "DONATION_BAR",
+}
+
 export enum VariationGroupKinds {
   DEFAULT = "DEFAULT",
   CUSTOM = "CUSTOM",

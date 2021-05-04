@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { nanoid } from "nanoid";
 
 import User from "../models/User";
-import { VariationGroupKinds } from "../types/overlays";
+import * as overlaysProcesses from "../processes/overlays";
 import { normalizeHerotag } from "../utils/transactions";
 
 export const getOverlay = async (
@@ -72,42 +72,13 @@ export const deleteOneOverlay = async (
   res.sendStatus(204);
 };
 
-const addAlerts = (herotag: string, overlayId: string) => {
-  return User.updateOne(
-    {
-      herotag: normalizeHerotag(herotag),
-      "integrations.overlays._id": overlayId,
-    },
-    {
-      $set: {
-        "integrations.overlays.$.alerts": {
-          variations: [],
-          groups: [
-            {
-              kind: VariationGroupKinds.DEFAULT,
-              variationsIds: [],
-              title: "Unclassed Variations",
-            },
-          ],
-        },
-      },
-    }
-  );
-};
-
-enum WidgetsKinds {
-  "ALERTS" = "ALERTS",
-}
-
 export const addWidgetToOverlay = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   const { herotag, overlayId, widget } = req.body;
-  if (widget === WidgetsKinds.ALERTS) {
-    await addAlerts(herotag, overlayId);
 
-    res.sendStatus(204);
-    return;
-  }
+  await overlaysProcesses.addWidgetToOverlay(herotag, overlayId, widget);
+
+  res.sendStatus(204);
 };

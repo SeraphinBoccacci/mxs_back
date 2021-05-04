@@ -4,6 +4,7 @@ import { VariationGroup, VariationGroupKinds } from "../types/overlays";
 import { UserAccountStatus, UserType } from "../types/user";
 import { ENV } from "../utils/env";
 import { VariationSchema } from "./schemas/AlertVariation";
+import { DonationBarSchema } from "./schemas/DonationBar";
 import { VariationGroupSchema } from "./schemas/VariationGroup";
 
 const AlertSchema = new Schema(
@@ -28,7 +29,7 @@ const OverlaysSchema = new Schema({
   generatedLink: { type: String, required: false },
   alerts: { type: AlertSchema, required: false },
   isActive: { type: Boolean, required: false },
-  // donationBar: { type: String, required: false },
+  donationBar: { type: DonationBarSchema, required: false },
   // particlesFalls: {
   //   variations: { type: String, required: false },
   //   structure: { type: String, required: false },

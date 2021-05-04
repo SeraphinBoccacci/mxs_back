@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+import { Animation, Text } from "./style";
+
 export interface Sound {
   soundPath?: string;
   soundDelay?: string;
@@ -13,23 +15,17 @@ export interface Image {
   animation?: Animation;
 }
 
-export interface Text {
+export enum TextPositions {
+  top = "top",
+  bottom = "bottom",
+  right = "right",
+  left = "left",
+  over = "over",
+}
+
+export interface AlertText extends Text {
   position?: TextPositions;
-  content?: string;
-  width?: number;
-  height?: number;
-  size?: string;
-  color?: string;
-  lineHeight?: string;
-  letterSpacing?: string;
-  wordSpacing?: string;
-  textAlign?: string;
-  textStyle?: TextStyles[];
   animation?: Animation;
-  stroke?: {
-    color?: string;
-    width?: number;
-  };
 }
 
 export interface AlertVariation {
@@ -45,7 +41,7 @@ export interface AlertVariation {
   offsetLeft?: number;
   sound?: Sound;
   image?: Image;
-  text?: Text;
+  text?: AlertText;
   filepath?: string;
 }
 
@@ -89,47 +85,4 @@ export enum AlertVariationLenses {
   "text_animation_exit_type" = "text_animation_exit_type",
   "text_animation_exit_duration" = "text_animation_exit_duration",
   "text_animation_exit_offset" = "text_animation_exit_offset",
-}
-
-export enum TextPositions {
-  top = "top",
-  bottom = "bottom",
-  right = "right",
-  left = "left",
-  over = "over",
-}
-
-export enum TextAlignments {
-  left = "left",
-  center = "center",
-  right = "right",
-}
-
-export enum EnterAnimationTypes {
-  slideUp = "slide-up-enter",
-  slideDown = "slide-down-enter",
-  slideLeft = "slide-left-enter",
-  slideRight = "slide-right-enter",
-  fadeIn = "fade-in",
-  growth = "grow",
-}
-
-export enum ExitAnimationTypes {
-  slideUp = "slide-up-exit",
-  slideDown = "slide-down-exit",
-  slideLeft = "slide-left-exit",
-  slideRight = "slide-right-exit",
-  fadeOut = "fade-out",
-  shrink = "shrink",
-}
-
-export enum TextStyles {
-  bold = "bold",
-  italic = "italic",
-  underline = "underline",
-}
-
-interface Animation {
-  enter?: { type?: EnterAnimationTypes; duration?: number; delay?: number };
-  exit?: { type?: ExitAnimationTypes; duration?: number; offset?: number };
 }
