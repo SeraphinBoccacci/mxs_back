@@ -1,15 +1,22 @@
 import { Decimal } from "decimal.js";
 
 import { dns, proxy } from "../services/elrond";
+import logger from "../services/logger";
 import { ElrondTransaction } from "../types/elrond";
 import { ENV } from "./env";
 
 export const getErdAddressFromHerotag = async (
   herotag: string
-): Promise<string> => {
-  const address = await dns.resolve(herotag);
+): Promise<string | null> => {
+  try {
+    const address = await dns.resolve(herotag);
 
-  return address;
+    return address;
+  } catch (error) {
+    logger.error("FAILED_RESOLVE_ERD_ADDRESS");
+
+    return null;
+  }
 };
 
 export const getHerotagFromErdAddress = async (

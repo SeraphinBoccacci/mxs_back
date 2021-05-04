@@ -29,6 +29,7 @@ import {
 
 const baseUser = {
   herotag: "streamparticles.elrond",
+  erdAddress: "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm",
   password: "$2b$10$RzGjFb4jVp77rsiMPOHofOmUzsllH674FnezzIR8Jmjmhr2u1HwXe",
   status: 1,
   verificationStartDate: new Date().toISOString(),
@@ -270,9 +271,6 @@ describe("Auth integration testing", () => {
 
   describe("activateAccountIfTransactionHappened", () => {
     describe("when no transactions contains verificationReference", () => {
-      const mockedTransactions = transactions as jest.Mocked<
-        typeof transactions
-      >;
       let user: UserType;
       const mockedElrond = elrond as jest.Mocked<typeof elrond>;
       beforeAll(async () => {
@@ -280,10 +278,6 @@ describe("Auth integration testing", () => {
           ...baseUser,
           status: UserAccountStatus.PENDING_VERIFICATION,
         });
-
-        mockedTransactions.getErdAddressFromHerotag.mockResolvedValue(
-          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm"
-        );
 
         mockedElrond.getLastTransactions.mockResolvedValue([
           {
@@ -300,7 +294,6 @@ describe("Auth integration testing", () => {
       afterAll(async () => {
         await User.deleteMany();
 
-        mockedTransactions.getErdAddressFromHerotag.mockClear();
         mockedElrond.getLastTransactions.mockClear();
       });
 
@@ -310,13 +303,6 @@ describe("Auth integration testing", () => {
         const updatedUser = await User.findOne({
           herotag: baseUser.herotag,
         }).lean();
-
-        expect(
-          mockedTransactions.getErdAddressFromHerotag
-        ).toHaveBeenCalledTimes(1);
-        expect(
-          mockedTransactions.getErdAddressFromHerotag
-        ).toHaveBeenNthCalledWith(1, "streamparticles.elrond");
 
         expect(mockedElrond.getLastTransactions).toHaveBeenCalledTimes(1);
         expect(mockedElrond.getLastTransactions).toHaveBeenNthCalledWith(
@@ -331,9 +317,6 @@ describe("Auth integration testing", () => {
     });
 
     describe("when one transaction contains verificationReference", () => {
-      const mockedTransactions = transactions as jest.Mocked<
-        typeof transactions
-      >;
       let user: UserType;
       const mockedElrond = elrond as jest.Mocked<typeof elrond>;
       beforeAll(async () => {
@@ -342,10 +325,6 @@ describe("Auth integration testing", () => {
           status: UserAccountStatus.PENDING_VERIFICATION,
           verificationReference: "MyeTg9HJrW",
         });
-
-        mockedTransactions.getErdAddressFromHerotag.mockResolvedValue(
-          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm"
-        );
 
         mockedElrond.getLastTransactions.mockResolvedValue([
           {
@@ -363,7 +342,6 @@ describe("Auth integration testing", () => {
       afterAll(async () => {
         await User.deleteMany();
 
-        mockedTransactions.getErdAddressFromHerotag.mockClear();
         mockedElrond.getLastTransactions.mockClear();
       });
 
@@ -373,13 +351,6 @@ describe("Auth integration testing", () => {
         const updatedUser = await User.findOne({
           herotag: baseUser.herotag,
         }).lean();
-
-        expect(
-          mockedTransactions.getErdAddressFromHerotag
-        ).toHaveBeenCalledTimes(1);
-        expect(
-          mockedTransactions.getErdAddressFromHerotag
-        ).toHaveBeenNthCalledWith(1, "streamparticles.elrond");
 
         expect(mockedElrond.getLastTransactions).toHaveBeenCalledTimes(1);
         expect(mockedElrond.getLastTransactions).toHaveBeenNthCalledWith(

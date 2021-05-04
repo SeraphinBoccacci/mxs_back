@@ -46,7 +46,7 @@ const UserSchema = new Schema(
       validate: (herotag: string) =>
         herotag.endsWith(`${ENV.ELROND_HEROTAG_DOMAIN}`),
     },
-    erdAddress: { type: String, required: false },
+    erdAddress: { type: String, required: true }, // TO-DO validate string format
     status: { type: UserAccountStatus, required: true },
     verificationReference: { type: String, required: true },
     passwordEditionVerificationReference: { type: String, required: false },

@@ -13,8 +13,8 @@ export interface UserType {
   _id: mongoose.Types.ObjectId;
   password?: string;
   pendingPassword?: string;
-  herotag?: string;
-  erdAddress?: string;
+  herotag: string;
+  erdAddress: string;
   status: UserAccountStatus;
   verificationReference?: string;
   passwordEditionVerificationReference?: string;
