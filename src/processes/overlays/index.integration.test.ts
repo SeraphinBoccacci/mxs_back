@@ -17,7 +17,8 @@ import { UserType } from "../../types/user";
 import { createVariation, deleteVariation, updateVariation } from ".";
 
 const baseUser = {
-  herotag: "serabocca06.elrond",
+  herotag: "streamparticles.elrond",
+  erdAddress: "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm",
   password: "$2b$10$RzGjFb4jVp77rsiMPOHofOmUzsllH674FnezzIR8Jmjmhr2u1HwXe",
   status: 1,
   verificationStartDate: new Date().toISOString(),

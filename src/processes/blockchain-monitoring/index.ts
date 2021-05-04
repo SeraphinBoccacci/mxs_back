@@ -9,14 +9,11 @@ import {
   setNewBalance,
 } from "../../redis";
 import { getLastTransactions, getUpdatedBalance } from "../../services/elrond";
+import logger from "../../services/logger";
 import { ElrondTransaction, LastSnapshotBalance } from "../../types/elrond";
 import { UserType } from "../../types/user";
 import poll from "../../utils/poll";
-import {
-  computeSentAmount,
-  getErdAddressFromHerotag,
-  normalizeHerotag,
-} from "../../utils/transactions";
+import { computeSentAmount, normalizeHerotag } from "../../utils/transactions";
 import { reactToManyTransactions } from "../blockchain-interaction";
 
 export const findNewIncomingTransactions = (
@@ -59,18 +56,17 @@ export const transactionsHandler = (
   return async (): Promise<boolean> => {
     const user = await User.findById(userId).lean();
 
-    if (!user || !user.herotag) return true;
+    if (!user?.erdAddress) return true;
 
-    const erdAddress = await getErdAddressFromHerotag(user.herotag);
-    const transactions = await getLastTransactions(erdAddress);
+    const transactions = await getLastTransactions(user.erdAddress);
 
     const last30ListennedTransactions = await getAlreadyListennedTransactions(
-      erdAddress
+      user.erdAddress
     );
 
     const newTransactions = findNewIncomingTransactions(
       transactions,
-      erdAddress,
+      user.erdAddress,
       user,
       last30ListennedTransactions,
       lastRestartTimestamp
@@ -79,7 +75,7 @@ export const transactionsHandler = (
     if (!newTransactions.length) return false;
 
     await setAlreadyListennedTransactions(
-      erdAddress,
+      user.erdAddress,
       newTransactions.map(({ hash }) => hash)
     );
 
@@ -119,12 +115,10 @@ export const balanceHandler = (
 };
 
 export const launchBlockchainMonitoring = async (
-  herotag: string,
+  erdAddress: string,
   user: UserType
-): Promise<string> => {
+): Promise<string | null> => {
   const lastRestartTimestamp = await getLastRestart();
-
-  const erdAddress = await getErdAddressFromHerotag(herotag);
 
   const handleTransactions = transactionsHandler(
     user._id as mongoose.Types.ObjectId,
@@ -166,13 +160,14 @@ export const toggleBlockchainMonitoring = async (
   if (!user) return;
 
   if (isStreaming && user.integrations) {
-    const erdAddress = await getErdAddressFromHerotag(herotag);
-    const newBalance = await getUpdatedBalance(erdAddress);
+    if (!user?.erdAddress) return;
+
+    const newBalance = await getUpdatedBalance(user.erdAddress);
 
     if (newBalance) {
-      await setNewBalance(erdAddress, newBalance);
+      await setNewBalance(user.erdAddress, newBalance);
 
-      await launchBlockchainMonitoring(user.herotag as string, user);
+      await launchBlockchainMonitoring(user.erdAddress, user);
     } else throw new Error("UNABLE_TO_LAUCH_BC_MONITORING");
   }
 
@@ -182,20 +177,44 @@ export const toggleBlockchainMonitoring = async (
 export const resumeBlockchainMonitoring = async (): Promise<string[]> => {
   const usersToPoll = await User.find({ isStreaming: true }).lean();
 
-  const launchedUsers = await Promise.all(
-    usersToPoll.map(async (user) => {
-      if (!user.herotag) throw new Error("UNABLE_TO_LAUCH_BC_MONITORING");
+  const launchedUsers = await usersToPoll.reduce(
+    (prevPromise: Promise<string[]>, user: UserType) => {
+      return prevPromise.then(
+        async (accLaunchedUsers: string[]): Promise<string[]> => {
+          if (!user.herotag) {
+            logger.error("UNABLE_TO_LAUCH_BC_MONITORING");
 
-      const erdAddress = await getErdAddressFromHerotag(user.herotag);
+            return accLaunchedUsers;
+          }
 
-      const newBalance = await getUpdatedBalance(erdAddress);
+          if (!user?.erdAddress) {
+            logger.error("UNABLE_TO_LAUCH_BC_MONITORING");
 
-      if (newBalance) {
-        await setNewBalance(erdAddress, newBalance);
+            return accLaunchedUsers;
+          }
 
-        return launchBlockchainMonitoring(user.herotag as string, user);
-      } else throw new Error("UNABLE_TO_LAUCH_BC_MONITORING");
-    })
+          const newBalance = await getUpdatedBalance(user.erdAddress);
+
+          if (newBalance) {
+            await setNewBalance(user.erdAddress, newBalance);
+
+            const launchedUser = await launchBlockchainMonitoring(
+              user.erdAddress,
+              user
+            );
+
+            return launchedUser
+              ? [...accLaunchedUsers, launchedUser]
+              : accLaunchedUsers;
+          }
+
+          logger.error("UNABLE_TO_LAUCH_BC_MONITORING");
+
+          return accLaunchedUsers;
+        }
+      );
+    },
+    Promise.resolve([])
   );
 
   return launchedUsers;

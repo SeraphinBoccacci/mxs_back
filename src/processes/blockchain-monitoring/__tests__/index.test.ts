@@ -9,6 +9,7 @@ import { findNewIncomingTransactions } from "../";
 const baseUser = {
   _id: mongoose.Types.ObjectId("6025884242b45cd7572870b3"),
   herotag: "streamparticles.elrond",
+  erdAddress: "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm",
   password: "$2b$10$RzGjFb4jVp77rsiMPOHofOmUzsllH674FnezzIR8Jmjmhr2u1HwXe",
   status: 1,
   createdAt: new Date("2021-02-11T19:40:50.466Z"),

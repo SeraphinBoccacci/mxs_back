@@ -36,11 +36,11 @@ export const validateAccountCreationData = async (
   if (data.password !== data.confirm)
     throw new Error("PASSWORD_AND_CONFIRM_NOT_MATCHING");
 
-  const address = await getErdAddressFromHerotag(
+  const erdAddress = await getErdAddressFromHerotag(
     normalizeHerotag(data.herotag as string)
   );
 
-  if (!address) {
+  if (!erdAddress) {
     throw new Error("COULD_NOT_FIND_HETOTAG_ON_DNS");
   }
 
@@ -60,12 +60,17 @@ export const createUserAccount = async (
 }> => {
   await validateAccountCreationData(data);
 
+  const erdAddress = await getErdAddressFromHerotag(
+    normalizeHerotag(data.herotag as string)
+  );
+
   const verificationReference = await generateNewVerificationReference();
 
   const hashedPassword = await getHashedPassword(data.password as string);
 
   const user = await User.create({
     herotag: normalizeHerotag(data.herotag as string),
+    erdAddress,
     password: hashedPassword,
     verificationReference,
     verificationStartDate: new Date().toISOString(),
@@ -149,12 +154,8 @@ export const activateAccountIfTransactionHappened = async (
   user: UserType
 ): Promise<void> => {
   try {
-    if (!user.herotag) return;
-
-    const erdAddress = await getErdAddressFromHerotag(user.herotag);
-
     const transactions: ElrondTransaction[] = await getLastTransactions(
-      erdAddress
+      user.erdAddress
     );
 
     const hasReferenceInTransactions = transactions.some(
@@ -183,12 +184,8 @@ export const savePasswordChangeIfTransactionHappened = async (
   user: UserType
 ): Promise<void> => {
   try {
-    if (!user.herotag) return;
-
-    const erdAddress = await getErdAddressFromHerotag(user.herotag);
-
     const transactions: ElrondTransaction[] = await getLastTransactions(
-      erdAddress
+      user.erdAddress
     );
 
     const hasReferenceInTransactions = transactions.some(
