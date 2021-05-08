@@ -60,7 +60,7 @@ const resolveDelay = (user: UserType) => {
   const maxDelaySecond = Math.max(...delays);
   const delayMs = maxDelaySecond * 1000;
 
-  return delayMs + 2000;
+  return delayMs + 5000;
 };
 
 export const reactToManyTransactions = async (

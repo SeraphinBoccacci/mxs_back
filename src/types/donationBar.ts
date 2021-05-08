@@ -9,6 +9,18 @@ export enum DonationBarDisplays {
   "Blur" = "Blur",
 }
 
+interface CircleDisplaySettings {
+  kind: DonationBarDisplays.Circle;
+  width?: number;
+  strokeWidth?: number;
+}
+
+interface LineDisplaySettings {
+  kind: DonationBarDisplays.Vertical | DonationBarDisplays.Horizontal;
+  width?: number;
+  height?: number;
+}
+
 interface AmountPart {
   color: string;
   indicationDisplay: InBarAmountDisplay;
@@ -62,11 +74,9 @@ interface DonationReaction {
 
 export interface DonationBar {
   _id: mongoose.Types.ObjectId;
-  width?: number;
-  height?: number;
   offsetTop?: number;
   offsetLeft?: number;
-  display: DonationBarDisplays;
+  displaySettings: CircleDisplaySettings | LineDisplaySettings;
   centerCursorPath?: string;
   donationGoalAmount: {
     value: number;

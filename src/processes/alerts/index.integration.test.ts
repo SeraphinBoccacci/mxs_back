@@ -5,20 +5,18 @@ import mongoose from "mongoose";
 
 import User from "../../models/User";
 import { connectToDatabase } from "../../services/mongoose";
+import { AlertVariation } from "../../types/alerts";
+import { OverlayData, VariationGroupKinds } from "../../types/overlays";
 import {
-  AlertVariation,
   EnterAnimationTypes,
   ExitAnimationTypes,
-  TextAlignments,
   TextStyles,
-} from "../../types/alerts";
-import { OverlayData, VariationGroupKinds } from "../../types/overlays";
+} from "../../types/style";
 import { UserType } from "../../types/user";
-import { createVariation, deleteVariation, updateVariation } from ".";
+import { createVariation, deleteVariation, updateVariation } from "./index";
 
 const baseUser = {
-  herotag: "streamparticles.elrond",
-  erdAddress: "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm",
+  herotag: "serabocca06.elrond",
   password: "$2b$10$RzGjFb4jVp77rsiMPOHofOmUzsllH674FnezzIR8Jmjmhr2u1HwXe",
   status: 1,
   verificationStartDate: new Date().toISOString(),
@@ -74,7 +72,7 @@ const baseVariation: AlertVariation = {
     lineHeight: "10",
     letterSpacing: "10",
     wordSpacing: "10",
-    textAlign: TextAlignments.center,
+    textAlign: "center",
     textStyle: [TextStyles.bold],
     animation: {
       enter: {
@@ -91,7 +89,7 @@ const baseVariation: AlertVariation = {
   },
 };
 
-describe("Stream Elements integration test", () => {
+describe("Alert Variations integration test", () => {
   beforeAll(async () => {
     await connectToDatabase();
   });

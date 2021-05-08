@@ -1,10 +1,19 @@
 import mongoose from "mongoose";
 
 import { AlertVariation } from "./alerts";
+import { DonationBar } from "./donationBar";
 
 export enum WidgetsKinds {
   "ALERTS" = "ALERTS",
   "DONATION_BAR" = "DONATION_BAR",
+}
+
+export interface WidgetVariation {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  backgroundColor: string;
+  chances?: number;
+  requiredAmount?: number;
 }
 
 export enum VariationGroupKinds {
@@ -13,8 +22,8 @@ export enum VariationGroupKinds {
 }
 
 export interface VariationGroup {
+  _id: mongoose.Types.ObjectId;
   title: string;
-  _id: string;
   variationsIds: string[];
   kind: VariationGroupKinds;
 }
@@ -31,4 +40,5 @@ export interface OverlayData {
     variations: AlertVariation[];
     groups: VariationGroup[];
   };
+  donationBar?: DonationBar;
 }

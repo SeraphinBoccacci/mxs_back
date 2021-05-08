@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import { Animation, Text } from "./style";
+import { Animation, Text, TextStyles } from "./style";
 
 export interface Sound {
   soundPath?: string;
@@ -53,6 +53,8 @@ export enum AlertVariationLenses {
   "backgroundColor" = "backgroundColor",
   "width" = "width",
   "heigth" = "heigth",
+  "offsetTop" = "offsetTop",
+  "offsetLeft" = "offsetLeft",
   "position" = "position",
   "sound_soundPath" = "sound_soundPath",
   "sound_soundDelay" = "sound_soundDelay",
@@ -85,4 +87,56 @@ export enum AlertVariationLenses {
   "text_animation_exit_type" = "text_animation_exit_type",
   "text_animation_exit_duration" = "text_animation_exit_duration",
   "text_animation_exit_offset" = "text_animation_exit_offset",
+}
+
+export interface AlertVariationData {
+  name?: string;
+  duration?: string;
+  chances?: string;
+  requiredAmount?: string;
+  backgroundColor?: string;
+  width?: number;
+  heigth?: number;
+  offsetTop?: number;
+  offsetLeft?: number;
+  position?: string;
+  sound_soundPath?: string;
+  sound_soundDelay?: string;
+  sound_soundOffset?: string;
+  image_imagePath?: string;
+  image_width?: string;
+  image_height?: string;
+  image_animation_enter_type?: string;
+  image_animation_enter_duration?: string;
+  image_animation_enter_delay?: string;
+  image_animation_exit_type?: string;
+  image_animation_exit_duration?: string;
+  image_animation_exit_offset?: string;
+  text_position?: string;
+  text_content?: string;
+  text_width?: string;
+  text_height?: string;
+  text_size?: string;
+  text_color?: string;
+  text_stroke_width?: number;
+  text_stroke_color?: string;
+  text_lineHeight?: string;
+  text_letterSpacing?: string;
+  text_wordSpacing?: string;
+  text_textAlign?: string;
+  text_textStyle?: TextStyles[];
+  text_animation_enter_type?: string;
+  text_animation_enter_duration?: string;
+  text_animation_enter_delay?: string;
+  text_animation_exit_type?: string;
+  text_animation_exit_duration?: string;
+  text_animation_exit_offset?: string;
+}
+
+export type AlertVariationFormData = AlertVariationData & {
+  [x: string]: string;
+};
+
+export interface Alerts {
+  variations: AlertVariation[];
 }
