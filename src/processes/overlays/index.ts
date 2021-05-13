@@ -1,4 +1,11 @@
+import mongoose from "mongoose";
+
 import User from "../../models/User";
+import {
+  DonationBar,
+  DonationBarDisplays,
+  InBarAmountDisplay,
+} from "../../types/donationBar";
 import { VariationGroupKinds, WidgetsKinds } from "../../types/overlays";
 import { normalizeHerotag } from "../../utils/transactions";
 
@@ -26,6 +33,19 @@ const addAlerts = (herotag: string, overlayId: string) => {
 };
 
 const addDonationBar = (herotag: string, overlayId: string) => {
+  const defaultDonationBar: DonationBar = {
+    indicationDisplay: InBarAmountDisplay.EGLD,
+    donationGoalAmount: { value: 1 },
+    _id: mongoose.Types.ObjectId(),
+    displaySettings: {
+      kind: DonationBarDisplays.Horizontal,
+      height: 50,
+      width: 500,
+    },
+    donationReaction: {
+      duration: 1,
+    },
+  };
   return User.updateOne(
     {
       herotag: normalizeHerotag(herotag),
@@ -33,16 +53,7 @@ const addDonationBar = (herotag: string, overlayId: string) => {
     },
     {
       $set: {
-        "integrations.overlays.$.donationBar": {
-          variations: [],
-          groups: [
-            {
-              kind: VariationGroupKinds.DEFAULT,
-              variationsIds: [],
-              title: "Unclassed Variations",
-            },
-          ],
-        },
+        "integrations.overlays.$.donationBar": defaultDonationBar,
       },
     }
   );

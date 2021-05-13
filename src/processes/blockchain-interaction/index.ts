@@ -53,7 +53,7 @@ const resolveDelay = (user: UserType) => {
   const delays = [
     10,
     ...(user.integrations?.overlays?.flatMap(({ alerts }) =>
-      alerts.variations.flatMap(({ duration }) => duration || 0)
+      alerts?.variations?.flatMap(({ duration }) => duration || 0)
     ) || []),
   ];
 

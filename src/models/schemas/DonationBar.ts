@@ -5,8 +5,23 @@ import {
   DonationBarDisplays,
   InBarAmountDisplay,
   LogoAnimations,
+  TextPositions,
 } from "../../types/donationBar";
 import { TextStyles } from "../../types/style";
+
+const DonationBarDisplay = new mongoose.Schema(
+  {
+    kind: {
+      type: String,
+      enum: DonationBarDisplays,
+      default: DonationBarDisplays.Horizontal,
+    },
+    height: { type: Number, required: false },
+    width: { type: Number, required: false },
+    strokeWidth: { type: Number, required: false },
+  },
+  { _id: false }
+);
 
 const DonationBarTextStroke = new mongoose.Schema(
   {
@@ -18,6 +33,11 @@ const DonationBarTextStroke = new mongoose.Schema(
 
 const DonationBarText = new mongoose.Schema(
   {
+    position: {
+      type: String,
+      enum: TextPositions,
+      default: TextPositions.TopLeft,
+    },
     content: { type: String, required: false },
     width: { type: Number, required: false },
     height: { type: Number, required: false },
@@ -39,7 +59,6 @@ const DonationBarText = new mongoose.Schema(
 const DonationGoalAmount = new mongoose.Schema(
   {
     value: { type: Number, required: false },
-    text: { type: DonationBarText, required: false },
   },
   { _id: false }
 );
@@ -56,18 +75,12 @@ const DonationBarBorder = new mongoose.Schema(
 const AmountPart = new mongoose.Schema(
   {
     color: { type: String, required: false },
-    indicationDisplay: {
-      type: String,
-      enum: InBarAmountDisplay,
-      required: false,
-    },
   },
   { _id: false }
 );
 
 const FillSentAmountAnimation = new mongoose.Schema(
   {
-    duration: { type: Number, required: false },
     color: { type: String, required: false },
   },
   { _id: false }
@@ -103,10 +116,14 @@ export const DonationBarSchema = new mongoose.Schema({
   height: { type: Number, required: false },
   offsetTop: { type: Number, required: false },
   offsetLeft: { type: Number, required: false },
-  display: {
+  indicationDisplay: {
     type: String,
-    enum: DonationBarDisplays,
-    default: DonationBarDisplays.Horizontal,
+    enum: InBarAmountDisplay,
+    required: false,
+  },
+  displaySettings: {
+    type: DonationBarDisplay,
+    required: false,
   },
   centerCursorPath: { type: String, required: false },
   donationGoalAmount: { type: DonationGoalAmount, required: true },

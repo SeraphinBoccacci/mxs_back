@@ -8,7 +8,7 @@ import { getLastTransactions } from "../../services/elrond";
 import { jwtSign } from "../../services/jwt";
 import logger from "../../services/logger";
 import { ElrondTransaction } from "../../types/elrond";
-import { UserAccountStatus, UserType } from "../../types/user";
+import { UserAccountStatus } from "../../types/user";
 import { getHashedPassword, verifyPassword } from "../../utils/auth";
 import { generateNewVerificationReference } from "../../utils/nanoid";
 import poll from "../../utils/poll";

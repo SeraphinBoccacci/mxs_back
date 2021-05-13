@@ -101,7 +101,6 @@ export const balanceHandler = (
     erdAddress
   );
 
-  console.log(newBalance, lastSnapshotBalance);
   if (!lastSnapshotBalance?.amount) {
     await setNewBalance(erdAddress, newBalance);
 

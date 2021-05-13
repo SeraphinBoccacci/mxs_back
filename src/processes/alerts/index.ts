@@ -203,9 +203,8 @@ export const updateVariation = async (
       $set: {
         "integrations.overlays.$": updatedOverlay,
       },
-    },
-    { new: true }
-  ).lean();
+    }
+  );
 };
 
 export const deleteVariation = async (
