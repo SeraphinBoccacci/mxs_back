@@ -1,4 +1,9 @@
 import User, { UserMongooseDocument } from "../../models/User";
+import {
+  getAlreadyListennedTransactions,
+  getLastRestart,
+  setAlreadyListennedTransactions,
+} from "../../redis";
 import { getLastTransactions } from "../../services/elrond";
 import { jwtSign } from "../../services/jwt";
 import logger from "../../services/logger";
@@ -12,9 +17,10 @@ import {
   normalizeHerotag,
 } from "../../utils/transactions";
 import { decodeDataFromTx } from "../../utils/transactions";
+import { balanceHandler } from "../blockchain-monitoring";
 
-// eslint-disable-next-line no-unused-vars
-// const VERIFY_TRANSACTION_TARGET = "";
+const STREAM_PARTICLES_ERD_ADDRESS =
+  "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
 
 interface UserAccountCreationData {
   herotag?: string;
@@ -150,104 +156,6 @@ export const getVerificationReference = async (
   };
 };
 
-export const activateAccountIfTransactionHappened = async (
-  user: UserType
-): Promise<void> => {
-  try {
-    const transactions: ElrondTransaction[] = await getLastTransactions(
-      user.erdAddress
-    );
-
-    const hasReferenceInTransactions = transactions.some(
-      (transaction) =>
-        decodeDataFromTx(transaction) === user.verificationReference &&
-        transaction.receiver ===
-          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm"
-    );
-
-    if (hasReferenceInTransactions) {
-      await User.updateOne(
-        { _id: user._id },
-        { $set: { status: UserAccountStatus.VERIFIED } }
-      );
-    }
-  } catch (error) {
-    logger.error({
-      ...error,
-      user,
-      error: "An error occured while activateAccountIfTransactionHappened ",
-    });
-  }
-};
-
-export const savePasswordChangeIfTransactionHappened = async (
-  user: UserType
-): Promise<void> => {
-  try {
-    const transactions: ElrondTransaction[] = await getLastTransactions(
-      user.erdAddress
-    );
-
-    const hasReferenceInTransactions = transactions.some(
-      (transaction) =>
-        decodeDataFromTx(transaction) ===
-          user.passwordEditionVerificationReference &&
-        transaction.receiver ===
-          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm"
-    );
-
-    if (hasReferenceInTransactions) {
-      await User.updateOne({ _id: user._id }, [
-        {
-          $set: {
-            status: UserAccountStatus.VERIFIED,
-            password: "$pendingPassword",
-          },
-        },
-        {
-          $unset: [
-            "pendingPassword",
-            "passwordEditionVerificationReference",
-            "passwordEditionVerificationStartDate",
-          ],
-        },
-      ]);
-    }
-  } catch (error) {
-    logger.error({
-      ...error,
-      user,
-      error: `An error occured while savePasswordChangeIfTransactionHappened ${error}`,
-    });
-  }
-};
-
-export const pollTransactionsToVerifyAccountStatuses = async (): Promise<void> => {
-  const verifyStatuses = async () => {
-    const pendingVerificationUsers: UserType[] = await User.find({
-      status: UserAccountStatus.PENDING_VERIFICATION,
-    }).lean();
-
-    const pendingEditPasswordVerificationUsers: UserType[] = await User.find({
-      status: UserAccountStatus.PENDING_EDIT_PASSWORD_VERIFICATION,
-    }).lean();
-
-    for (const user of pendingVerificationUsers) {
-      await setTimeout(async () => {
-        await activateAccountIfTransactionHappened(user);
-      }, 500);
-    }
-
-    for (const user of pendingEditPasswordVerificationUsers) {
-      await setTimeout(async () => {
-        await savePasswordChangeIfTransactionHappened(user);
-      }, 500);
-    }
-  };
-
-  await poll(verifyStatuses, 20000, () => false);
-};
-
 export const isHerotagValid = async (
   herotag: string
 ): Promise<{ herotag: string }> => {
@@ -294,4 +202,100 @@ export const editPassword = async (
       status: UserAccountStatus.PENDING_EDIT_PASSWORD_VERIFICATION,
     }
   );
+};
+
+const transactionsHandler = (lastRestartTimestamp: number) => async () => {
+  const transactions = await getLastTransactions(STREAM_PARTICLES_ERD_ADDRESS);
+
+  const last30ListennedTransactions = await getAlreadyListennedTransactions(
+    STREAM_PARTICLES_ERD_ADDRESS
+  );
+
+  const newTransactions = transactions.filter(
+    ({ receiver, timestamp, hash, status }: ElrondTransaction) => {
+      return (
+        receiver === STREAM_PARTICLES_ERD_ADDRESS &&
+        timestamp > lastRestartTimestamp &&
+        !last30ListennedTransactions.includes(hash) &&
+        status === "success"
+      );
+    }
+  );
+
+  if (!newTransactions.length) return false;
+
+  await setAlreadyListennedTransactions(
+    STREAM_PARTICLES_ERD_ADDRESS,
+    newTransactions.map(({ hash }) => hash)
+  );
+
+  await Promise.all(
+    newTransactions.map(async (transaction) => {
+      const user = await User.findOne({
+        erdAddress: transaction.sender,
+      })
+        .select({
+          herotag: true,
+          status: true,
+          verificationReference: true,
+          passwordEditionVerificationReference: true,
+        })
+        .lean();
+
+      if (
+        user?.status === UserAccountStatus.PENDING_VERIFICATION &&
+        decodeDataFromTx(transaction) === user.verificationReference
+      ) {
+        logger.info(`${user.herotag}'s account creation has been validated`);
+
+        await User.updateOne(
+          { _id: user._id },
+          { $set: { status: UserAccountStatus.VERIFIED } }
+        );
+      }
+
+      if (
+        user?.status === UserAccountStatus.PENDING_EDIT_PASSWORD_VERIFICATION &&
+        decodeDataFromTx(transaction) ===
+          user.passwordEditionVerificationReference
+      ) {
+        logger.info(`${user.herotag}'s password edition has been validated`);
+
+        await User.updateOne({ _id: user._id }, [
+          {
+            $set: {
+              status: UserAccountStatus.VERIFIED,
+              password: "$pendingPassword",
+            },
+          },
+          {
+            $unset: [
+              "pendingPassword",
+              "passwordEditionVerificationReference",
+              "passwordEditionVerificationStartDate",
+            ],
+          },
+        ]);
+      }
+    })
+  );
+
+  return false;
+};
+
+export const validateAuthenticationDataFromTransaction = async (): Promise<void> => {
+  const lastRestartTimestamp = await getLastRestart();
+
+  const handleTransactionsOnStreamParticleHerotag = transactionsHandler(
+    lastRestartTimestamp
+  );
+  const handleBalance = balanceHandler(
+    STREAM_PARTICLES_ERD_ADDRESS,
+    handleTransactionsOnStreamParticleHerotag
+  );
+
+  logger.info(
+    "Start polling streamParticles balance to verify accounts statuses"
+  );
+  poll(handleBalance, 15000, () => false);
 };
