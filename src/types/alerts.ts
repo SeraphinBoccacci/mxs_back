@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+import { Animation, Text, TextStyles } from "./style";
+
 export interface Sound {
   soundPath?: string;
   soundDelay?: string;
@@ -13,23 +15,17 @@ export interface Image {
   animation?: Animation;
 }
 
-export interface Text {
+export enum TextPositions {
+  top = "top",
+  bottom = "bottom",
+  right = "right",
+  left = "left",
+  over = "over",
+}
+
+export interface AlertText extends Text {
   position?: TextPositions;
-  content?: string;
-  width?: number;
-  height?: number;
-  size?: string;
-  color?: string;
-  lineHeight?: string;
-  letterSpacing?: string;
-  wordSpacing?: string;
-  textAlign?: string;
-  textStyle?: TextStyles[];
   animation?: Animation;
-  stroke?: {
-    color?: string;
-    width?: number;
-  };
 }
 
 export interface AlertVariation {
@@ -45,7 +41,7 @@ export interface AlertVariation {
   offsetLeft?: number;
   sound?: Sound;
   image?: Image;
-  text?: Text;
+  text?: AlertText;
   filepath?: string;
 }
 
@@ -57,6 +53,8 @@ export enum AlertVariationLenses {
   "backgroundColor" = "backgroundColor",
   "width" = "width",
   "heigth" = "heigth",
+  "offsetTop" = "offsetTop",
+  "offsetLeft" = "offsetLeft",
   "position" = "position",
   "sound_soundPath" = "sound_soundPath",
   "sound_soundDelay" = "sound_soundDelay",
@@ -91,45 +89,54 @@ export enum AlertVariationLenses {
   "text_animation_exit_offset" = "text_animation_exit_offset",
 }
 
-export enum TextPositions {
-  top = "top",
-  bottom = "bottom",
-  right = "right",
-  left = "left",
-  over = "over",
+export interface AlertVariationData {
+  name?: string;
+  duration?: string;
+  chances?: string;
+  requiredAmount?: string;
+  backgroundColor?: string;
+  width?: number;
+  heigth?: number;
+  offsetTop?: number;
+  offsetLeft?: number;
+  position?: string;
+  sound_soundPath?: string;
+  sound_soundDelay?: string;
+  sound_soundOffset?: string;
+  image_imagePath?: string;
+  image_width?: string;
+  image_height?: string;
+  image_animation_enter_type?: string;
+  image_animation_enter_duration?: string;
+  image_animation_enter_delay?: string;
+  image_animation_exit_type?: string;
+  image_animation_exit_duration?: string;
+  image_animation_exit_offset?: string;
+  text_position?: string;
+  text_content?: string;
+  text_width?: string;
+  text_height?: string;
+  text_size?: string;
+  text_color?: string;
+  text_stroke_width?: number;
+  text_stroke_color?: string;
+  text_lineHeight?: string;
+  text_letterSpacing?: string;
+  text_wordSpacing?: string;
+  text_textAlign?: string;
+  text_textStyle?: TextStyles[];
+  text_animation_enter_type?: string;
+  text_animation_enter_duration?: string;
+  text_animation_enter_delay?: string;
+  text_animation_exit_type?: string;
+  text_animation_exit_duration?: string;
+  text_animation_exit_offset?: string;
 }
 
-export enum TextAlignments {
-  left = "left",
-  center = "center",
-  right = "right",
-}
+export type AlertVariationFormData = AlertVariationData & {
+  [x: string]: string;
+};
 
-export enum EnterAnimationTypes {
-  slideUp = "slide-up-enter",
-  slideDown = "slide-down-enter",
-  slideLeft = "slide-left-enter",
-  slideRight = "slide-right-enter",
-  fadeIn = "fade-in",
-  growth = "grow",
-}
-
-export enum ExitAnimationTypes {
-  slideUp = "slide-up-exit",
-  slideDown = "slide-down-exit",
-  slideLeft = "slide-left-exit",
-  slideRight = "slide-right-exit",
-  fadeOut = "fade-out",
-  shrink = "shrink",
-}
-
-export enum TextStyles {
-  bold = "bold",
-  italic = "italic",
-  underline = "underline",
-}
-
-interface Animation {
-  enter?: { type?: EnterAnimationTypes; duration?: number; delay?: number };
-  exit?: { type?: ExitAnimationTypes; duration?: number; offset?: number };
+export interface Alerts {
+  variations: AlertVariation[];
 }

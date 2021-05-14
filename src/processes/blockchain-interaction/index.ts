@@ -53,14 +53,14 @@ const resolveDelay = (user: UserType) => {
   const delays = [
     10,
     ...(user.integrations?.overlays?.flatMap(({ alerts }) =>
-      alerts.variations.flatMap(({ duration }) => duration || 0)
+      alerts?.variations?.flatMap(({ duration }) => duration || 0)
     ) || []),
   ];
 
   const maxDelaySecond = Math.max(...delays);
   const delayMs = maxDelaySecond * 1000;
 
-  return delayMs + 2000;
+  return delayMs + 5000;
 };
 
 export const reactToManyTransactions = async (

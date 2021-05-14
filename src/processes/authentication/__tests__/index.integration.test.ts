@@ -1,12 +1,8 @@
-import { getTime, sub } from "date-fns";
+import { sub } from "date-fns";
 import mongoose from "mongoose";
 
 import User from "../../../models/User";
 import { connectToDatabase } from "../../../services/mongoose";
-
-jest.mock("../../../services/elrond");
-import * as elrond from "../../../services/elrond";
-import { ElrondTransaction } from "../../../types/elrond";
 
 jest.mock("../../../utils/transactions", () => {
   const module = jest.requireActual("../../../utils/transactions");
@@ -20,7 +16,6 @@ jest.mock("../../../utils/transactions", () => {
 import { UserAccountStatus, UserType } from "../../../types/user";
 import * as transactions from "../../../utils/transactions";
 import {
-  activateAccountIfTransactionHappened,
   authenticateUser,
   createUserAccount,
   getVerificationReference,
@@ -265,102 +260,6 @@ describe("Auth integration testing", () => {
           accountStatus: 1,
           verificationReference: "verificationReference_test",
         });
-      });
-    });
-  });
-
-  describe("activateAccountIfTransactionHappened", () => {
-    describe("when no transactions contains verificationReference", () => {
-      let user: UserType;
-      const mockedElrond = elrond as jest.Mocked<typeof elrond>;
-      beforeAll(async () => {
-        user = await User.create({
-          ...baseUser,
-          status: UserAccountStatus.PENDING_VERIFICATION,
-        });
-
-        mockedElrond.getLastTransactions.mockResolvedValue([
-          {
-            hash:
-              "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c12atfc56666",
-            receiver:
-              "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm",
-            timestamp: getTime(sub(new Date(), { minutes: 3 })) * 0.001,
-            status: "success",
-          } as ElrondTransaction,
-        ]);
-      });
-
-      afterAll(async () => {
-        await User.deleteMany();
-
-        mockedElrond.getLastTransactions.mockClear();
-      });
-
-      it("should not set status to", async () => {
-        await activateAccountIfTransactionHappened(user);
-
-        const updatedUser = await User.findOne({
-          herotag: baseUser.herotag,
-        }).lean();
-
-        expect(mockedElrond.getLastTransactions).toHaveBeenCalledTimes(1);
-        expect(mockedElrond.getLastTransactions).toHaveBeenNthCalledWith(
-          1,
-          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm"
-        );
-
-        expect((updatedUser as UserType).status).toEqual(
-          UserAccountStatus.PENDING_VERIFICATION
-        );
-      });
-    });
-
-    describe("when one transaction contains verificationReference", () => {
-      let user: UserType;
-      const mockedElrond = elrond as jest.Mocked<typeof elrond>;
-      beforeAll(async () => {
-        user = await User.create({
-          ...baseUser,
-          status: UserAccountStatus.PENDING_VERIFICATION,
-          verificationReference: "MyeTg9HJrW",
-        });
-
-        mockedElrond.getLastTransactions.mockResolvedValue([
-          {
-            hash:
-              "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
-            receiver:
-              "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm",
-            timestamp: getTime(sub(new Date(), { minutes: 3 })) * 0.001,
-            data: "TXllVGc5SEpyVw==",
-            status: "success",
-          } as ElrondTransaction,
-        ]);
-      });
-
-      afterAll(async () => {
-        await User.deleteMany();
-
-        mockedElrond.getLastTransactions.mockClear();
-      });
-
-      it("should return true", async () => {
-        await activateAccountIfTransactionHappened(user);
-
-        const updatedUser = await User.findOne({
-          herotag: baseUser.herotag,
-        }).lean();
-
-        expect(mockedElrond.getLastTransactions).toHaveBeenCalledTimes(1);
-        expect(mockedElrond.getLastTransactions).toHaveBeenNthCalledWith(
-          1,
-          "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm"
-        );
-
-        expect((updatedUser as UserType).status).toEqual(
-          UserAccountStatus.VERIFIED
-        );
       });
     });
   });

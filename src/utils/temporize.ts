@@ -2,19 +2,21 @@ type CachedValue = {
   [reference: string]: number;
 };
 
+export type functionArguments = any[];
+
 export interface TemporizedFn {
-  (reference: string, delayedMs: number, ...args: any[]): void;
+  (reference: string, delayedMs: number, ...args: functionArguments): void;
 }
 
 export const temporizeFn = (
-  fn: (...args: any[]) => void | Promise<void>
+  fn: (...args: functionArguments) => void | Promise<void>
 ): TemporizedFn => {
   const cachedValues: CachedValue = {};
 
   const temporizedFn = async (
     reference: string,
     delayedMs: number,
-    ...args: any[]
+    ...args: functionArguments
   ) => {
     const temporizeEnd = cachedValues[reference];
 
