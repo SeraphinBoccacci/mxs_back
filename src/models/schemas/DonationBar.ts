@@ -38,7 +38,10 @@ const DonationBarText = new mongoose.Schema(
       enum: TextPositions,
       default: TextPositions.TopLeft,
     },
-    content: { type: String, required: false },
+    content: {
+      type: String,
+      required: false,
+    },
     width: { type: Number, required: false },
     height: { type: Number, required: false },
     size: { type: String, required: false },
@@ -75,6 +78,7 @@ const DonationBarBorder = new mongoose.Schema(
 const AmountPart = new mongoose.Schema(
   {
     color: { type: String, required: false },
+    textColor: { type: String, required: false },
   },
   { _id: false }
 );

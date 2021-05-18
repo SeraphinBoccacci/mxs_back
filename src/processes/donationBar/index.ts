@@ -87,8 +87,14 @@ const payloadToDonationBar = (payload: Partial<DonationBar>): DonationBar => {
       width: payload?.border?.width,
       radius: payload?.border?.radius,
     },
-    sentAmountPart: { color: payload.sentAmountPart?.color },
-    amountToSendPart: { color: payload.amountToSendPart?.color },
+    sentAmountPart: {
+      color: payload.sentAmountPart?.color,
+      textColor: payload.sentAmountPart?.textColor,
+    },
+    amountToSendPart: {
+      color: payload.amountToSendPart?.color,
+      textColor: payload.amountToSendPart?.textColor,
+    },
     donationReaction: {
       soundPath: payload.donationReaction?.soundPath,
       duration: payload.donationReaction?.duration,
