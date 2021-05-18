@@ -25,7 +25,7 @@ const DonationBarDisplay = new mongoose.Schema(
 
 const DonationBarTextStroke = new mongoose.Schema(
   {
-    color: { type: Number, required: false },
+    color: { type: String, required: false },
     width: { type: Number, required: false },
   },
   { _id: false }
