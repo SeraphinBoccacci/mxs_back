@@ -45,6 +45,9 @@ const addDonationBar = (herotag: string, overlayId: string) => {
     donationReaction: {
       duration: 1,
     },
+    donationBarDescription: {
+      content: "This is a donation description",
+    },
   };
   return User.updateOne(
     {

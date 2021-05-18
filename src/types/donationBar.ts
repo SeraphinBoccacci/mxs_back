@@ -40,6 +40,7 @@ export interface LineDisplaySettings {
 
 interface AmountPart {
   color?: string;
+  textColor?: string;
 }
 
 export enum InBarAmountDisplay {
@@ -89,8 +90,6 @@ interface DonationReaction {
 
 export interface DonationBar {
   _id: mongoose.Types.ObjectId;
-  height?: number;
-  width?: number;
   offsetTop?: number;
   offsetLeft?: number;
   indicationDisplay: InBarAmountDisplay;
@@ -111,8 +110,6 @@ export interface DonationBar {
 }
 
 export enum DonationBarLenses {
-  "height" = "height",
-  "width" = "width",
   "offsetTop" = "offsetTop",
   "offsetLeft" = "offsetLeft",
   "indicationDisplay" = "indicationDisplay",
@@ -140,6 +137,8 @@ export enum DonationBarLenses {
   "border_radius" = "border_radius",
   "sentAmountPart_color" = "sentAmountPart_color",
   "amountToSendPart_color" = "amountToSendPart_color",
+  "sentAmountPart_textColor" = "sentAmountPart_textColor",
+  "amountToSendPart_textColor" = "amountToSendPart_textColor",
   "donationReaction_soundPath" = "donationReaction_soundPath",
   "donationReaction_duration" = "donationReaction_duration",
   "donationReaction_fillSentAmountPart_color" = "donationReaction_fillSentAmountPart_color",
@@ -148,8 +147,6 @@ export enum DonationBarLenses {
 }
 
 export interface DonationBarData {
-  height?: number;
-  width?: number;
   offsetTop?: number;
   offsetLeft?: number;
   indicationDisplay?: number;
@@ -177,6 +174,8 @@ export interface DonationBarData {
   border_radius?: number;
   sentAmountPart_color?: string;
   amountToSendPart_color?: string;
+  sentAmountPart_textColor?: string;
+  amountToSendPart_textColor?: string;
   donationReaction_soundPath?: string;
   donationReaction_duration?: number;
   donationReaction_fillSentAmountPart_color?: string;
