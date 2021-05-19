@@ -33,20 +33,6 @@ jobs:
       - name: Install
         run: npm ci
 
-  test:
-    needs: [build]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Typescript compiler
-        uses: iCrawl/action-tsc@v1
-
-      - name: Test
-        run: npm run test
-
-      - name: Linter
-        run: npm run lint
-
   deploy:
     needs: [build]
     runs-on: ubuntu-latest
