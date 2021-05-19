@@ -33,11 +33,6 @@ jobs:
       - name: Install
         run: npm ci
 
-  test:
-    needs: [build]
-    runs-on: ubuntu-latest
-
-    steps:
       - name: Typescript compiler
         uses: iCrawl/action-tsc@v1
 
