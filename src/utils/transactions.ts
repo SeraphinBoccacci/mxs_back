@@ -13,8 +13,7 @@ export const getErdAddressFromHerotag = async (
 
     return address;
   } catch (error) {
-    logger.error("FAILED_RESOLVE_ERD_ADDRESS");
-
+    logger.error("FAILED_TO_RESOLVE_ERD_ADDRESS");
     return null;
   }
 };

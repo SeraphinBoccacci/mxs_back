@@ -28,11 +28,11 @@ const populateErdAddressFromHerotag = async () => {
         updatedUsers++;
       }
     } catch (error) {
-      logger.error(`${error} ${user.herotag}`);
+      logger.error("users updated", { ...error, herotag: user.herotag });
     }
   }
 
-  logger.info(`${updatedUsers} users updated`);
+  logger.info("users updated", { updatedUsers });
 };
 
 connectToDatabase()

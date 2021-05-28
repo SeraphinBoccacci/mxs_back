@@ -130,6 +130,7 @@ export const DonationBarSchema = new mongoose.Schema({
     required: false,
   },
   centerCursorPath: { type: String, required: false },
+  centerCursorScale: { type: Number, required: false },
   donationGoalAmount: { type: DonationGoalAmount, required: true },
   donationBarDescription: { type: DonationBarText, required: false },
   border: { type: DonationBarBorder, required: false },

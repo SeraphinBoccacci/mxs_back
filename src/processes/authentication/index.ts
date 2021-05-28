@@ -1,12 +1,12 @@
 import User, { UserMongooseDocument } from "../../models/User";
+import { getLastTransactions } from "../../services/elrond";
+import { jwtSign } from "../../services/jwt";
+import logger from "../../services/logger";
 import {
   getAlreadyListennedTransactions,
   getLastRestart,
   setAlreadyListennedTransactions,
-} from "../../redis";
-import { getLastTransactions } from "../../services/elrond";
-import { jwtSign } from "../../services/jwt";
-import logger from "../../services/logger";
+} from "../../services/redis";
 import { ElrondTransaction } from "../../types/elrond";
 import { UserAccountStatus } from "../../types/user";
 import { getHashedPassword, verifyPassword } from "../../utils/auth";
@@ -246,7 +246,9 @@ const transactionsHandler = (lastRestartTimestamp: number) => async () => {
         user?.status === UserAccountStatus.PENDING_VERIFICATION &&
         decodeDataFromTx(transaction) === user.verificationReference
       ) {
-        logger.info(`${user.herotag}'s account creation has been validated`);
+        logger.info("User account creation has been validated.", {
+          herotag: user.herotag,
+        });
 
         await User.updateOne(
           { _id: user._id },
@@ -259,7 +261,9 @@ const transactionsHandler = (lastRestartTimestamp: number) => async () => {
         decodeDataFromTx(transaction) ===
           user.passwordEditionVerificationReference
       ) {
-        logger.info(`${user.herotag}'s password edition has been validated`);
+        logger.info("User account password edition has been validated.", {
+          herotag: user.herotag,
+        });
 
         await User.updateOne({ _id: user._id }, [
           {
