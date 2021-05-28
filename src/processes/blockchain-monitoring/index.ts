@@ -168,7 +168,10 @@ export const toggleBlockchainMonitoring = async (
       await setNewBalance(user.erdAddress, newBalance);
 
       await launchBlockchainMonitoring(user.erdAddress, user);
-    } else throw new Error("UNABLE_TO_LAUCH_BC_MONITORING");
+    } else
+      throw new Error(
+        `UNABLE_TO_LAUCH_BC_MONITORING - NO NEW BALANCE for ${user.herotag}`
+      );
   }
 
   return user;
@@ -182,13 +185,17 @@ export const resumeBlockchainMonitoring = async (): Promise<string[]> => {
       return prevPromise.then(
         async (accLaunchedUsers: string[]): Promise<string[]> => {
           if (!user.herotag) {
-            logger.error("UNABLE_TO_LAUCH_BC_MONITORING");
+            logger.error(
+              `UNABLE_TO_LAUCH_BC_MONITORING - NO HEROTAG for ${user._id}`
+            );
 
             return accLaunchedUsers;
           }
 
           if (!user?.erdAddress) {
-            logger.error("UNABLE_TO_LAUCH_BC_MONITORING");
+            logger.error(
+              `UNABLE_TO_LAUCH_BC_MONITORING - NO ERD ADDRESS for ${user.herotag}`
+            );
 
             return accLaunchedUsers;
           }
@@ -208,7 +215,9 @@ export const resumeBlockchainMonitoring = async (): Promise<string[]> => {
               : accLaunchedUsers;
           }
 
-          logger.error("UNABLE_TO_LAUCH_BC_MONITORING");
+          logger.error(
+            `UNABLE_TO_LAUCH_BC_MONITORING - NO NEW BALANCE for ${user.herotag}`
+          );
 
           return accLaunchedUsers;
         }

@@ -62,6 +62,7 @@ const payloadToDonationBar = (payload: Partial<DonationBar>): DonationBar => {
     offsetLeft: payload?.offsetLeft || 0,
     indicationDisplay: payload?.indicationDisplay || InBarAmountDisplay.EGLD,
     centerCursorPath: payload?.centerCursorPath,
+    centerCursorScale: payload?.centerCursorScale,
     displaySettings: resolveDisplaySettings(),
     donationGoalAmount: { value: payload?.donationGoalAmount?.value || 1 },
     donationBarDescription: {
