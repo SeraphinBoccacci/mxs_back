@@ -1,15 +1,15 @@
 import mongoose from "mongoose";
 
 import User, { UserMongooseDocument } from "../../models/User";
+import { getLastTransactions, getUpdatedBalance } from "../../services/elrond";
+import logger from "../../services/logger";
 import {
   getAlreadyListennedTransactions,
   getLastBalanceSnapShot,
   getLastRestart,
   setAlreadyListennedTransactions,
   setNewBalance,
-} from "../../redis";
-import { getLastTransactions, getUpdatedBalance } from "../../services/elrond";
-import logger from "../../services/logger";
+} from "../../services/redis";
 import { ElrondTransaction, LastSnapshotBalance } from "../../types/elrond";
 import { UserType } from "../../types/user";
 import poll from "../../utils/poll";
@@ -117,7 +117,7 @@ export const balanceHandler = (
 export const launchBlockchainMonitoring = async (
   erdAddress: string,
   user: UserType
-): Promise<string | null> => {
+): Promise<string> => {
   const lastRestartTimestamp = await getLastRestart();
 
   const handleTransactions = transactionsHandler(
@@ -167,6 +167,9 @@ export const toggleBlockchainMonitoring = async (
     if (newBalance) {
       await setNewBalance(user.erdAddress, newBalance);
 
+      logger.info("Lauching blockchain monitoring for user", {
+        herotag: user.herotag,
+      });
       await launchBlockchainMonitoring(user.erdAddress, user);
     } else
       throw new Error(
@@ -177,54 +180,60 @@ export const toggleBlockchainMonitoring = async (
   return user;
 };
 
+const resumeBlockchainMonitoringForUser = async (
+  user: UserType
+): Promise<string | null> => {
+  if (!user.herotag) {
+    logger.error("UNABLE_TO_LAUCH_BC_MONITORING - NO HEROTAG", {
+      userId: user._id,
+    });
+    return null;
+  }
+
+  if (!user?.erdAddress) {
+    logger.error("UNABLE_TO_LAUCH_BC_MONITORING - NO ERD ADDRESS", {
+      herotag: user.herotag,
+    });
+    return null;
+  }
+
+  const newBalance = await getUpdatedBalance(user.erdAddress);
+
+  if (!newBalance) {
+    logger.error("UNABLE_TO_LAUCH_BC_MONITORING - NO NEW BALANCE", {
+      herotag: user.herotag,
+    });
+    return null;
+  }
+
+  try {
+    await setNewBalance(user.erdAddress, newBalance);
+
+    logger.info("Resuming blockchain monitoring for user", {
+      herotag: user.herotag,
+    });
+    const launchedUser = await launchBlockchainMonitoring(
+      user.erdAddress,
+      user
+    );
+
+    return launchedUser;
+  } catch (error) {
+    logger.error("UNABLE_TO_LAUCH_BC_MONITORING", {
+      herotag: user.herotag,
+    });
+    return null;
+  }
+};
+
 export const resumeBlockchainMonitoring = async (): Promise<string[]> => {
   const usersToPoll = await User.find({ isStreaming: true }).lean();
 
-  const launchedUsers = await usersToPoll.reduce(
-    (prevPromise: Promise<string[]>, user: UserType) => {
-      return prevPromise.then(
-        async (accLaunchedUsers: string[]): Promise<string[]> => {
-          if (!user.herotag) {
-            logger.error(
-              `UNABLE_TO_LAUCH_BC_MONITORING - NO HEROTAG for ${user._id}`
-            );
-
-            return accLaunchedUsers;
-          }
-
-          if (!user?.erdAddress) {
-            logger.error(
-              `UNABLE_TO_LAUCH_BC_MONITORING - NO ERD ADDRESS for ${user.herotag}`
-            );
-
-            return accLaunchedUsers;
-          }
-
-          const newBalance = await getUpdatedBalance(user.erdAddress);
-
-          if (newBalance) {
-            await setNewBalance(user.erdAddress, newBalance);
-
-            const launchedUser = await launchBlockchainMonitoring(
-              user.erdAddress,
-              user
-            );
-
-            return launchedUser
-              ? [...accLaunchedUsers, launchedUser]
-              : accLaunchedUsers;
-          }
-
-          logger.error(
-            `UNABLE_TO_LAUCH_BC_MONITORING - NO NEW BALANCE for ${user.herotag}`
-          );
-
-          return accLaunchedUsers;
-        }
-      );
-    },
-    Promise.resolve([])
+  const users = await Promise.all(
+    usersToPoll.map(resumeBlockchainMonitoringForUser)
   );
+
+  const launchedUsers = users.filter(Boolean) as string[];
 
   return launchedUsers;
 };

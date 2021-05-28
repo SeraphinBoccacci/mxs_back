@@ -103,10 +103,10 @@ app.use("/files/:fileType/file-name/:fileName", (req, res) => {
 
 app.post("/uploads/:mediaType", async (req, res) => {
   const filename = await new Promise((resolve, reject) => {
-    upload(req, res, function(err: unknown) {
-      if (err) {
-        logger.error(err);
-        reject(err);
+    upload(req, res, function(error: unknown) {
+      if (error) {
+        logger.error("Error uploading media", { error });
+        reject(error);
       }
 
       resolve(req.file.filename);
