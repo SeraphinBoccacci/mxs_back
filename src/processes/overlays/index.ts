@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { nanoid } from "nanoid";
 
 import User from "../../models/User";
 import {
@@ -6,8 +7,63 @@ import {
   DonationBarDisplays,
   InBarAmountDisplay,
 } from "../../types/donationBar";
-import { VariationGroupKinds, WidgetsKinds } from "../../types/overlays";
+import {
+  OverlayData,
+  VariationGroupKinds,
+  WidgetsKinds,
+} from "../../types/overlays";
 import { normalizeHerotag } from "../../utils/transactions";
+
+export const getUserOverlay = async (
+  herotag: string,
+  overlayId: string
+): Promise<OverlayData | null> => {
+  const user = await User.findOne({
+    herotag: normalizeHerotag(herotag),
+  })
+    .select({ "integrations.overlays": true })
+    .lean();
+
+  const overlay = user?.integrations?.overlays?.find(({ generatedLink }) => {
+    return overlayId === generatedLink;
+  });
+
+  return overlay || null;
+};
+
+export const getManyUserOverlays = async (
+  herotag: string
+): Promise<OverlayData[]> => {
+  const user = await User.findOne({
+    herotag: normalizeHerotag(herotag),
+  })
+    .select({ "integrations.overlays": true })
+    .lean();
+
+  return user?.integrations?.overlays || [];
+};
+
+export const createOverlay = async (herotag: string): Promise<void> => {
+  await User.updateOne(
+    {
+      herotag: normalizeHerotag(herotag),
+    },
+    { $push: { "integrations.overlays": { generatedLink: nanoid(50) } } }
+  );
+};
+
+export const deleteOverlay = async (
+  herotag: string,
+  overlayId: string
+): Promise<void> => {
+  await User.updateOne(
+    {
+      herotag: normalizeHerotag(herotag),
+      "integrations.overlays._id": overlayId,
+    },
+    { $pull: { "integrations.overlays": { _id: overlayId } } }
+  );
+};
 
 const addAlerts = (herotag: string, overlayId: string) => {
   return User.updateOne(

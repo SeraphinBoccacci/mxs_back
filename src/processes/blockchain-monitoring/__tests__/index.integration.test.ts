@@ -7,8 +7,8 @@ jest.mock("../../../services/elrond");
 import * as elrond from "../../../services/elrond";
 import { ElrondTransaction } from "../../../types/elrond";
 
-jest.mock("../../../redis");
-import * as redis from "../../../redis";
+jest.mock("../../../services/redis");
+import * as redis from "../../../services/redis";
 
 jest.mock("../../../utils/poll");
 import * as poll from "../../../utils/poll";

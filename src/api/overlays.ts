@@ -3,19 +3,21 @@ import express from "express";
 import {
   addWidgetToOverlay,
   createOneOverlay,
-  deleteOneOverlay,
-  getOverlay,
-  getUserOverlays,
+  deleteOverlay,
+  getManyUserOverlays,
+  getUserOverlay,
 } from "../controllers/overlays";
 import { authenticateMiddleware } from "../middlewares/authMiddleware";
 
 const Router = express.Router();
 
-Router.route("/overlays/herotag/:herotag/overlay/:overlayId").get(getOverlay);
+Router.route("/overlays/herotag/:herotag/overlay/:overlayId").get(
+  getUserOverlay
+);
 
 Router.route("/overlays/herotag/:herotag/").get(
   authenticateMiddleware,
-  getUserOverlays
+  getManyUserOverlays
 );
 
 Router.route("/overlays/herotag/:herotag/overlay").post(
@@ -25,7 +27,7 @@ Router.route("/overlays/herotag/:herotag/overlay").post(
 
 Router.route("/overlays/herotag/:herotag/overlay/:overlayId").delete(
   authenticateMiddleware,
-  deleteOneOverlay
+  deleteOverlay
 );
 
 Router.route("/overlays/add-widget").post(

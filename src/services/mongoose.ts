@@ -12,12 +12,14 @@ export const connectToDatabase = async (): Promise<void> => {
       useCreateIndex: true,
     })
     .then(async () => {
-      logger.info(`Connected to database : ${getMongoUrlFromEnv(true)}`);
+      logger.info("Connected to database", {
+        mongoUri: getMongoUrlFromEnv(true),
+      });
     })
     .catch((error) => {
-      logger.error({
+      logger.info("Connection to database failed", {
         ...error,
-        error: `Connection to database failed : ${getMongoUrlFromEnv(true)}`,
+        mongoUri: getMongoUrlFromEnv(true),
       });
     });
 };
@@ -41,19 +43,32 @@ export const getMongoUrlFromEnv = (obfuscated = false): string => {
 
   // Prepare
   const prefix = "mongodb://";
-  const auth = (MONGODB_USER && MONGODB_PWD) ? obfuscated ? "****:***" : [MONGODB_USER, MONGODB_PWD].join(":") : undefined;
+  const auth =
+    MONGODB_USER && MONGODB_PWD
+      ? obfuscated
+        ? "****:***"
+        : [MONGODB_USER, MONGODB_PWD].join(":")
+      : undefined;
 
   // Throw if environment is exposed and no auth has been set to the DB
-  if (["production", "staging"].indexOf(`${NODE_ENV}`) >= 0 && (!MONGODB_USER || !MONGODB_PWD)) {
-    throw new Error("MONGODB: In production or staging, your DB must have a 'MONGODB_USER' and a 'MONGODB_PWD'");
+  if (
+    ["production", "staging"].indexOf(`${NODE_ENV}`) >= 0 &&
+    (!MONGODB_USER || !MONGODB_PWD)
+  ) {
+    throw new Error(
+      "MONGODB: In production or staging, your DB must have a 'MONGODB_USER' and a 'MONGODB_PWD'"
+    );
   }
 
   // Thow if no database set
   if (!MONGODB_DBNAME) {
-    throw new Error("MONGODB: You must set the database 'MONGODB_DBNAME' name in your environment variables");
+    throw new Error(
+      "MONGODB: You must set the database 'MONGODB_DBNAME' name in your environment variables"
+    );
   }
 
   // Build and returns the mondb uri
-  return `${prefix}${auth ? `${auth}@` : ""}${MONGODB_HOST}:${MONGODB_PORT}/${MONGODB_DBNAME}`;
-
-}
+  return `${prefix}${
+    auth ? `${auth}@` : ""
+  }${MONGODB_HOST}:${MONGODB_PORT}/${MONGODB_DBNAME}`;
+};

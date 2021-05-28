@@ -95,6 +95,7 @@ export interface DonationBar {
   indicationDisplay: InBarAmountDisplay;
   displaySettings: CircleDisplaySettings | LineDisplaySettings;
   centerCursorPath?: string;
+  centerCursorScale?: number;
   donationGoalAmount: {
     value: number;
   };
@@ -118,6 +119,7 @@ export enum DonationBarLenses {
   "displaySettings_strokeWidth" = "displaySettings_strokeWidth",
   "displaySettings_height" = "displaySettings_height",
   "centerCursorPath" = "centerCursorPath",
+  "centerCursorScale" = "centerCursorScale",
   "donationGoalAmount_value" = "donationGoalAmount_value",
   "donationBarDescription_position" = "donationBarDescription_position",
   "donationBarDescription_content" = "donationBarDescription_content",
@@ -155,6 +157,7 @@ export interface DonationBarData {
   displaySettings_strokeWidth?: number;
   displaySettings_height?: number;
   centerCursorPath?: string;
+  centerCursorScale?: number;
   donationGoalAmount_value?: number;
   donationBarDescription_position?: TextPositions;
   donationBarDescription_content?: string;
