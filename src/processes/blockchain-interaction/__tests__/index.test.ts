@@ -17,6 +17,9 @@ import * as utilTransactions from "../../../utils/transactions";
 jest.mock("../ifttt");
 import * as ifttt from "../ifttt";
 
+jest.mock("../../donationData");
+import * as donationData from "../../donationData";
+
 jest.mock("../overlays");
 
 import { UserType } from "../../../types/user";
@@ -49,6 +52,7 @@ describe("Blockchain interaction unit testing", () => {
     >;
     const mockedIfttt = ifttt as jest.Mocked<typeof ifttt>;
     const mockedOverlays = overlays as jest.Mocked<typeof overlays>;
+    const mockedDonationData = donationData as jest.Mocked<typeof donationData>;
 
     beforeAll(() => {
       mockedUtilTransactions.getHerotagFromErdAddress.mockResolvedValue(
@@ -63,6 +67,7 @@ describe("Blockchain interaction unit testing", () => {
     beforeEach(() => {
       mockedOverlays.triggerOverlaysEvent.mockClear();
       mockedIfttt.triggerIftttEvent.mockClear();
+      mockedDonationData.incrementDonationGoalSentAmount.mockClear();
     });
 
     describe("when user has no ifttt particle data and no SE data", () => {
@@ -84,6 +89,13 @@ describe("Blockchain interaction unit testing", () => {
       it("should not call trigger ifttt nor SE", async () => {
         await reactToNewTransaction(transaction, user);
 
+        expect(
+          mockedDonationData.incrementDonationGoalSentAmount
+        ).toHaveBeenCalledTimes(1);
+        expect(
+          mockedDonationData.incrementDonationGoalSentAmount
+        ).toHaveBeenCalledWith(user._id, 1);
+
         expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledTimes(0);
       });
     });
@@ -98,6 +110,13 @@ describe("Blockchain interaction unit testing", () => {
 
       it("should call only trigger ifttt", async () => {
         await reactToNewTransaction(transaction, baseUser);
+
+        expect(
+          mockedDonationData.incrementDonationGoalSentAmount
+        ).toHaveBeenCalledTimes(1);
+        expect(
+          mockedDonationData.incrementDonationGoalSentAmount
+        ).toHaveBeenCalledWith(baseUser._id, 1);
 
         expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledTimes(1);
         expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledWith(
@@ -125,6 +144,13 @@ describe("Blockchain interaction unit testing", () => {
 
       it("should call only trigger SE", async () => {
         await reactToNewTransaction(transaction, user);
+
+        expect(
+          mockedDonationData.incrementDonationGoalSentAmount
+        ).toHaveBeenCalledTimes(1);
+        expect(
+          mockedDonationData.incrementDonationGoalSentAmount
+        ).toHaveBeenCalledWith(user._id, 1);
 
         expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledTimes(0);
 
