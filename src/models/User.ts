@@ -5,6 +5,7 @@ import { UserAccountStatus, UserType } from "../types/user";
 import { ENV } from "../utils/env";
 import { VariationSchema } from "./schemas/AlertVariation";
 import { DonationBarSchema } from "./schemas/DonationBar";
+import { DonationsDataSchema } from "./schemas/DonationsData";
 import { VariationGroupSchema } from "./schemas/VariationGroup";
 
 const AlertSchema = new Schema(
@@ -30,11 +31,6 @@ const OverlaysSchema = new Schema({
   alerts: { type: AlertSchema, required: false },
   isActive: { type: Boolean, required: false },
   donationBar: { type: DonationBarSchema, required: false },
-  // particlesFalls: {
-  //   variations: { type: String, required: false },
-  //   structure: { type: String, required: false },
-  // },
-  // topDonators: { type: String, required: false },
 });
 
 const UserSchema = new Schema(
@@ -62,9 +58,9 @@ const UserSchema = new Schema(
       overlays: [OverlaysSchema],
       minimumRequiredAmount: { type: Number, required: false },
     },
+    donationData: { type: DonationsDataSchema, required: false },
     isStreaming: { type: Boolean, required: false },
     streamingStartDate: { type: Date, required: false },
-
     referralLink: { type: String, required: false },
     herotagQrCodePath: { type: String, required: false },
   },

@@ -1,9 +1,11 @@
 import express from "express";
 
 import {
+  getDonationGoalSentAmount,
   getEgldPrice,
   getUserData,
   getViewerOnboardingData,
+  resetDonationGoal,
   toggleBlockchainMonitoring,
   toggleIftttParticle,
   triggerFakeEvent,
@@ -52,5 +54,9 @@ Router.route("/user/viewers-onboarding-data/herotag/:herotag").get(
 );
 
 Router.route("/egld-price").get(getEgldPrice);
+
+Router.route("/donation-goal-sent-amount/:herotag")
+  .get(getDonationGoalSentAmount)
+  .put(authenticateMiddleware, resetDonationGoal);
 
 export default Router;

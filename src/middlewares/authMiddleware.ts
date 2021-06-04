@@ -15,7 +15,7 @@ export const authenticateMiddleware = async (
 
   const token = authorization && authorization.split(" ")[1];
 
-  if (token == null) {
+  if (!token) {
     res.sendStatus(401);
     return;
   }
