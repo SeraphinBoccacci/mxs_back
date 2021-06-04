@@ -1,10 +1,11 @@
-import axios from "axios";
 import { Request, Response } from "express";
 
 import * as blockchainInteractionProcesses from "../processes/blockchain-interaction";
 import * as blockchainMonitoringProcesses from "../processes/blockchain-monitoring";
+import * as donationDataProcesses from "../processes/donationData";
 import * as userProcesses from "../processes/user";
 import { RequestWithHerotag } from "../types/express";
+import * as utilEgldPrice from "../utils/price";
 
 export const getUserData = async (
   req: RequestWithHerotag,
@@ -109,17 +110,27 @@ export const getEgldPrice = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const response = await axios.get(
-    "https://api.coingecko.com/api/v3/simple/price?ids=elrond-erd-2&vs_currencies=usd"
-  );
-
-  if (!response) {
-    res.sendStatus(200);
-
-    return;
-  }
-
-  const price = response.data["elrond-erd-2"].usd;
+  const price = await utilEgldPrice.getEgldPrice();
 
   res.send({ price });
+};
+
+export const resetDonationGoal = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  await donationDataProcesses.resetDonationGoal(req.params.herotag);
+
+  res.sendStatus(201);
+};
+
+export const getDonationGoalSentAmount = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const sentAmount = await donationDataProcesses.getDonationGoalSentAmount(
+    req.params.herotag
+  );
+
+  res.send({ sentAmount });
 };
