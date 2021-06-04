@@ -11,6 +11,7 @@ import {
   getHerotagFromErdAddress,
 } from "../../utils/transactions";
 import { decodeDataFromTx } from "../../utils/transactions";
+import * as donationDataProcesses from "../donationData/index";
 import { getUserData } from "../user";
 import { triggerIftttEvent } from "./ifttt";
 import { triggerOverlaysEvent } from "./overlays";
@@ -38,6 +39,11 @@ export const reactToNewTransaction = async (
   };
 
   const eventData = await getEventData();
+
+  await donationDataProcesses.incrementDonationGoalSentAmount(
+    user._id,
+    Number(eventData.amount)
+  );
 
   if (user?.integrations?.ifttt && user?.integrations?.ifttt.isActive)
     await triggerIftttEvent(eventData, user?.integrations?.ifttt);

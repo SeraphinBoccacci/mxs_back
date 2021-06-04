@@ -25,9 +25,14 @@ export interface UserType {
     overlays?: OverlayData[];
     minimumRequiredAmount?: number;
   };
+  donationData?: {
+    donationGoal?: {
+      sentAmountAtDate: number;
+      lastResetDate?: Date;
+    };
+  };
   isStreaming?: boolean;
   streamingStartDate?: Date | null;
-
   referralLink?: string;
   herotagQrCodePath?: string;
 }
