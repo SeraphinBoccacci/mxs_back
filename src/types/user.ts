@@ -31,6 +31,11 @@ export interface UserType {
       lastResetDate?: Date;
     };
   };
+  moderation?: {
+    bannedWords?: string[];
+    bannedAddresses?: string[];
+    vipAddresses: string[];
+  };
   isStreaming?: boolean;
   streamingStartDate?: Date | null;
   referralLink?: string;

@@ -1,3 +1,4 @@
+import logger from "../../services/logger";
 import {
   ElrondTransaction,
   isMockedElrondTransaction,
@@ -15,6 +16,32 @@ import * as donationDataProcesses from "../donationData/index";
 import { getUserData } from "../user";
 import { triggerIftttEvent } from "./ifttt";
 import { triggerOverlaysEvent } from "./overlays";
+
+const isTransactionAllowed = (user: UserType, data: EventData) => {
+  const loweredData = data.data.toLowerCase();
+
+  const isDataOk = (user.moderation?.bannedWords || []).every(
+    (word) => !loweredData.includes(word.toLowerCase())
+  );
+
+  if (!isDataOk)
+    logger.warn("Transaction not approved - data", {
+      eventData: data,
+      userId: user._id,
+    });
+
+  const isAmountOk =
+    !user.integrations?.minimumRequiredAmount ||
+    Number(data.amount) >= user.integrations.minimumRequiredAmount;
+
+  if (!isAmountOk)
+    logger.warn("Transaction not approved - amount", {
+      eventData: data,
+      userId: user._id,
+    });
+
+  return isDataOk && isAmountOk;
+};
 
 export const reactToNewTransaction = async (
   transaction: ElrondTransaction | MockedElrondTransaction,
@@ -39,6 +66,8 @@ export const reactToNewTransaction = async (
   };
 
   const eventData = await getEventData();
+
+  if (!isTransactionAllowed(user, eventData)) return;
 
   await donationDataProcesses.incrementDonationGoalSentAmount(
     user._id,

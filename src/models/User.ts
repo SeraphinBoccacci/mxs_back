@@ -33,6 +33,12 @@ const OverlaysSchema = new Schema({
   donationBar: { type: DonationBarSchema, required: false },
 });
 
+const ModerationSchema = new Schema({
+  bannedWords: [{ type: String }],
+  bannedAddresses: [{ type: String }],
+  vipAddresses: [{ type: String }],
+});
+
 const UserSchema = new Schema(
   {
     password: { type: String, required: true },
@@ -59,6 +65,7 @@ const UserSchema = new Schema(
       minimumRequiredAmount: { type: Number, required: false },
     },
     donationData: { type: DonationsDataSchema, required: false },
+    moderation: { type: ModerationSchema, required: false },
     isStreaming: { type: Boolean, required: false },
     streamingStartDate: { type: Date, required: false },
     referralLink: { type: String, required: false },
