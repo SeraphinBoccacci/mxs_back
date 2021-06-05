@@ -40,7 +40,7 @@ describe("Maiar utils unit testing", () => {
 
         const readableAmount = computeTransactionAmount(txAmount);
 
-        expect(readableAmount).toEqual("1");
+        expect(readableAmount).toEqual(1);
       });
     });
 
@@ -50,7 +50,7 @@ describe("Maiar utils unit testing", () => {
 
         const readableAmount = computeTransactionAmount(txAmount);
 
-        expect(readableAmount).toEqual("0.00123456");
+        expect(readableAmount).toEqual(0.00123456);
       });
     });
 
@@ -60,7 +60,7 @@ describe("Maiar utils unit testing", () => {
 
         const readableAmount = computeTransactionAmount(txAmount);
 
-        expect(readableAmount).toEqual("1000");
+        expect(readableAmount).toEqual(1000);
       });
     });
 
@@ -70,7 +70,7 @@ describe("Maiar utils unit testing", () => {
 
         const readableAmount = computeTransactionAmount(txAmount);
 
-        expect(readableAmount).toEqual("2489393.914906039622412991");
+        expect(readableAmount).toEqual(2489393.914906039622412991);
       });
     });
   });
