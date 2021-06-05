@@ -26,6 +26,11 @@ const AlertSchema = new Schema(
   { _id: false }
 );
 
+const TinyAmountWordingSchema = new Schema({
+  ceilAmount: { type: String, required: true },
+  wording: { type: String, required: true },
+});
+
 const OverlaysSchema = new Schema({
   generatedLink: { type: String, required: false },
   alerts: { type: AlertSchema, required: false },
@@ -63,6 +68,7 @@ const UserSchema = new Schema(
       },
       overlays: [OverlaysSchema],
       minimumRequiredAmount: { type: Number, required: false },
+      tinyAmountWording: { type: TinyAmountWordingSchema, required: false },
     },
     donationData: { type: DonationsDataSchema, required: false },
     moderation: { type: ModerationSchema, required: false },

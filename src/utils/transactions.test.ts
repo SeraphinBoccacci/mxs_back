@@ -1,4 +1,4 @@
-import { computeSentAmount, normalizeHerotag } from "./transactions";
+import { computeTransactionAmount, normalizeHerotag } from "./transactions";
 
 describe("Maiar utils unit testing", () => {
   describe("normalizeHerotag", () => {
@@ -38,7 +38,7 @@ describe("Maiar utils unit testing", () => {
       it("should set decimal right", () => {
         const txAmount = "1000000000000000000";
 
-        const readableAmount = computeSentAmount(txAmount);
+        const readableAmount = computeTransactionAmount(txAmount);
 
         expect(readableAmount).toEqual("1");
       });
@@ -48,7 +48,7 @@ describe("Maiar utils unit testing", () => {
       it("should set decimal right", () => {
         const txAmount = "1234560000000000";
 
-        const readableAmount = computeSentAmount(txAmount);
+        const readableAmount = computeTransactionAmount(txAmount);
 
         expect(readableAmount).toEqual("0.00123456");
       });
@@ -58,7 +58,7 @@ describe("Maiar utils unit testing", () => {
       it("should set decimal right", () => {
         const txAmount = "1000000000000000000000";
 
-        const readableAmount = computeSentAmount(txAmount);
+        const readableAmount = computeTransactionAmount(txAmount);
 
         expect(readableAmount).toEqual("1000");
       });
@@ -68,7 +68,7 @@ describe("Maiar utils unit testing", () => {
       it("should set decimal right", () => {
         const txAmount = "2489393914906039622412991";
 
-        const readableAmount = computeSentAmount(txAmount);
+        const readableAmount = computeTransactionAmount(txAmount);
 
         expect(readableAmount).toEqual("2489393.914906039622412991");
       });

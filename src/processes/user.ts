@@ -45,6 +45,24 @@ export const updateMinimumRequiredAmount = async (
   );
 };
 
+export const updateTinyAmountsWording = async (
+  herotag: string,
+  ceilAmount: number,
+  wording: string
+): Promise<void> => {
+  await User.updateOne(
+    { herotag: normalizeHerotag(herotag) },
+    {
+      $set: {
+        "integrations.tinyAmountWording": {
+          ceilAmount: Number(ceilAmount),
+          wording,
+        },
+      },
+    }
+  );
+};
+
 export const updateViewerOnboardingData = async (
   herotag: string,
   referralLink: string,

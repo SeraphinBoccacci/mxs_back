@@ -8,7 +8,7 @@ import { EventData } from "../../types/ifttt";
 import { UserType } from "../../types/user";
 import { temporizeFn } from "../../utils/temporize";
 import {
-  computeSentAmount,
+  computeTransactionAmount,
   getHerotagFromErdAddress,
 } from "../../utils/transactions";
 import { decodeDataFromTx } from "../../utils/transactions";
@@ -43,6 +43,16 @@ const isTransactionAllowed = (user: UserType, data: EventData) => {
   return isDataOk && isAmountOk;
 };
 
+const wordingAmount = (amount: string | number, user: UserType): string => {
+  if (
+    user.integrations?.tinyAmountWording?.ceilAmount &&
+    Number(amount) < user.integrations?.tinyAmountWording?.ceilAmount
+  )
+    return user.integrations?.tinyAmountWording.wording;
+
+  return `${amount} eGLD`;
+};
+
 export const reactToNewTransaction = async (
   transaction: ElrondTransaction | MockedElrondTransaction,
   user: UserType
@@ -50,15 +60,19 @@ export const reactToNewTransaction = async (
   const getEventData = async (): Promise<EventData> => {
     if (isMockedElrondTransaction(transaction)) {
       return {
-        amount: transaction.amount,
+        amount: Number(transaction.amount),
+        wordingAmount: wordingAmount(transaction.amount, user),
         herotag: transaction.herotag,
         data: transaction.data,
       };
     } else {
       const herotag = await getHerotagFromErdAddress(transaction.sender);
 
+      const amount = computeTransactionAmount(transaction.value);
+
       return {
-        amount: computeSentAmount(transaction.value),
+        amount,
+        wordingAmount: wordingAmount(amount, user),
         herotag,
         data: decodeDataFromTx(transaction),
       };
@@ -114,20 +128,20 @@ export const reactToManyTransactions = async (
   }
 };
 
-const defaultMockedEventData: EventData = {
+const defaultMockedEventData: MockedElrondTransaction = {
   herotag: "test_herotag",
   amount: "0.001",
   data: "test message",
+  isMockedTransaction: true,
 };
 
 export const triggerFakeEvent = async (
   herotag: string,
-  data: EventData
+  data: MockedElrondTransaction
 ): Promise<void> => {
   const user = await getUserData(herotag);
 
   const mockedTransaction: MockedElrondTransaction = {
-    isMockedTransaction: true,
     ...defaultMockedEventData,
     ...data,
   };

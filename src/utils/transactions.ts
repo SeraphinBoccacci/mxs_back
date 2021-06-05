@@ -32,8 +32,8 @@ export const normalizeHerotag = (herotag: string): string => {
     : `${herotag}.elrond`.replace("@", "");
 };
 
-export const computeSentAmount = (amount: string): string => {
-  return String(
+export const computeTransactionAmount = (amount: string): number => {
+  return Number(
     Decimal.set({ precision: amount.length }).mul(amount, Math.pow(10, -18))
   );
 };

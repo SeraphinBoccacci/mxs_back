@@ -24,6 +24,10 @@ export interface UserType {
     ifttt?: IftttParticleData;
     overlays?: OverlayData[];
     minimumRequiredAmount?: number;
+    tinyAmountWording?: {
+      ceilAmount: number;
+      wording: string;
+    };
   };
   donationData?: {
     donationGoal?: {
