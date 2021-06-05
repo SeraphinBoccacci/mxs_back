@@ -11,6 +11,7 @@ import {
   triggerFakeEvent,
   updateIftttParticleData,
   updateMinimumRequiredAmount,
+  updateTinyAmountsWording,
   updateViewerOnboardingData,
 } from "../controllers/users";
 import { authenticateMiddleware } from "../middlewares/authMiddleware";
@@ -42,6 +43,11 @@ Router.route("/user/trigger-event").post(
 Router.route("/user/minimum-required-amount").post(
   authenticateMiddleware,
   updateMinimumRequiredAmount
+);
+
+Router.route("/user/tiny-amounts").post(
+  authenticateMiddleware,
+  updateTinyAmountsWording
 );
 
 Router.route("/user/viewers-onboarding-data").post(

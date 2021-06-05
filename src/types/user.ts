@@ -24,12 +24,21 @@ export interface UserType {
     ifttt?: IftttParticleData;
     overlays?: OverlayData[];
     minimumRequiredAmount?: number;
+    tinyAmountWording?: {
+      ceilAmount: number;
+      wording: string;
+    };
   };
   donationData?: {
     donationGoal?: {
       sentAmountAtDate: number;
       lastResetDate?: Date;
     };
+  };
+  moderation?: {
+    bannedWords?: string[];
+    bannedAddresses?: string[];
+    vipAddresses: string[];
   };
   isStreaming?: boolean;
   streamingStartDate?: Date | null;
