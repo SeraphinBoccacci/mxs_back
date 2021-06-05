@@ -26,11 +26,22 @@ const AlertSchema = new Schema(
   { _id: false }
 );
 
+const TinyAmountWordingSchema = new Schema({
+  ceilAmount: { type: String, required: true },
+  wording: { type: String, required: true },
+});
+
 const OverlaysSchema = new Schema({
   generatedLink: { type: String, required: false },
   alerts: { type: AlertSchema, required: false },
   isActive: { type: Boolean, required: false },
   donationBar: { type: DonationBarSchema, required: false },
+});
+
+const ModerationSchema = new Schema({
+  bannedWords: [{ type: String }],
+  bannedAddresses: [{ type: String }],
+  vipAddresses: [{ type: String }],
 });
 
 const UserSchema = new Schema(
@@ -57,8 +68,10 @@ const UserSchema = new Schema(
       },
       overlays: [OverlaysSchema],
       minimumRequiredAmount: { type: Number, required: false },
+      tinyAmountWording: { type: TinyAmountWordingSchema, required: false },
     },
     donationData: { type: DonationsDataSchema, required: false },
+    moderation: { type: ModerationSchema, required: false },
     isStreaming: { type: Boolean, required: false },
     streamingStartDate: { type: Date, required: false },
     referralLink: { type: String, required: false },

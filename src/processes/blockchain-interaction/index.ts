@@ -1,3 +1,4 @@
+import logger from "../../services/logger";
 import {
   ElrondTransaction,
   isMockedElrondTransaction,
@@ -7,7 +8,7 @@ import { EventData } from "../../types/ifttt";
 import { UserType } from "../../types/user";
 import { temporizeFn } from "../../utils/temporize";
 import {
-  computeSentAmount,
+  computeTransactionAmount,
   getHerotagFromErdAddress,
 } from "../../utils/transactions";
 import { decodeDataFromTx } from "../../utils/transactions";
@@ -16,6 +17,42 @@ import { getUserData } from "../user";
 import { triggerIftttEvent } from "./ifttt";
 import { triggerOverlaysEvent } from "./overlays";
 
+const isTransactionAllowed = (user: UserType, data: EventData) => {
+  const loweredData = data.data.toLowerCase();
+
+  const isDataOk = (user.moderation?.bannedWords || []).every(
+    (word) => !loweredData.includes(word.toLowerCase())
+  );
+
+  if (!isDataOk)
+    logger.warn("Transaction not approved - data", {
+      eventData: data,
+      userId: user._id,
+    });
+
+  const isAmountOk =
+    !user.integrations?.minimumRequiredAmount ||
+    Number(data.amount) >= user.integrations.minimumRequiredAmount;
+
+  if (!isAmountOk)
+    logger.warn("Transaction not approved - amount", {
+      eventData: data,
+      userId: user._id,
+    });
+
+  return isDataOk && isAmountOk;
+};
+
+const wordingAmount = (amount: string | number, user: UserType): string => {
+  if (
+    user.integrations?.tinyAmountWording?.ceilAmount &&
+    Number(amount) < user.integrations?.tinyAmountWording?.ceilAmount
+  )
+    return user.integrations?.tinyAmountWording.wording;
+
+  return `${amount} eGLD`;
+};
+
 export const reactToNewTransaction = async (
   transaction: ElrondTransaction | MockedElrondTransaction,
   user: UserType
@@ -23,15 +60,19 @@ export const reactToNewTransaction = async (
   const getEventData = async (): Promise<EventData> => {
     if (isMockedElrondTransaction(transaction)) {
       return {
-        amount: transaction.amount,
+        amount: Number(transaction.amount),
+        wordingAmount: wordingAmount(transaction.amount, user),
         herotag: transaction.herotag,
         data: transaction.data,
       };
     } else {
       const herotag = await getHerotagFromErdAddress(transaction.sender);
 
+      const amount = computeTransactionAmount(transaction.value);
+
       return {
-        amount: computeSentAmount(transaction.value),
+        amount,
+        wordingAmount: wordingAmount(amount, user),
         herotag,
         data: decodeDataFromTx(transaction),
       };
@@ -39,6 +80,8 @@ export const reactToNewTransaction = async (
   };
 
   const eventData = await getEventData();
+
+  if (!isTransactionAllowed(user, eventData)) return;
 
   await donationDataProcesses.incrementDonationGoalSentAmount(
     user._id,
@@ -85,20 +128,20 @@ export const reactToManyTransactions = async (
   }
 };
 
-const defaultMockedEventData: EventData = {
+const defaultMockedEventData: MockedElrondTransaction = {
   herotag: "test_herotag",
   amount: "0.001",
   data: "test message",
+  isMockedTransaction: true,
 };
 
 export const triggerFakeEvent = async (
   herotag: string,
-  data: EventData
+  data: MockedElrondTransaction
 ): Promise<void> => {
   const user = await getUserData(herotag);
 
   const mockedTransaction: MockedElrondTransaction = {
-    isMockedTransaction: true,
     ...defaultMockedEventData,
     ...data,
   };

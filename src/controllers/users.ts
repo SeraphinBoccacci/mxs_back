@@ -81,6 +81,19 @@ export const updateMinimumRequiredAmount = async (
   res.sendStatus(204);
 };
 
+export const updateTinyAmountsWording = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  await userProcesses.updateTinyAmountsWording(
+    req.body.herotag,
+    req.body.ceilAmount,
+    req.body.wording
+  );
+
+  res.sendStatus(204);
+};
+
 export const updateViewerOnboardingData = async (
   req: Request,
   res: Response

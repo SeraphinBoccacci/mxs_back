@@ -13,7 +13,7 @@ import {
 import { ElrondTransaction, LastSnapshotBalance } from "../../types/elrond";
 import { UserType } from "../../types/user";
 import poll from "../../utils/poll";
-import { computeSentAmount, normalizeHerotag } from "../../utils/transactions";
+import { normalizeHerotag } from "../../utils/transactions";
 import { reactToManyTransactions } from "../blockchain-interaction";
 
 export const findNewIncomingTransactions = (
@@ -28,14 +28,19 @@ export const findNewIncomingTransactions = (
     user?.streamingStartDate &&
     timestamp > Math.ceil(new Date(user?.streamingStartDate).getTime() * 0.001);
 
-  const isAmountValid = (value: string) =>
-    !user.integrations?.minimumRequiredAmount ||
-    Number(computeSentAmount(value)) >= user.integrations.minimumRequiredAmount;
+  const isSenderBanned = (sender: string) => {
+    return (user?.moderation?.bannedAddresses || []).some(
+      (address) => address === sender
+    );
+  };
 
+  // Filters below are also taken into account in reactToNewTransaction fn
+  // decoded data should not included banned words
+  // transaction amount should be above minimum amount set up by the user
   return transactions.filter(
-    ({ receiver, timestamp, hash, status, value }: ElrondTransaction) => {
+    ({ receiver, timestamp, hash, status, sender }: ElrondTransaction) => {
       return (
-        isAmountValid(value) &&
+        !isSenderBanned(sender) &&
         receiver === erdAddress &&
         isTimestampOk(timestamp) &&
         !last30ListennedTransactions.includes(hash) &&

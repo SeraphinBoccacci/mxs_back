@@ -12,6 +12,7 @@ export const triggerOverlaysEvent = async (
       room: user.herotag,
       herotag: eventData.herotag,
       amount: eventData.amount,
+      wordingAmount: eventData.wordingAmount,
       message: eventData.data,
     })
   );

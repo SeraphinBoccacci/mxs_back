@@ -120,7 +120,7 @@ describe("Blockchain interaction unit testing", () => {
 
         expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledTimes(1);
         expect(mockedIfttt.triggerIftttEvent).toHaveBeenCalledWith(
-          { amount: "1", data: "", herotag: "remdem" },
+          { amount: 1, wordingAmount: "1 eGLD", data: "", herotag: "remdem" },
           baseUser.integrations?.ifttt
         );
       });
@@ -156,7 +156,43 @@ describe("Blockchain interaction unit testing", () => {
 
         expect(mockedOverlays.triggerOverlaysEvent).toHaveBeenCalledTimes(1);
         expect(mockedOverlays.triggerOverlaysEvent).toHaveBeenCalledWith(
-          { amount: "1", data: "", herotag: "remdem" },
+          { amount: 1, wordingAmount: "1 eGLD", data: "", herotag: "remdem" },
+          user
+        );
+      });
+    });
+
+    describe("when transaction has a tiny amount", () => {
+      const transaction = {
+        hash:
+          "b7334dbf756d24a381ee49eac98b1be7993ee1bc8932c7d6c7b914c123bc56666",
+        status: "success",
+        value: "10000000000000",
+      } as ElrondTransaction;
+
+      const user = {
+        ...baseUser,
+        integrations: {
+          ...baseUser.integrations,
+          ifttt: undefined,
+          tinyAmountWording: {
+            ceilAmount: 0.01,
+            wording: "some eGLD dust",
+          },
+        },
+      };
+
+      it("should replace amount by wording", async () => {
+        await reactToNewTransaction(transaction, user);
+
+        expect(mockedOverlays.triggerOverlaysEvent).toHaveBeenCalledTimes(1);
+        expect(mockedOverlays.triggerOverlaysEvent).toHaveBeenCalledWith(
+          {
+            amount: 0.00001,
+            wordingAmount: "some eGLD dust",
+            data: "",
+            herotag: "remdem",
+          },
           user
         );
       });

@@ -15,17 +15,15 @@ export const triggerIftttEvent = async (
 
   const data = {
     value1: eventData.herotag,
-    value2: eventData.amount,
+    value2: eventData.wordingAmount,
     value3: eventData.data,
   };
 
+  const route = `https://maker.ifttt.com/trigger/${iftttParticleData.eventName}/with/key/${iftttParticleData.triggerKey}`;
+
   try {
-    await axios.post(
-      `https://maker.ifttt.com/trigger/${iftttParticleData.eventName}/with/key/${iftttParticleData.triggerKey}`,
-      data,
-      config
-    );
+    await axios.post(route, data, config);
   } catch (error) {
-    logger.error("INVALID_IFTTT_CONFIGURATION");
+    logger.error("INVALID_IFTTT_CONFIGURATION", { calledUrl: route });
   }
 };
