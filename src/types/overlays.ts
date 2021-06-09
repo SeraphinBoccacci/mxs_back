@@ -31,6 +31,8 @@ export interface VariationGroup {
 export interface OverlayData {
   _id: mongoose.Types.ObjectId;
   isActive: boolean;
+  name: string;
+  color: string;
   rowsStructure?: {
     rows: string[];
     rowsGroupName?: string | undefined;

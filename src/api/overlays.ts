@@ -6,6 +6,7 @@ import {
   deleteOverlay,
   getManyUserOverlays,
   getUserOverlay,
+  updateOverlayName,
 } from "../controllers/overlays";
 import { authenticateMiddleware } from "../middlewares/authMiddleware";
 
@@ -33,6 +34,11 @@ Router.route("/overlays/herotag/:herotag/overlay/:overlayId").delete(
 Router.route("/overlays/add-widget").post(
   authenticateMiddleware,
   addWidgetToOverlay
+);
+
+Router.route("/overlays/overlay-name").post(
+  authenticateMiddleware,
+  updateOverlayName
 );
 
 export default Router;

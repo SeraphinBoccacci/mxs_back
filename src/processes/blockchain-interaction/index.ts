@@ -10,6 +10,7 @@ import { temporizeFn } from "../../utils/temporize";
 import {
   computeTransactionAmount,
   getHerotagFromErdAddress,
+  normalizeHerotag,
 } from "../../utils/transactions";
 import { decodeDataFromTx } from "../../utils/transactions";
 import * as donationDataProcesses from "../donationData/index";
@@ -40,7 +41,17 @@ const isTransactionAllowed = (user: UserType, data: EventData) => {
       userId: user._id,
     });
 
-  return isDataOk && isAmountOk;
+  const isHerotagOk = (user?.moderation?.bannedAddresses || []).every(
+    (address) => normalizeHerotag(address) !== data.herotag
+  );
+
+  if (!isHerotagOk)
+    logger.warn("Transaction not approved - herotag banned", {
+      eventData: data,
+      userId: user._id,
+    });
+
+  return isDataOk && isAmountOk && isHerotagOk;
 };
 
 const wordingAmount = (amount: string | number, user: UserType): string => {
@@ -104,12 +115,14 @@ const resolveDelay = (user: UserType) => {
     ...(user.integrations?.overlays?.flatMap(({ alerts }) =>
       alerts?.variations?.flatMap(({ duration }) => duration || 0)
     ) || []),
+    ...(user.integrations?.overlays?.flatMap(
+      ({ donationBar }) => donationBar?.donationReaction.duration || 0
+    ) || []),
   ];
 
   const maxDelaySecond = Math.max(...delays);
-  const delayMs = maxDelaySecond * 1000;
 
-  return delayMs + 5000;
+  return (maxDelaySecond + 5) * 1000;
 };
 
 export const reactToManyTransactions = async (

@@ -6,12 +6,23 @@ import { ObjectId } from "bson";
 import mongoose from "mongoose";
 import { nanoid } from "nanoid";
 
+import { colors } from "../../constants/colors";
 import User from "../../models/User";
 import logger from "../../services/logger";
 import { connectToDatabase } from "../../services/mongoose";
 import { AlertVariation } from "../../types/alerts";
 import { VariationGroupKinds } from "../../types/overlays";
 import { UserType } from "../../types/user";
+
+const randomColor = (): string => {
+  const colorsCount = colors.length;
+
+  const randomIndex = Math.floor(Math.random() * colorsCount);
+
+  const color = colors[randomIndex];
+
+  return color.value;
+};
 
 const replaceStreamElementFields = async () => {
   const users = await User.find()
@@ -42,6 +53,8 @@ const replaceStreamElementFields = async () => {
               "integrations.overlays": [
                 {
                   alerts: {
+                    name: "Overlay 1",
+                    color: randomColor(),
                     variations: alertsVariations,
                     groups: [
                       {
@@ -51,7 +64,6 @@ const replaceStreamElementFields = async () => {
                       },
                     ],
                   },
-
                   generatedLink: nanoid(50),
                 },
               ],

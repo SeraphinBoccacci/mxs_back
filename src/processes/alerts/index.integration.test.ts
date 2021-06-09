@@ -112,6 +112,8 @@ describe("Alert Variations integration test", () => {
             overlays: [
               {
                 _id: overlayId,
+                name: "test",
+                color: "test",
                 alerts: {
                   variations: [],
                   groups: [
@@ -180,6 +182,8 @@ describe("Alert Variations integration test", () => {
           overlays: [
             {
               _id: overlayId,
+              name: "test",
+              color: "test",
               alerts: {
                 variations: [
                   {
@@ -264,6 +268,8 @@ describe("Alert Variations integration test", () => {
           overlays: [
             {
               _id: overlayId,
+              name: "test",
+              color: "test",
               alerts: {
                 variations: [
                   {

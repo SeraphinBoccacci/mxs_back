@@ -56,3 +56,14 @@ export const addWidgetToOverlay = async (
 
   res.sendStatus(204);
 };
+
+export const updateOverlayName = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { herotag, overlayId, overlayName } = req.body;
+
+  await overlaysProcesses.updateOverlayName(herotag, overlayId, overlayName);
+
+  res.sendStatus(204);
+};
