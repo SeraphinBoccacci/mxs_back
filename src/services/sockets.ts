@@ -19,6 +19,7 @@ export const listen = (server: HttpServer): void => {
 
   io.sockets.on("connection", (socket: Socket) => {
     const room = socket?.handshake?.query?.streamerHerotag;
+
     if (room) {
       socket.join(normalizeHerotag(room as string));
     }
@@ -32,11 +33,10 @@ export const listen = (server: HttpServer): void => {
 
       io.to(room).emit("newDonation", parsedData);
     } catch (error) {
-      logger.error({
+      logger.error("Unparsable redis publish data", {
         ...error,
         channel,
         stringifiedData,
-        error: "Unparsable redis publish data",
       });
     }
   });

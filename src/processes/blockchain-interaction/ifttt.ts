@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig } from "axios";
 
-import { IftttParticleData } from "../../models/User";
-import { EventData } from "../../types";
+import logger from "../../services/logger";
+import { EventData, IftttParticleData } from "../../types/ifttt";
 
 export const triggerIftttEvent = async (
   eventData: EventData,
@@ -15,13 +15,15 @@ export const triggerIftttEvent = async (
 
   const data = {
     value1: eventData.herotag,
-    value2: eventData.amount,
+    value2: eventData.wordingAmount,
     value3: eventData.data,
   };
 
-  await axios.post(
-    `https://maker.ifttt.com/trigger/${iftttParticleData.eventName}/with/key/${iftttParticleData.triggerKey}`,
-    data,
-    config
-  );
+  const route = `https://maker.ifttt.com/trigger/${iftttParticleData.eventName}/with/key/${iftttParticleData.triggerKey}`;
+
+  try {
+    await axios.post(route, data, config);
+  } catch (error) {
+    logger.error("INVALID_IFTTT_CONFIGURATION", { calledUrl: route });
+  }
 };

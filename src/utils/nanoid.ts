@@ -1,9 +1,20 @@
-import { nanoid } from "nanoid";
+import User from "../models/User";
+import { UserAccountStatus } from "../types/user";
 
-import User, { UserAccountStatus } from "../models/User";
+const randomString = (length = 10) => {
+  const chars = "ABCDEFGHKMNPQRSTUVWXZ23456789";
+
+  const a = new Array(length).fill("");
+
+  const string = a.reduce((prevString) => {
+    return prevString + chars.charAt(Math.floor(Math.random() * chars.length));
+  }, "");
+
+  return string;
+};
 
 export const generateNewVerificationReference = async (): Promise<string> => {
-  const reference = nanoid(10);
+  const reference = randomString(10);
 
   if (
     await User.exists({

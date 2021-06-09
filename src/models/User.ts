@@ -1,51 +1,50 @@
 import mongoose, { Schema } from "mongoose";
 
-import { VariationSchema } from "../models/schemas/StreamElementsVariation";
-import { Variation } from "../types/streamElements";
+import { VariationGroup, VariationGroupKinds } from "../types/overlays";
+import { UserAccountStatus, UserType } from "../types/user";
+import { ENV } from "../utils/env";
+import { VariationSchema } from "./schemas/AlertVariation";
+import { DonationBarSchema } from "./schemas/DonationBar";
+import { DonationsDataSchema } from "./schemas/DonationsData";
+import { VariationGroupSchema } from "./schemas/VariationGroup";
 
-export enum UserAccountStatus {
-  PENDING_VERIFICATION = 0,
-  VERIFIED,
-  PENDING_EDIT_PASSWORD_VERIFICATION,
-}
+const AlertSchema = new Schema(
+  {
+    variations: { type: [VariationSchema], required: false },
+    groups: {
+      type: [VariationGroupSchema],
+      required: false,
+      validate: {
+        validator: function(groups: VariationGroup[]) {
+          groups.filter(({ kind }) => kind === VariationGroupKinds.DEFAULT)
+            .length === 1;
+        },
+        message: "There should be exactly one default variations group",
+      },
+    },
+  },
+  { _id: false }
+);
 
-export interface IftttParticleData {
-  eventName: string;
-  triggerKey: string;
-  isActive: boolean;
-}
+const TinyAmountWordingSchema = new Schema({
+  ceilAmount: { type: String, required: true },
+  wording: { type: String, required: true },
+});
 
-export interface StreamElementData {
-  variations: Variation[];
-  rowsStructure: {
-    rows: string[];
-    rowsGroupName?: string | undefined;
-  }[];
-  isActive: boolean;
-}
+const OverlaysSchema = new Schema({
+  generatedLink: { type: String, required: false },
+  alerts: { type: AlertSchema, required: false },
+  isActive: { type: Boolean, required: false },
+  name: { type: String, required: true },
+  color: { type: String, required: true },
+  donationBar: { type: DonationBarSchema, required: false },
+});
 
-export interface UserType {
-  _id?: mongoose.Types.ObjectId;
-  password?: string;
-  pendingPassword?: string;
-  herotag?: string;
-  erdAddress?: string;
-  status: UserAccountStatus;
-  verificationReference?: string;
-  passwordEditionVerificationReference?: string;
-  verificationStartDate?: string;
-  passwordEditionVerificationStartDate?: string;
-  integrations?: {
-    ifttt?: IftttParticleData;
-    streamElements?: StreamElementData;
-    minimumRequiredAmount?: number;
-  };
-  isStreaming?: boolean;
-  streamingStartDate?: Date | null;
-
-  referralLink?: string;
-  herotagQrCodePath?: string;
-}
+const ModerationSchema = new Schema({
+  bannedWords: [{ type: String }],
+  bannedAddresses: [{ type: String }],
+  vipAddresses: [{ type: String }],
+});
 
 const UserSchema = new Schema(
   {
@@ -54,9 +53,10 @@ const UserSchema = new Schema(
     herotag: {
       type: String,
       required: true,
-      validate: (herotag: string) => herotag.endsWith(".elrond"),
+      validate: (herotag: string) =>
+        herotag.endsWith(`${ENV.ELROND_HEROTAG_DOMAIN}`),
     },
-    erdAddress: { type: String, required: false },
+    erdAddress: { type: String, required: true }, // TO-DO validate string format
     status: { type: UserAccountStatus, required: true },
     verificationReference: { type: String, required: true },
     passwordEditionVerificationReference: { type: String, required: false },
@@ -68,24 +68,14 @@ const UserSchema = new Schema(
         triggerKey: { type: String, required: false },
         isActive: { type: Boolean, required: false },
       },
-      streamElements: {
-        variations: { type: [VariationSchema], required: false },
-        rowsStructure: {
-          type: [
-            {
-              rowsGroupName: { type: String, required: false },
-              rows: { type: [String], required: false },
-            },
-          ],
-          required: false,
-        },
-        isActive: { type: Boolean, required: false },
-      },
+      overlays: [OverlaysSchema],
       minimumRequiredAmount: { type: Number, required: false },
+      tinyAmountWording: { type: TinyAmountWordingSchema, required: false },
     },
+    donationData: { type: DonationsDataSchema, required: false },
+    moderation: { type: ModerationSchema, required: false },
     isStreaming: { type: Boolean, required: false },
     streamingStartDate: { type: Date, required: false },
-
     referralLink: { type: String, required: false },
     herotagQrCodePath: { type: String, required: false },
   },

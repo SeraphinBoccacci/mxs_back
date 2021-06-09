@@ -1,24 +1,22 @@
 import mongoose from "mongoose";
 
-import User, { UserMongooseDocument, UserType } from "../../models/User";
+import User, { UserMongooseDocument } from "../../models/User";
+import { getLastTransactions, getUpdatedBalance } from "../../services/elrond";
+import logger from "../../services/logger";
 import {
   getAlreadyListennedTransactions,
   getLastBalanceSnapShot,
   getLastRestart,
   setAlreadyListennedTransactions,
   setNewBalance,
-} from "../../redis";
-import { getLastTransactions, getUpdatedBalance } from "../../services/elrond";
-import { ElrondTransaction, LastSnapshotBalance } from "../../types";
+} from "../../services/redis";
+import { ElrondTransaction, LastSnapshotBalance } from "../../types/elrond";
+import { UserType } from "../../types/user";
 import poll from "../../utils/poll";
-import {
-  computeSentAmount,
-  getErdAddressFromHerotag,
-  normalizeHerotag,
-} from "../../utils/transactions";
+import { normalizeHerotag } from "../../utils/transactions";
 import { reactToManyTransactions } from "../blockchain-interaction";
 
-export const findNewIncomingTransactions = (
+export const filterNewIncomingTransactions = (
   transactions: ElrondTransaction[],
   erdAddress: string,
   user: UserType,
@@ -30,14 +28,20 @@ export const findNewIncomingTransactions = (
     user?.streamingStartDate &&
     timestamp > Math.ceil(new Date(user?.streamingStartDate).getTime() * 0.001);
 
-  const isAmountValid = (value: string) =>
-    !user.integrations?.minimumRequiredAmount ||
-    Number(computeSentAmount(value)) >= user.integrations.minimumRequiredAmount;
+  const isSenderBanned = (sender: string) => {
+    return (user?.moderation?.bannedAddresses || []).some(
+      (address) => address === sender
+    );
+  };
 
+  // Filters below are also taken into account in reactToNewTransaction fn
+  // decoded data should not include banned words
+  // transaction amount should be above minimum amount set up by the user
+  // transaction herotag should not be banned by the user
   return transactions.filter(
-    ({ receiver, timestamp, hash, status, value }: ElrondTransaction) => {
+    ({ receiver, timestamp, hash, status, sender }: ElrondTransaction) => {
       return (
-        isAmountValid(value) &&
+        !isSenderBanned(sender) &&
         receiver === erdAddress &&
         isTimestampOk(timestamp) &&
         !last30ListennedTransactions.includes(hash) &&
@@ -58,18 +62,17 @@ export const transactionsHandler = (
   return async (): Promise<boolean> => {
     const user = await User.findById(userId).lean();
 
-    if (!user || !user.herotag) return true;
+    if (!user?.erdAddress) return true;
 
-    const erdAddress = await getErdAddressFromHerotag(user.herotag);
-    const transactions = await getLastTransactions(erdAddress);
+    const transactions = await getLastTransactions(user.erdAddress);
 
     const last30ListennedTransactions = await getAlreadyListennedTransactions(
-      erdAddress
+      user.erdAddress
     );
 
-    const newTransactions = findNewIncomingTransactions(
+    const newTransactions = filterNewIncomingTransactions(
       transactions,
-      erdAddress,
+      user.erdAddress,
       user,
       last30ListennedTransactions,
       lastRestartTimestamp
@@ -78,7 +81,7 @@ export const transactionsHandler = (
     if (!newTransactions.length) return false;
 
     await setAlreadyListennedTransactions(
-      erdAddress,
+      user.erdAddress,
       newTransactions.map(({ hash }) => hash)
     );
 
@@ -118,12 +121,10 @@ export const balanceHandler = (
 };
 
 export const launchBlockchainMonitoring = async (
-  herotag: string,
+  erdAddress: string,
   user: UserType
 ): Promise<string> => {
   const lastRestartTimestamp = await getLastRestart();
-
-  const erdAddress = await getErdAddressFromHerotag(herotag);
 
   const handleTransactions = transactionsHandler(
     user._id as mongoose.Types.ObjectId,
@@ -151,7 +152,7 @@ export const toggleBlockchainMonitoring = async (
   herotag: string,
   isStreaming: boolean
 ): Promise<UserMongooseDocument | void> => {
-  const user: UserMongooseDocument = await User.findOneAndUpdate(
+  const user: UserMongooseDocument | null = await User.findOneAndUpdate(
     { herotag: normalizeHerotag(herotag) },
     {
       $set: {
@@ -165,37 +166,80 @@ export const toggleBlockchainMonitoring = async (
   if (!user) return;
 
   if (isStreaming && user.integrations) {
-    const erdAddress = await getErdAddressFromHerotag(herotag);
-    const newBalance = await getUpdatedBalance(erdAddress);
+    if (!user?.erdAddress) return;
+
+    const newBalance = await getUpdatedBalance(user.erdAddress);
 
     if (newBalance) {
-      await setNewBalance(erdAddress, newBalance);
+      await setNewBalance(user.erdAddress, newBalance);
 
-      await launchBlockchainMonitoring(user.herotag as string, user);
-    } else throw new Error("UNABLE_TO_LAUCH_BC_MONITORING");
+      logger.info("Lauching blockchain monitoring for user", {
+        herotag: user.herotag,
+      });
+      await launchBlockchainMonitoring(user.erdAddress, user);
+    } else
+      throw new Error(
+        `UNABLE_TO_LAUCH_BC_MONITORING - NO NEW BALANCE for ${user.herotag}`
+      );
   }
 
   return user;
 };
 
+const resumeBlockchainMonitoringForUser = async (
+  user: UserType
+): Promise<string | null> => {
+  if (!user.herotag) {
+    logger.error("UNABLE_TO_LAUCH_BC_MONITORING - NO HEROTAG", {
+      userId: user._id,
+    });
+    return null;
+  }
+
+  if (!user?.erdAddress) {
+    logger.error("UNABLE_TO_LAUCH_BC_MONITORING - NO ERD ADDRESS", {
+      herotag: user.herotag,
+    });
+    return null;
+  }
+
+  const newBalance = await getUpdatedBalance(user.erdAddress);
+
+  if (!newBalance) {
+    logger.error("UNABLE_TO_LAUCH_BC_MONITORING - NO NEW BALANCE", {
+      herotag: user.herotag,
+    });
+    return null;
+  }
+
+  try {
+    await setNewBalance(user.erdAddress, newBalance);
+
+    logger.info("Resuming blockchain monitoring for user", {
+      herotag: user.herotag,
+    });
+    const launchedUser = await launchBlockchainMonitoring(
+      user.erdAddress,
+      user
+    );
+
+    return launchedUser;
+  } catch (error) {
+    logger.error("UNABLE_TO_LAUCH_BC_MONITORING", {
+      herotag: user.herotag,
+    });
+    return null;
+  }
+};
+
 export const resumeBlockchainMonitoring = async (): Promise<string[]> => {
   const usersToPoll = await User.find({ isStreaming: true }).lean();
 
-  const launchedUsers = await Promise.all(
-    usersToPoll.map(async (user) => {
-      if (!user.herotag) throw new Error("UNABLE_TO_LAUCH_BC_MONITORING");
-
-      const erdAddress = await getErdAddressFromHerotag(user.herotag);
-
-      const newBalance = await getUpdatedBalance(erdAddress);
-
-      if (newBalance) {
-        await setNewBalance(erdAddress, newBalance);
-
-        return launchBlockchainMonitoring(user.herotag as string, user);
-      } else throw new Error("UNABLE_TO_LAUCH_BC_MONITORING");
-    })
+  const users = await Promise.all(
+    usersToPoll.map(resumeBlockchainMonitoringForUser)
   );
+
+  const launchedUsers = users.filter(Boolean) as string[];
 
   return launchedUsers;
 };

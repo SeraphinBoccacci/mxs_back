@@ -7,44 +7,20 @@ import {
   getVerificationReference,
   isHerotagValid,
   isProfileVerified,
-} from "../processes/authentication";
+} from "../controllers/auth";
 
 const Router = express.Router();
 
-Router.post("/authenticate", async (req, res) => {
-  const authData = await authenticateUser(req.body);
+Router.post("/authenticate", authenticateUser);
 
-  res.send(authData);
-});
+Router.post("/create-account", createUserAccount);
 
-Router.post("/create-account", async (req, res) => {
-  const creationData = await createUserAccount(req.body);
+Router.post("/edit-password", editPassword);
 
-  res.send(creationData);
-});
+Router.get("/verification-status/:herotag", isProfileVerified);
 
-Router.post("/edit-password", async (req, res) => {
-  await editPassword(req.body);
+Router.get("/verification-reference/:herotag", getVerificationReference);
 
-  res.sendStatus(204);
-});
-
-Router.get("/verification-status/:herotag", async (req, res) => {
-  const isVerified = await isProfileVerified(req.params.herotag);
-
-  res.send(isVerified);
-});
-
-Router.get("/verification-reference/:herotag", async (req, res) => {
-  const reference = await getVerificationReference(req.params.herotag);
-
-  res.send(reference);
-});
-
-Router.get("/is-valid-herotag/:herotag", async (req, res) => {
-  const result = await isHerotagValid(req.params.herotag);
-
-  res.send(result);
-});
+Router.get("/is-valid-herotag/:herotag", isHerotagValid);
 
 export default Router;

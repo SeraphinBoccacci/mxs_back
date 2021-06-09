@@ -1,13 +1,11 @@
 import mongoose from "mongoose";
 
+import { TextPositions } from "../../types/alerts";
 import {
   EnterAnimationTypes,
   ExitAnimationTypes,
-  TextAlignments,
-  TextPositions,
   TextStyles,
-  VariationPositions,
-} from "../../types/streamElements";
+} from "../../types/style";
 
 const AnimationSchema = new mongoose.Schema(
   {
@@ -27,7 +25,8 @@ const AnimationSchema = new mongoose.Schema(
 
 export const VariationSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  position: { type: String, enum: VariationPositions },
+  offsetTop: { type: Number, default: 0 },
+  offsetLeft: { type: Number, default: 0 },
   backgroundColor: { type: String, required: true },
   duration: { type: Number, required: false, default: 10 },
   chances: { type: Number, required: false, default: 100 },
@@ -74,7 +73,7 @@ export const VariationSchema = new mongoose.Schema({
       textAlign: {
         type: String,
         required: false,
-        default: TextAlignments.left,
+        default: "left",
       },
       textStyle: {
         type: [{ type: String, enum: TextStyles }],

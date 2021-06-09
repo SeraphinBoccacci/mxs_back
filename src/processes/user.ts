@@ -1,5 +1,5 @@
 import User, { UserMongooseDocument } from "../models/User";
-import { IftttConfig } from "../types";
+import { IftttConfig } from "../types/ifttt";
 import { normalizeHerotag } from "../utils/transactions";
 
 export const toggleIftttParticle = async (
@@ -31,16 +31,6 @@ export const updateIftttParticleData = async (
   );
 };
 
-export const toggleStreamElementsParticle = async (
-  herotag: string,
-  activate: boolean
-): Promise<void> => {
-  await User.updateOne(
-    { herotag: normalizeHerotag(herotag) },
-    { $set: { "integrations.streamElements.isActive": activate } }
-  );
-};
-
 export const updateMinimumRequiredAmount = async (
   herotag: string,
   minimumRequiredAmount: number
@@ -50,6 +40,24 @@ export const updateMinimumRequiredAmount = async (
     {
       $set: {
         "integrations.minimumRequiredAmount": minimumRequiredAmount,
+      },
+    }
+  );
+};
+
+export const updateTinyAmountsWording = async (
+  herotag: string,
+  ceilAmount: number,
+  wording: string
+): Promise<void> => {
+  await User.updateOne(
+    { herotag: normalizeHerotag(herotag) },
+    {
+      $set: {
+        "integrations.tinyAmountWording": {
+          ceilAmount: Number(ceilAmount),
+          wording,
+        },
       },
     }
   );

@@ -1,14 +1,21 @@
 import { Decimal } from "decimal.js";
 
 import { dns, proxy } from "../services/elrond";
-import { ElrondTransaction } from "../types";
+import logger from "../services/logger";
+import { ElrondTransaction } from "../types/elrond";
+import { ENV } from "./env";
 
 export const getErdAddressFromHerotag = async (
   herotag: string
-): Promise<string> => {
-  const address = await dns.resolve(herotag);
+): Promise<string | null> => {
+  try {
+    const address = await dns.resolve(herotag);
 
-  return address;
+    return address;
+  } catch (error) {
+    logger.error("FAILED_TO_RESOLVE_ERD_ADDRESS");
+    return null;
+  }
 };
 
 export const getHerotagFromErdAddress = async (
@@ -20,13 +27,13 @@ export const getHerotagFromErdAddress = async (
 };
 
 export const normalizeHerotag = (herotag: string): string => {
-  return herotag.endsWith(".elrond")
+  return herotag.endsWith(`${ENV.ELROND_HEROTAG_DOMAIN}`)
     ? herotag.replace("@", "")
     : `${herotag}.elrond`.replace("@", "");
 };
 
-export const computeSentAmount = (amount: string): string => {
-  return String(
+export const computeTransactionAmount = (amount: string): number => {
+  return Number(
     Decimal.set({ precision: amount.length }).mul(amount, Math.pow(10, -18))
   );
 };

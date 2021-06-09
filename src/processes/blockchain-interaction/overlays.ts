@@ -1,8 +1,8 @@
-import { UserType } from "../../models/User";
 import { publisher } from "../../services/redis";
-import { EventData } from "../../types";
+import { EventData } from "../../types/ifttt";
+import { UserType } from "../../types/user";
 
-export const triggerStreamElementsEvent = async (
+export const triggerOverlaysEvent = async (
   eventData: EventData,
   user: UserType
 ): Promise<void> => {
@@ -12,6 +12,7 @@ export const triggerStreamElementsEvent = async (
       room: user.herotag,
       herotag: eventData.herotag,
       amount: eventData.amount,
+      wordingAmount: eventData.wordingAmount,
       message: eventData.data,
     })
   );

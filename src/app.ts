@@ -49,7 +49,7 @@ app.use(requestLoggerMiddleware);
 
 const limiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 1000, // limit each IP to 1000 requests per windowMs
 });
 
 app.set("trust proxy", 1);
@@ -62,7 +62,8 @@ app.use(function(req, res, next) {
   );
   res.setHeader(
     "Content-Security-Policy",
-    "default-src 'self' https:; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; script-src 'self' 'unsafe-inline' https://www.youtube.com https://ajax.googleapis.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; frame-src *; media-src data: 'self' https: blob:; frame-ancestors *;"
+    "default-src * data:; script-src 'self' 'unsafe-inline' https://www.youtube.com https://ajax.googleapis.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; frame-src *; media-src data: 'self' https: blob:; frame-ancestors *;"
+    // "default-src 'self' https:; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; script-src 'self' 'unsafe-inline' https://www.youtube.com https://ajax.googleapis.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; frame-src *; media-src data: 'self' https: blob:; frame-ancestors *;"
   );
   res.header("Access-Control-Allow-Origin", "http://localhost:3000");
   res.header(
@@ -102,10 +103,10 @@ app.use("/files/:fileType/file-name/:fileName", (req, res) => {
 
 app.post("/uploads/:mediaType", async (req, res) => {
   const filename = await new Promise((resolve, reject) => {
-    upload(req, res, function(err: unknown) {
-      if (err) {
-        logger.error(err);
-        reject(err);
+    upload(req, res, function(error: unknown) {
+      if (error) {
+        logger.error("Error uploading media", { error });
+        reject(error);
       }
 
       resolve(req.file.filename);

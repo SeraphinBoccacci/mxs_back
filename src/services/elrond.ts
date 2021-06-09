@@ -1,10 +1,11 @@
 import axios from "axios";
 import { Dns, ProxyProvider } from "elrondjs";
 
-import { ElrondTransaction } from "../types";
+import { ElrondTransaction } from "../types/elrond";
+import { ENV } from "../utils/env";
 import logger from "./logger";
 
-export const proxy = new ProxyProvider("https://gateway.elrond.com");
+export const proxy = new ProxyProvider(`${ENV.ELROND_GATEWAY_URL}`);
 export const dns = new Dns({ provider: proxy });
 
 export const getUpdatedBalance = async (
@@ -20,7 +21,7 @@ export const getUpdatedBalance = async (
 
   try {
     const { data }: Response = await axios.get(
-      `https://api.elrond.com/address/${erdAddress}/balance`
+      `${ENV.ELROND_API_URL}/address/${erdAddress}/balance`
     );
 
     return data?.data?.balance || "";
@@ -39,7 +40,7 @@ export const getLastTransactions = async (
 
   try {
     const { data }: Response = await axios.get(
-      `https://api.elrond.com/address/${erdAddress}/transactions`
+      `${ENV.ELROND_API_URL}/address/${erdAddress}/transactions`
     );
 
     return data?.data?.transactions || [];
@@ -58,7 +59,7 @@ export const getTransactionByHash = async (
 
   try {
     const { data }: Response = await axios.get(
-      `https://api.elrond.com/transaction/${hash}`
+      `${ENV.ELROND_API_URL}/transaction/${hash}`
     );
 
     return data?.data?.transaction;

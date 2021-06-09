@@ -2,13 +2,14 @@
 import { getTime, sub } from "date-fns";
 import mongoose from "mongoose";
 
-import { UserType } from "../../../models/User";
-import { ElrondTransaction } from "../../../types";
-import { findNewIncomingTransactions } from "../";
+import { ElrondTransaction } from "../../../types/elrond";
+import { UserType } from "../../../types/user";
+import { filterNewIncomingTransactions } from "../";
 
 const baseUser = {
   _id: mongoose.Types.ObjectId("6025884242b45cd7572870b3"),
   herotag: "streamparticles.elrond",
+  erdAddress: "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm",
   password: "$2b$10$RzGjFb4jVp77rsiMPOHofOmUzsllH674FnezzIR8Jmjmhr2u1HwXe",
   status: 1,
   createdAt: new Date("2021-02-11T19:40:50.466Z"),
@@ -123,7 +124,7 @@ const hashes = baseLastTxs.map(({ hash }) => hash);
 const lastRestart = getTime(sub(new Date(), { days: 1 })) * 0.001;
 
 describe("Blockchain monitoring unit testing", () => {
-  describe("findNewIncomingTransactions", () => {
+  describe("filterNewIncomingTransactions", () => {
     describe("when there is no last balance snapshot", () => {
       describe("when at least one filter does not match", () => {
         describe("when receiver address does not match target address", () => {
@@ -137,7 +138,7 @@ describe("Blockchain monitoring unit testing", () => {
               status: "success",
             } as ElrondTransaction;
 
-            const txs = findNewIncomingTransactions(
+            const txs = filterNewIncomingTransactions(
               [notMatchingTx, ...baseLastTxs],
               targetErdAdress,
               baseUser as UserType,
@@ -158,7 +159,7 @@ describe("Blockchain monitoring unit testing", () => {
               status: "success",
             } as ElrondTransaction;
 
-            const txs = findNewIncomingTransactions(
+            const txs = filterNewIncomingTransactions(
               [notMatchingTx, ...baseLastTxs],
               targetErdAdress,
               { ...(baseUser as UserType), streamingStartDate: null },
@@ -180,7 +181,7 @@ describe("Blockchain monitoring unit testing", () => {
               status: "success",
             } as ElrondTransaction;
 
-            const txs = findNewIncomingTransactions(
+            const txs = filterNewIncomingTransactions(
               [notMatchingTx, ...baseLastTxs],
               targetErdAdress,
               baseUser as UserType,
@@ -201,7 +202,7 @@ describe("Blockchain monitoring unit testing", () => {
               status: "success",
             } as ElrondTransaction;
 
-            const txs = findNewIncomingTransactions(
+            const txs = filterNewIncomingTransactions(
               [notMatchingTx, ...baseLastTxs],
               targetErdAdress,
               baseUser as UserType,
@@ -223,7 +224,7 @@ describe("Blockchain monitoring unit testing", () => {
               status: "failed",
             } as ElrondTransaction;
 
-            const txs = findNewIncomingTransactions(
+            const txs = filterNewIncomingTransactions(
               [notMatchingTx, ...baseLastTxs],
               targetErdAdress,
               baseUser as UserType,
@@ -247,7 +248,7 @@ describe("Blockchain monitoring unit testing", () => {
             status: "success",
           } as ElrondTransaction;
 
-          const txs = findNewIncomingTransactions(
+          const txs = filterNewIncomingTransactions(
             [matchingTx, ...baseLastTxs],
             targetErdAdress,
             baseUser as UserType,
@@ -289,7 +290,7 @@ describe("Blockchain monitoring unit testing", () => {
             status: "success",
           } as ElrondTransaction;
 
-          const txs = findNewIncomingTransactions(
+          const txs = filterNewIncomingTransactions(
             [matchingTx1, matchingTx2, matchingTx3, ...baseLastTxs],
             targetErdAdress,
             baseUser as UserType,

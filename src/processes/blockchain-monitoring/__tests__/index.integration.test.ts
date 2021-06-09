@@ -1,20 +1,21 @@
 import { getTime, sub } from "date-fns";
 import mongoose from "mongoose";
 
-import User, { UserType } from "../../../models/User";
+import User from "../../../models/User";
 
 jest.mock("../../../services/elrond");
 import * as elrond from "../../../services/elrond";
-import { ElrondTransaction } from "../../../types";
+import { ElrondTransaction } from "../../../types/elrond";
 
-jest.mock("../../../redis");
-import * as redis from "../../../redis";
+jest.mock("../../../services/redis");
+import * as redis from "../../../services/redis";
 
 jest.mock("../../../utils/poll");
 import * as poll from "../../../utils/poll";
 
 jest.mock("../../blockchain-interaction");
 import { connectToDatabase } from "../../../services/mongoose";
+import { UserType } from "../../../types/user";
 import {
   balanceHandler,
   launchBlockchainMonitoring,
@@ -22,10 +23,14 @@ import {
   toggleBlockchainMonitoring,
 } from "../";
 
+const targetErdAdress =
+  "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
+
 const baseUser = {
   _id: mongoose.Types.ObjectId(),
   herotag: "streamparticles.elrond",
   password: "$2b$10$RzGjFb4jVp77rsiMPOHofOmUzsllH674FnezzIR8Jmjmhr2u1HwXe",
+  erdAddress: targetErdAdress,
   status: 1,
   createdAt: new Date("2021-02-11T19:40:50.466Z"),
   updatedAt: new Date("2021-02-15T20:34:04.218Z"),
@@ -41,9 +46,6 @@ const baseUser = {
   isStreaming: true,
   streamingStartDate: sub(new Date(), { hours: 4 }),
 };
-
-const targetErdAdress =
-  "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm";
 
 const baseLastTxs: ElrondTransaction[] = [
   {
@@ -613,7 +615,7 @@ describe("Maiar integration testing", () => {
     beforeAll(() => mockedPoll.poll.mockClear());
 
     test("", async () => {
-      await launchBlockchainMonitoring(baseUser.herotag, baseUser);
+      await launchBlockchainMonitoring(baseUser.erdAddress, baseUser);
 
       expect(mockedPoll.poll).toHaveBeenCalledTimes(1);
       expect(mockedPoll.poll).toHaveBeenCalledWith(
@@ -673,10 +675,14 @@ describe("Maiar integration testing", () => {
 
     describe("when user is toggling on", () => {
       const mockedPoll = poll as jest.Mocked<typeof poll>;
+      const mockedElrond = elrond as jest.Mocked<typeof elrond>;
+
       let createdUser: UserType;
 
       beforeAll(async () => {
         createdUser = (await User.create(baseUser)).toObject();
+
+        mockedElrond.dns.resolve = jest.fn().mockResolvedValue(targetErdAdress);
       });
 
       afterAll(async () => {

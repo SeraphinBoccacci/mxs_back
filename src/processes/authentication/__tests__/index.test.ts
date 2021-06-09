@@ -98,6 +98,8 @@ describe("auth unit testing", () => {
 
         await User.create({
           herotag: "streamparticles.elrond",
+          erdAddress:
+            "erd17s4tupfaju64mw3z472j7l0wau08zyzcqlz0ew5f5qh0luhm43zspvhgsm",
           verificationStartDate: new Date(),
           verificationReference: "test",
           password: "test",
