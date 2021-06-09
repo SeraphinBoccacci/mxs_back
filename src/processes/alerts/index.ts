@@ -5,8 +5,6 @@ import { AlertVariation, TextPositions } from "../../types/alerts";
 import { VariationGroup, VariationGroupKinds } from "../../types/overlays";
 import { normalizeHerotag } from "../../utils/transactions";
 
-//TEST
-
 const payloadToAlertVariation = (payload: AlertVariation): AlertVariation => {
   return {
     _id: payload._id,
