@@ -35,6 +35,8 @@ const OverlaysSchema = new Schema({
   generatedLink: { type: String, required: false },
   alerts: { type: AlertSchema, required: false },
   isActive: { type: Boolean, required: false },
+  name: { type: String, required: true },
+  color: { type: String, required: true },
   donationBar: { type: DonationBarSchema, required: false },
 });
 

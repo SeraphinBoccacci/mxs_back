@@ -16,7 +16,7 @@ import poll from "../../utils/poll";
 import { normalizeHerotag } from "../../utils/transactions";
 import { reactToManyTransactions } from "../blockchain-interaction";
 
-export const findNewIncomingTransactions = (
+export const filterNewIncomingTransactions = (
   transactions: ElrondTransaction[],
   erdAddress: string,
   user: UserType,
@@ -35,8 +35,9 @@ export const findNewIncomingTransactions = (
   };
 
   // Filters below are also taken into account in reactToNewTransaction fn
-  // decoded data should not included banned words
+  // decoded data should not include banned words
   // transaction amount should be above minimum amount set up by the user
+  // transaction herotag should not be banned by the user
   return transactions.filter(
     ({ receiver, timestamp, hash, status, sender }: ElrondTransaction) => {
       return (
@@ -69,7 +70,7 @@ export const transactionsHandler = (
       user.erdAddress
     );
 
-    const newTransactions = findNewIncomingTransactions(
+    const newTransactions = filterNewIncomingTransactions(
       transactions,
       user.erdAddress,
       user,

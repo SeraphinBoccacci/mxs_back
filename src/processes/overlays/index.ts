@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { nanoid } from "nanoid";
 
+import { colors } from "../../constants/colors";
 import User from "../../models/User";
 import {
   DonationBar,
@@ -13,6 +14,16 @@ import {
   WidgetsKinds,
 } from "../../types/overlays";
 import { normalizeHerotag } from "../../utils/transactions";
+
+const randomColor = (): string => {
+  const colorsCount = colors.length;
+
+  const randomIndex = Math.floor(Math.random() * colorsCount);
+
+  const color = colors[randomIndex];
+
+  return color.value;
+};
 
 export const getUserOverlay = async (
   herotag: string,
@@ -44,11 +55,25 @@ export const getManyUserOverlays = async (
 };
 
 export const createOverlay = async (herotag: string): Promise<void> => {
+  const user = await User.findOne({
+    herotag: normalizeHerotag(herotag),
+  })
+    .select({ "integrations.overlays": true })
+    .lean();
+
   await User.updateOne(
     {
       herotag: normalizeHerotag(herotag),
     },
-    { $push: { "integrations.overlays": { generatedLink: nanoid(50) } } }
+    {
+      $push: {
+        "integrations.overlays": {
+          generatedLink: nanoid(50),
+          color: randomColor(),
+          name: `Overlay ${(user?.integrations?.overlays?.length || 0) + 1}`,
+        },
+      },
+    }
   );
 };
 
@@ -134,4 +159,22 @@ export const addWidgetToOverlay = async (
 
     return;
   }
+};
+
+export const updateOverlayName = async (
+  herotag: string,
+  overlayId: string,
+  overlayName: string
+): Promise<void> => {
+  await User.updateOne(
+    {
+      herotag: normalizeHerotag(herotag),
+      "integrations.overlays._id": overlayId,
+    },
+    {
+      $set: {
+        "integrations.overlays.$.name": overlayName,
+      },
+    }
+  );
 };
