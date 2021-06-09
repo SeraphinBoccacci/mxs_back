@@ -183,7 +183,7 @@ describe("Alert Variations integration test", () => {
             {
               _id: overlayId,
               name: "test",
-              color: "test",
+              // color: "test",
               alerts: {
                 variations: [
                   {
