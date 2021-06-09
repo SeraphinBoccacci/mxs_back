@@ -11,6 +11,7 @@ export enum UserAccountStatus {
 
 export interface UserType {
   _id: mongoose.Types.ObjectId;
+  ex: string;
   password?: string;
   pendingPassword?: string;
   herotag: string;
