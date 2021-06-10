@@ -27,9 +27,6 @@ jobs:
       # https://stackoverflow.com/questions/58527269/add-mongodb-to-circle-ci
       - setup_remote_docker
 
-      # Install the latest npm - the node Orb takes care of it
-      - node/install-npm
-
       # Next, the node orb's install-packages step will install the dependencies from a package.json.
       # The orb install-packages step will also automatically cache them for faster future runs.
       - node/install-packages
@@ -79,7 +76,7 @@ workflows:
   # For more details on extending your workflow, see the configuration docs: https://circleci.com/docs/2.0/configuration-reference/#workflows
   build-project:
     jobs:
-      - build:
+      - build
       - test:
           requires:
             - build
