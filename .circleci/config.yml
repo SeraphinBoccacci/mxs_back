@@ -66,6 +66,10 @@ jobs:
           command: npm run test
 
       - run:
+          name: Check coverage
+          command: npm run coverage
+
+      - run:
           name: Check Linter
           command: npm run lint
 
