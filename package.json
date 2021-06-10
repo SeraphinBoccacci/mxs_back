@@ -12,6 +12,7 @@
     "dev": "NODE_ENV=development nodemon --config nodemon.json src/index.ts",
     "dev:debug": "NODE_ENV=development nodemon --config nodemon.json --inspect-brk src/index.ts",
     "test": "export $(cat .env.test) && npx jest --detectOpenHandles --forceExit",
+    "coverage": "export $(cat .env.test) && npx jest --detectOpenHandles --forceExit --coverage",
     "lint": "eslint src --ext .ts",
     "prepare": "husky install"
   },
