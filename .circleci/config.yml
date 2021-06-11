@@ -104,8 +104,7 @@ workflows:
       - test:
           requires:
             - build
-      - hold:
-          type: approval
+      - deploy-production:
           requires:
             - build
             - test
@@ -113,17 +112,10 @@ workflows:
             branches:
               only:
                 - main
-                - development
-      - deploy-production:
-          requires:
-            - hold
-          filters:
-            branches:
-              only:
-                - main
       - deploy-staging:
           requires:
-            - hold
+            - build
+            - test
           filters:
             branches:
               only:
