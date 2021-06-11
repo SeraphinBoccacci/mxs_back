@@ -49,4 +49,4 @@ echo "${DATE} Dump complete: $ARCHIVE_NAME.tar.xz" >> $LOGFILE
 echo "" >> $LOGFILE
 
 # Echo again so will show up in cronjob email
-echo "${DATE} Dump complete: $ARCHIVE_NAME.tar.xz" 
+echo "${DATE} Dump complete: $ARCHIVE_NAME.tar.xz"

@@ -81,7 +81,7 @@ jobs:
 
     steps:
       - checkout
-      - run: ssh -oStrictHostKeyChecking=no -v $USER@$IP "~/scripts/deploy-back-staging.sh"
+      - run: ssh -o StrictHostKeyChecking=no ${USER}@${IP} "~/scripts/deploy-back-staging.sh"
 
   deploy-production:
     docker:
@@ -91,7 +91,7 @@ jobs:
 
     steps:
       - checkout
-      - run: ssh -oStrictHostKeyChecking=no -v $USER@$IP "~/scripts/deploy-back-production.sh"
+      - run: ssh -o StrictHostKeyChecking=no ${USER}@${IP} "~/scripts/deploy-back-production.sh"
 
 workflows:
   # Below is the definition of your workflow.
