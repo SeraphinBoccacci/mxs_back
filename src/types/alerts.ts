@@ -15,16 +15,9 @@ export interface Image {
   animation?: Animation;
 }
 
-export enum TextPositions {
-  top = "top",
-  bottom = "bottom",
-  right = "right",
-  left = "left",
-  over = "over",
-}
-
 export interface AlertText extends Text {
-  position?: TextPositions;
+  offsetTop?: number;
+  offsetLeft?: number;
   animation?: Animation;
 }
 
@@ -55,7 +48,6 @@ export enum AlertVariationLenses {
   "heigth" = "heigth",
   "offsetTop" = "offsetTop",
   "offsetLeft" = "offsetLeft",
-  "position" = "position",
   "sound_soundPath" = "sound_soundPath",
   "sound_soundDelay" = "sound_soundDelay",
   "sound_soundOffset" = "sound_soundOffset",
@@ -68,7 +60,8 @@ export enum AlertVariationLenses {
   "image_animation_exit_type" = "image_animation_exit_type",
   "image_animation_exit_duration" = "image_animation_exit_duration",
   "image_animation_exit_offset" = "image_animation_exit_offset",
-  "text_position" = "text_position",
+  "text_offsetTop" = "text_offsetTop",
+  "text_offsetLeft" = "text_offsetLeft",
   "text_content" = "text_content",
   "text_width" = "text_width",
   "text_height" = "text_height",
@@ -99,7 +92,6 @@ export interface AlertVariationData {
   heigth?: number;
   offsetTop?: number;
   offsetLeft?: number;
-  position?: string;
   sound_soundPath?: string;
   sound_soundDelay?: string;
   sound_soundOffset?: string;
@@ -112,7 +104,8 @@ export interface AlertVariationData {
   image_animation_exit_type?: string;
   image_animation_exit_duration?: string;
   image_animation_exit_offset?: string;
-  text_position?: string;
+  text_offsetTop?: string;
+  text_offsetLeft?: string;
   text_content?: string;
   text_width?: string;
   text_height?: string;
