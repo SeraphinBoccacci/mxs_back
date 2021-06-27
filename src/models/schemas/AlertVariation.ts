@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 
-import { TextPositions } from "../../types/alerts";
 import {
   EnterAnimationTypes,
   ExitAnimationTypes,
@@ -53,7 +52,8 @@ export const VariationSchema = new mongoose.Schema({
   },
   text: {
     type: {
-      position: { type: String, required: false, default: TextPositions.top },
+      offsetTop: { type: Number, default: 0 },
+      offsetLeft: { type: Number, default: 0 },
       content: {
         type: String,
         required: false,

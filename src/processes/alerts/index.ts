@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 import User from "../../models/User";
-import { AlertVariation, TextPositions } from "../../types/alerts";
+import { AlertVariation } from "../../types/alerts";
 import { VariationGroup, VariationGroupKinds } from "../../types/overlays";
 import { normalizeHerotag } from "../../utils/transactions";
 
@@ -40,7 +40,8 @@ const payloadToAlertVariation = (payload: AlertVariation): AlertVariation => {
       },
     },
     text: {
-      position: payload?.text?.position || TextPositions.top,
+      offsetTop: payload?.text?.offsetTop || 0,
+      offsetLeft: payload?.text?.offsetLeft || 0,
       content:
         payload?.text?.content || "You can display whatever you want here",
       width: payload?.text?.width || 300,

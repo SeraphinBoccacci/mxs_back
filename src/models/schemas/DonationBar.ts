@@ -5,7 +5,6 @@ import {
   DonationBarDisplays,
   InBarAmountDisplay,
   LogoAnimations,
-  TextPositions,
 } from "../../types/donationBar";
 import { TextStyles } from "../../types/style";
 
@@ -33,11 +32,8 @@ const DonationBarTextStroke = new mongoose.Schema(
 
 const DonationBarText = new mongoose.Schema(
   {
-    position: {
-      type: String,
-      enum: TextPositions,
-      default: TextPositions.TopLeft,
-    },
+    offsetTop: { type: Number, default: 0 },
+    offsetLeft: { type: Number, default: 0 },
     content: {
       type: String,
       required: false,
