@@ -9,7 +9,6 @@ import {
   isCircleDisplay,
   isLineDisplay,
   LineDisplaySettings,
-  TextPositions,
 } from "../../types/donationBar";
 import { normalizeHerotag } from "../../utils/transactions";
 
@@ -66,8 +65,8 @@ const payloadToDonationBar = (payload: Partial<DonationBar>): DonationBar => {
     displaySettings: resolveDisplaySettings(),
     donationGoalAmount: { value: payload?.donationGoalAmount?.value || 1 },
     donationBarDescription: {
-      position:
-        payload?.donationBarDescription?.position || TextPositions.TopLeft,
+      offsetLeft: payload?.donationBarDescription?.offsetLeft || 0,
+      offsetTop: payload?.donationBarDescription?.offsetTop || 0,
       content: payload?.donationBarDescription?.content,
       width: payload?.donationBarDescription?.width,
       height: payload?.donationBarDescription?.height,
