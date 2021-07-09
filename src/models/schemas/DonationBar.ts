@@ -47,6 +47,10 @@ const DonationBarText = new mongoose.Schema(
     wordSpacing: { type: String, required: false },
     textAlign: { type: String, required: false },
     textStyle: { type: [String], enum: TextStyles, required: false },
+    fontFamily: {
+      type: String,
+      required: false,
+    },
     stroke: {
       type: DonationBarTextStroke,
       required: false,

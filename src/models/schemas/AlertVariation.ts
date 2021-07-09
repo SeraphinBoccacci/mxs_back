@@ -36,8 +36,8 @@ export const VariationSchema = new mongoose.Schema({
   sound: {
     type: {
       soundPath: { type: String, required: false },
-      soundDelay: { type: String, required: false },
-      soundOffset: { type: String, required: false },
+      soundDelay: { type: Number, required: false },
+      soundOffset: { type: Number, required: false },
     },
     required: false,
   },
@@ -77,6 +77,10 @@ export const VariationSchema = new mongoose.Schema({
       },
       textStyle: {
         type: [{ type: String, enum: TextStyles }],
+        required: false,
+      },
+      fontFamily: {
+        type: String,
         required: false,
       },
       animation: { type: AnimationSchema, required: false },

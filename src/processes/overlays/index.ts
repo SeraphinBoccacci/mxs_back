@@ -1,3 +1,4 @@
+import { uniq } from "lodash";
 import mongoose from "mongoose";
 import { nanoid } from "nanoid";
 
@@ -177,4 +178,31 @@ export const updateOverlayName = async (
       },
     }
   );
+};
+
+export const getOverlayFonts = async (
+  herotag: string,
+  overlayLink: string
+): Promise<string[]> => {
+  const user = await User.findOne({
+    herotag: normalizeHerotag(herotag),
+    "integrations.overlays.generatedLink": overlayLink,
+  })
+    .select({ "integrations.overlays.$": true })
+    .orFail(new Error("USER_NOT_FOUND"))
+    .lean();
+
+  const overlay = user?.integrations?.overlays?.[0];
+
+  if (!overlay) throw new Error("OVERLAY_NOT_FOUND");
+
+  const { alerts, donationBar } = overlay;
+
+  const alertsFonts = alerts.variations
+    .map((alert) => alert.text?.fontFamily)
+    .filter(Boolean) as string[];
+
+  const donationBarFont = donationBar?.donationBarDescription?.fontFamily;
+
+  return uniq([...alertsFonts, ...(donationBarFont ? [donationBarFont] : [])]);
 };

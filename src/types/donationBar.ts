@@ -125,6 +125,7 @@ export enum DonationBarLenses {
   "donationBarDescription_wordSpacing" = "donationBarDescription_wordSpacing",
   "donationBarDescription_textAlign" = "donationBarDescription_textAlign",
   "donationBarDescription_textStyle" = "donationBarDescription_textStyle",
+  "donationBarDescription_fontFamily" = "donationBarDescription_fontFamily",
   "donationBarDescription_stroke_width" = "donationBarDescription_stroke_width",
   "donationBarDescription_stroke_color" = "donationBarDescription_stroke_color",
   "border_color" = "border_color",
@@ -164,6 +165,7 @@ export interface DonationBarData {
   donationBarDescription_wordSpacing?: string;
   donationBarDescription_textAlign?: string;
   donationBarDescription_textStyle?: TextStyles[];
+  donationBarDescription_fontFamily?: string;
   donationBarDescription_stroke_width?: number;
   donationBarDescription_stroke_color?: string;
   border_color?: string;

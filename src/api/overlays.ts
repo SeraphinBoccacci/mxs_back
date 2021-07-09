@@ -5,6 +5,7 @@ import {
   createOneOverlay,
   deleteOverlay,
   getManyUserOverlays,
+  getOverlayFonts,
   getUserOverlay,
   updateOverlayName,
 } from "../controllers/overlays";
@@ -39,6 +40,10 @@ Router.route("/overlays/add-widget").post(
 Router.route("/overlays/overlay-name").post(
   authenticateMiddleware,
   updateOverlayName
+);
+
+Router.route("/overlays/fonts/herotag/:herotag/overlay/:overlayLink").get(
+  getOverlayFonts
 );
 
 export default Router;

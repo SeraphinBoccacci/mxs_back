@@ -67,3 +67,14 @@ export const updateOverlayName = async (
 
   res.sendStatus(204);
 };
+
+export const getOverlayFonts = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { herotag, overlayLink } = req.params;
+
+  const fonts = await overlaysProcesses.getOverlayFonts(herotag, overlayLink);
+
+  res.send(fonts);
+};

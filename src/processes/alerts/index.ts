@@ -57,6 +57,7 @@ const payloadToAlertVariation = (payload: AlertVariation): AlertVariation => {
         color: payload.text?.stroke?.color || "#000000",
       },
       textStyle: payload?.text?.textStyle,
+      fontFamily: payload?.text?.fontFamily,
       animation: {
         enter: {
           type: payload?.text?.animation?.enter?.type,
