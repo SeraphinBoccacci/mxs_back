@@ -15,6 +15,7 @@ export interface Text {
   wordSpacing?: string;
   textAlign?: string;
   textStyle?: TextStyles[];
+  fontFamily?: string;
   stroke?: {
     color?: string;
     width?: number;

@@ -77,6 +77,7 @@ const payloadToDonationBar = (payload: Partial<DonationBar>): DonationBar => {
       wordSpacing: payload?.donationBarDescription?.wordSpacing,
       textAlign: payload?.donationBarDescription?.textAlign,
       textStyle: payload?.donationBarDescription?.textStyle,
+      fontFamily: payload?.donationBarDescription?.fontFamily,
       stroke: {
         color: payload?.donationBarDescription?.stroke?.color,
         width: payload?.donationBarDescription?.stroke?.width,
