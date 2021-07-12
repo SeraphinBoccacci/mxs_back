@@ -44,8 +44,8 @@ const baseVariation: AlertVariation = {
   heigth: 200,
   sound: {
     soundPath: "/audios_0003.mp3",
-    soundDelay: "10",
-    soundOffset: "10",
+    soundDelay: 10,
+    soundOffset: 10,
   },
   image: {
     imagePath: "/images_00001.png",

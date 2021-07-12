@@ -4,8 +4,8 @@ import { Animation, Text, TextStyles } from "./style";
 
 export interface Sound {
   soundPath?: string;
-  soundDelay?: string;
-  soundOffset?: string;
+  soundDelay?: number;
+  soundOffset?: number;
 }
 
 export interface Image {
@@ -72,6 +72,7 @@ export enum AlertVariationLenses {
   "text_wordSpacing" = "text_wordSpacing",
   "text_textAlign" = "text_textAlign",
   "text_textStyle" = "text_textStyle",
+  "text_fontFamily" = "text_fontFamily",
   "text_stroke_width" = "text_stroke_width",
   "text_stroke_color" = "text_stroke_color",
   "text_animation_enter_type" = "text_animation_enter_type",
@@ -93,8 +94,8 @@ export interface AlertVariationData {
   offsetTop?: number;
   offsetLeft?: number;
   sound_soundPath?: string;
-  sound_soundDelay?: string;
-  sound_soundOffset?: string;
+  sound_soundDelay?: number;
+  sound_soundOffset?: number;
   image_imagePath?: string;
   image_width?: string;
   image_height?: string;
@@ -118,6 +119,7 @@ export interface AlertVariationData {
   text_wordSpacing?: string;
   text_textAlign?: string;
   text_textStyle?: TextStyles[];
+  text_fontFamily?: TextStyles[];
   text_animation_enter_type?: string;
   text_animation_enter_duration?: string;
   text_animation_enter_delay?: string;
